@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon - Launching Q4 2025</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure custom colors and font for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-blue': '#1e40af',
+                        'primary-light': '#3b82f6',
+                        'bg-dark': '#0f172a',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Apply the custom font and smooth background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Dark background */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main Content Container -->
+    <div class="w-full max-w-2xl bg-white shadow-2xl rounded-xl p-8 md:p-12 text-center transform hover:scale-[1.01] transition duration-300 ease-in-out border-t-8 border-primary-light">
+
+        <!-- Logo/Icon Placeholder -->
+        <div class="mb-6">
+            <svg class="w-16 h-16 mx-auto text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 mb-4 tracking-tight">
+            We're Launching Soon!
+        </h1>
+
+        <!-- Subtext -->
+        <p class="text-xl md:text-2xl text-gray-600 mb-8">
+            The future of <strong class="text-primary-blue">[Your Product Name]</strong> is almost here. Get ready for something amazing in Q4 2025.
+        </p>
+
+        <!-- Countdown Placeholder (Optional - could be implemented with JS) -->
+        <div class="flex justify-center space-x-4 mb-10">
+            <div class="p-3 bg-primary-light text-white rounded-lg shadow-md">
+                <span class="block text-3xl md:text-5xl font-bold">00</span>
+                <span class="block text-sm uppercase">Days</span>
+            </div>
+            <div class="p-3 bg-primary-light text-white rounded-lg shadow-md">
+                <span class="block text-3xl md:text-5xl font-bold">00</span>
+                <span class="block text-sm uppercase">Hours</span>
+            </div>
+            <div class="p-3 bg-primary-light text-white rounded-lg shadow-md">
+                <span class="block text-3xl md:text-5xl font-bold">00</span>
+                <span class="block text-sm uppercase">Minutes</span>
+            </div>
+        </div>
+
+        <!-- Email Subscription Form -->
+        <div id="form-container">
+            <p class="text-lg text-gray-700 mb-4 font-semibold">
+                Be the first to know when we go live.
+            </p>
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 max-w-lg mx-auto">
+                <input
+                    type="email"
+                    id="email-input"
+                    placeholder="Enter your email address"
+                    class="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent transition"
+                >
+                <button
+                    id="subscribe-button"
+                    onclick="handleSubscribe()"
+                    class="px-6 py-3 bg-primary-blue text-white font-bold rounded-lg shadow-lg hover:bg-primary-light transition transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-primary-light active:bg-primary-blue"
+                >
+                    Notify Me
+                </button>
+            </div>
+            <!-- Message area for success/error -->
+            <p id="message-box" class="mt-4 text-sm font-medium h-5"></p>
+        </div>
+
+
+    </div>
+
+    <script>
+        // Simple JavaScript function to handle the subscription click
+        function handleSubscribe() {
+            const emailInput = document.getElementById('email-input');
+            const messageBox = document.getElementById('message-box');
+            const email = emailInput.value.trim();
+
+            if (email === "") {
+                messageBox.textContent = "Please enter a valid email address.";
+                messageBox.classList.remove('text-green-600');
+                messageBox.classList.add('text-red-600');
+            } else if (!email.includes('@') || !email.includes('.')) {
+                messageBox.textContent = "Invalid email format.";
+                messageBox.classList.remove('text-green-600');
+                messageBox.classList.add('text-red-600');
+            } else {
+                // In a real application, you would send this email to your backend service (e.g., Firebase, Mailchimp API, etc.)
+                console.log("Subscribing email:", email);
+                messageBox.textContent = "Thanks for subscribing! We'll notify you soon.";
+                messageBox.classList.remove('text-red-600');
+                messageBox.classList.add('text-green-600');
+                emailInput.value = ''; // Clear the input
+            }
+        }
+
+        // Note: The countdown numbers (00) are static placeholders. For a real countdown, you'd use JavaScript
+        // to calculate the difference between the current date and the launch date, and update the DOM elements.
+    </script>
+</body>
+</html>
