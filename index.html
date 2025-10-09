@@ -324,8 +324,8 @@
         ctx.fillRect(0, 0, 32, 32);
         const particleTexture = new THREE.CanvasTexture(canvas2d);
 
-        // Create varied particle system - MANY more particles
-        const particleCount = 15000;
+        // Create varied particle system - optimized count, better distribution
+        const particleCount = 35000;
         const particles = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const sizes = new Float32Array(particleCount);
@@ -334,16 +334,17 @@
 
         for (let i = 0; i < particleCount; i++) {
             const i3 = i * 3;
-            positions[i3] = (Math.random() - 0.5) * 30;
-            positions[i3 + 1] = (Math.random() - 0.5) * 30;
-            positions[i3 + 2] = (Math.random() - 0.5) * 15;
+            // Concentrate particles closer to camera view
+            positions[i3] = (Math.random() - 0.5) * 18;
+            positions[i3 + 1] = (Math.random() - 0.5) * 18;
+            positions[i3 + 2] = (Math.random() - 0.5) * 8;
             
             originalPositions[i3] = positions[i3];
             originalPositions[i3 + 1] = positions[i3 + 1];
             originalPositions[i3 + 2] = positions[i3 + 2];
             
-            // Much smaller particles
-            sizes[i] = Math.random() * 0.03 + 0.005;
+            // Varied particle sizes
+            sizes[i] = Math.random() * 0.04 + 0.008;
             
             velocities.push({
                 x: (Math.random() - 0.5) * 0.01,
@@ -357,10 +358,10 @@
 
         // Particle material - very faint circular particles
         const particleMaterial = new THREE.PointsMaterial({
-            size: 0.015,
+            size: 0.02,
             color: 0xe8f4f5,
             transparent: true,
-            opacity: 0.15,
+            opacity: 0.18,
             sizeAttenuation: true,
             blending: THREE.NormalBlending,
             map: particleTexture,
@@ -370,28 +371,28 @@
         const particleSystem = new THREE.Points(particles, particleMaterial);
         scene.add(particleSystem);
 
-        // Add second layer with even more particles
-        const particleCount2 = 10000;
+        // Add second layer
+        const particleCount2 = 25000;
         const particles2 = new THREE.BufferGeometry();
         const positions2 = new Float32Array(particleCount2 * 3);
         const sizes2 = new Float32Array(particleCount2);
 
         for (let i = 0; i < particleCount2; i++) {
             const i3 = i * 3;
-            positions2[i3] = (Math.random() - 0.5) * 35;
-            positions2[i3 + 1] = (Math.random() - 0.5) * 35;
-            positions2[i3 + 2] = (Math.random() - 0.5) * 18;
-            sizes2[i] = Math.random() * 0.02 + 0.003;
+            positions2[i3] = (Math.random() - 0.5) * 22;
+            positions2[i3 + 1] = (Math.random() - 0.5) * 22;
+            positions2[i3 + 2] = (Math.random() - 0.5) * 10;
+            sizes2[i] = Math.random() * 0.03 + 0.005;
         }
 
         particles2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
         particles2.setAttribute('size', new THREE.BufferAttribute(sizes2, 1));
 
         const particleMaterial2 = new THREE.PointsMaterial({
-            size: 0.01,
+            size: 0.015,
             color: 0xd0e8e9,
             transparent: true,
-            opacity: 0.08,
+            opacity: 0.12,
             sizeAttenuation: true,
             blending: THREE.NormalBlending,
             map: particleTexture,
@@ -401,28 +402,28 @@
         const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
         scene.add(particleSystem2);
 
-        // Add third layer for even more depth
-        const particleCount3 = 8000;
+        // Add third layer - background depth
+        const particleCount3 = 20000;
         const particles3 = new THREE.BufferGeometry();
         const positions3 = new Float32Array(particleCount3 * 3);
         const sizes3 = new Float32Array(particleCount3);
 
         for (let i = 0; i < particleCount3; i++) {
             const i3 = i * 3;
-            positions3[i3] = (Math.random() - 0.5) * 40;
-            positions3[i3 + 1] = (Math.random() - 0.5) * 40;
-            positions3[i3 + 2] = (Math.random() - 0.5) * 20;
-            sizes3[i] = Math.random() * 0.015 + 0.002;
+            positions3[i3] = (Math.random() - 0.5) * 26;
+            positions3[i3 + 1] = (Math.random() - 0.5) * 26;
+            positions3[i3 + 2] = (Math.random() - 0.5) * 12;
+            sizes3[i] = Math.random() * 0.025 + 0.004;
         }
 
         particles3.setAttribute('position', new THREE.BufferAttribute(positions3, 3));
         particles3.setAttribute('size', new THREE.BufferAttribute(sizes3, 1));
 
         const particleMaterial3 = new THREE.PointsMaterial({
-            size: 0.008,
+            size: 0.012,
             color: 0xbcd8d5,
             transparent: true,
-            opacity: 0.05,
+            opacity: 0.08,
             sizeAttenuation: true,
             blending: THREE.NormalBlending,
             map: particleTexture,
@@ -487,9 +488,9 @@
                 const dy = mouseY * 5 - positions[i + 1];
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                // Very gentle push from cursor
-                if (distance < 3) {
-                    const force = (3 - distance) * 0.015;
+                // Very gentle push from cursor - much smaller radius
+                if (distance < 1.2) {
+                    const force = (1.2 - distance) * 0.012;
                     positions[i] -= dx * force;
                     positions[i + 1] -= dy * force;
                 }
