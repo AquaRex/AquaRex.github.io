@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Portfolio - Projects</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Base styles for dark underwater theme */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background-color: #1f3d38; /* Base color for transition */
+            overflow-x: hidden;
+        }
+        /* Three.js Canvas: fixed background layer */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        /* Content Overlay: main scrollable layer */
+        .content-overlay {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(to bottom, 
+                rgba(21, 45, 40, 0.6) 0%, /* Dark semi-transparent top */
+                rgba(21, 45, 40, 0.8) 10%, 
+                rgba(21, 45, 40, 0.95) 40%, /* Heavy transparency mid-scroll */
+                rgba(21, 45, 40, 0.98) 70%,
+                #152d28 100% /* Near-solid dark bottom */
+            );
+            /* Smooth background color transition effect when scrolling */
+            backdrop-filter: blur(2px);
+            color: #d0e8dc;
+        }
+        /* Custom scrollbar for webkit (Chrome, Safari) for a cleaner look */
+        .content-overlay::-webkit-scrollbar {
+            width: 8px;
+        }
+        .content-overlay::-webkit-scrollbar-thumb {
+            background-color: rgba(240, 208, 96, 0.3);
+            border-radius: 4px;
+        }
+        .content-overlay::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        /* Project Card Styling */
+        .project-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform, box-shadow;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(240, 208, 96, 0.2);
+        }
+        .project-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(240, 208, 96, 0.1);
+        }
+        .project-image {
+            width: 100%;
+            height: 12rem; /* Fixed height for consistency */
+            object-fit: cover; /* Ensures image covers the area, cropping if necessary */
+        }
+    </style>
+</head>
+<body>
+    <!-- Three.js Canvas --><canvas id="canvas3d"></canvas>
+    
+    <!-- Main Scrollable Content --><div class="content-overlay">
+
+        <!-- Header --><header class="max-w-7xl mx-auto py-8">
+            <h1 class="text-5xl font-extrabold text-[#f0d060] drop-shadow-lg tracking-wider uppercase mb-2">My Portfolio</h1>
+            <p class="text-xl text-[#b8cfc0] font-light">A showcase of interactive games, simulations, and tools.</p>
+        </header>
+
+        <!-- Project Grid --><main class="max-w-7xl mx-auto py-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+
+                <!-- Project Card 1: RPG Title --><div class="project-card bg-[#28433d] rounded-xl overflow-hidden cursor-pointer">
+                    <img src="https://via.placeholder.com/600x400/3a6855/f0d060?text=Starlight+Citadel" alt="Starlight Citadel project screenshot" class="project-image">
+                    <div class="p-6">
+                        <div class="text-[#f0d060] text-3xl mb-3">
+                            <i class="fa-solid fa-dragon"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Starlight Citadel (RPG)</h3>
+                        <p class="text-sm text-[#b8cfc0] mb-4">A vast, open-world fantasy RPG built in Unreal Engine 5, focusing on dynamic weather and deep character customization.</p>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">UE5</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">C++</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Procedural Gen</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#1f3d38] p-4 text-right">
+                        <a href="#" class="text-[#f0d060] hover:text-white transition-colors font-medium">View Project <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <!-- Project Card 2: Simulation Title --><div class="project-card bg-[#28433d] rounded-xl overflow-hidden cursor-pointer">
+                    <img src="https://via.placeholder.com/600x400/4c7a6b/e0c850?text=Fluid+Dynamics+Sim" alt="Fluid Dynamics Simulation screenshot" class="project-image">
+                    <div class="p-6">
+                        <div class="text-[#f0d060] text-3xl mb-3">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Fluid Dynamics Sim</h3>
+                        <p class="text-sm text-[#b8cfc0] mb-4">A WebGL-based real-time simulation demonstrating complex particle flow and buoyancy using custom shaders.</p>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Three.js</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">GLSL</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">React</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#1f3d38] p-4 text-right">
+                        <a href="#" class="text-[#f0d060] hover:text-white transition-colors font-medium">View Project <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <!-- Project Card 3: Mobile Game Title --><div class="project-card bg-[#28433d] rounded-xl overflow-hidden cursor-pointer">
+                    <img src="https://via.placeholder.com/600x400/5e8c7c/d0e8dc?text=Neon+Blitz+Mobile" alt="Neon Blitz Mobile Game screenshot" class="project-image">
+                    <div class="p-6">
+                        <div class="text-[#f0d060] text-3xl mb-3">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Neon Blitz (Mobile Arcade)</h3>
+                        <p class="text-sm text-[#b8cfc0] mb-4">A fast-paced, highly optimized 2D arcade game built with Unity for iOS and Android platforms.</p>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Unity</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">C#</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Optimized</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#1f3d38] p-4 text-right">
+                        <a href="#" class="text-[#f0d060] hover:text-white transition-colors font-medium">View Project <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <!-- Project Card 4: Tool/Engine Title --><div class="project-card bg-[#28433d] rounded-xl overflow-hidden cursor-pointer">
+                    <img src="https://via.placeholder.com/600x400/3a6855/f0d060?text=ECS+Editor" alt="Custom ECS Editor screenshot" class="project-image">
+                    <div class="p-6">
+                        <div class="text-[#f0d060] text-3xl mb-3">
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Custom ECS Editor</h3>
+                        <p class="text-sm text-[#b8cfc0] mb-4">A custom Entity Component System (ECS) editor built from scratch using TypeScript for rapid prototyping.</p>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">TypeScript</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">ECS</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Web App</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#1f3d38] p-4 text-right">
+                        <a href="#" class="text-[#f0d060] hover:text-white transition-colors font-medium">View Project <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Project Card 5: Multiplayer --><div class="project-card bg-[#28433d] rounded-xl overflow-hidden cursor-pointer">
+                    <img src="https://via.placeholder.com/600x400/4c7a6b/e0c850?text=Multiplayer+Demo" alt="Zero-Latency Multiplayer screenshot" class="project-image">
+                    <div class="p-6">
+                        <div class="text-[#f0d060] text-3xl mb-3">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Zero-Latency Multiplayer</h3>
+                        <p class="text-sm text-[#b8cfc0] mb-4">Demonstration of client-side prediction and server reconciliation for seamless competitive online play.</p>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">WebSockets</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Node.js</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Networking</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#1f3d38] p-4 text-right">
+                        <a href="#" class="text-[#f0d060] hover:text-white transition-colors font-medium">View Project <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <!-- Project Card 6: Mock Project --><div class="project-card bg-[#28433d] rounded-xl overflow-hidden cursor-pointer">
+                    <img src="https://via.placeholder.com/600x400/5e8c7c/d0e8dc?text=Voxel+World" alt="Voxel World Generator screenshot" class="project-image">
+                    <div class="p-6">
+                        <div class="text-[#f0d060] text-3xl mb-3">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Voxel World Generator</h3>
+                        <p class="text-sm text-[#b8cfc0] mb-4">A GPU-accelerated voxel engine that generates infinite, destructible terrain in real-time.</p>
+                        <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">C#</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Unity Jobs</span>
+                            <span class="bg-[#3a6855] text-white px-3 py-1 rounded-full">Voxel</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#1f3d38] p-4 text-right">
+                        <a href="#" class="text-[#f0d060] hover:text-white transition-colors font-medium">View Project <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Footer --><footer class="max-w-7xl mx-auto py-12 text-center text-sm text-[#8caba1]">
+            <p>&copy; 2024 Your Name | Game Developer Portfolio. Built with Three.js and Tailwind CSS.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Global variables must be outside the load listener but must be defined before use
+        let mouseX = 0,
+            mouseY = 0;
+
+        // --- Three.js Variables (Declared Globally) ---
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        // Slightly decreased fog density
+        scene.fog = new THREE.FogExp2(0x1f3d38, 0.08); 
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true
+        });
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0x3a6855, 0.1); 
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.1); 
+        directionalLight.position.set(-5, 8, 3);
+        scene.add(directionalLight);
+
+        const cursorPointLight = new THREE.PointLight(0xf0d060, 1.5, 30); 
+        cursorPointLight.position.set(0, 0, 5);
+        scene.add(cursorPointLight);
+
+        const cursorAmbientLight = new THREE.PointLight(0xe0c850, 0.8, 25); 
+        cursorAmbientLight.position.set(0, 0, 4);
+        scene.add(cursorAmbientLight);
+        
+        // --- Particle System Setup ---
+        const canvas2d = document.createElement('canvas');
+        canvas2d.width = 32;
+        canvas2d.height = 32;
+        const ctx = canvas2d.getContext('2d');
+        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        const particleTexture = new THREE.CanvasTexture(canvas2d);
+
+        // Particle layer 1 (Foreground) - Opacity increased
+        const particleCount = 35000;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const velocities = [];
+        const originalPositions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            positions[i3] = (Math.random() - 0.5) * 18;
+            positions[i3 + 1] = (Math.random() - 0.5) * 18;
+            positions[i3 + 2] = (Math.random() - 0.5) * 8;
+
+            originalPositions[i3] = positions[i3];
+            originalPositions[i3 + 1] = positions[i3 + 1];
+            originalPositions[i3 + 2] = positions[i3 + 2];
+
+            colors[i3] = 0.8;
+            colors[i3 + 1] = 0.9;
+            colors[i3 + 2] = 0.8;
+
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.01,
+                y: (Math.random() - 0.5) * 0.008 + 0.003,
+                z: (Math.random() - 0.5) * 0.01
+            });
+        }
+
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.035,
+            transparent: true,
+            opacity: 0.2, // Opacity increased from 0.15
+            sizeAttenuation: true,
+            blending: THREE.AdditiveBlending,
+            map: particleTexture,
+            depthWrite: false,
+            vertexColors: true
+        });
+
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+
+        // Particle layer 2 (Mid-ground) - Opacity increased
+        const particleCount2 = 25000;
+        const particles2 = new THREE.BufferGeometry();
+        const positions2 = new Float32Array(particleCount2 * 3);
+
+        for (let i = 0; i < particleCount2; i++) {
+            const i3 = i * 3;
+            positions2[i3] = (Math.random() - 0.5) * 22;
+            positions2[i3 + 1] = (Math.random() - 0.5) * 22;
+            positions2[i3 + 2] = (Math.random() - 0.5) * 10;
+        }
+
+        particles2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
+
+        const particleMaterial2 = new THREE.PointsMaterial({
+            size: 0.022,
+            color: 0xc5d5b0,
+            transparent: true,
+            opacity: 0.18, // Opacity increased from 0.12
+            sizeAttenuation: true,
+            blending: THREE.AdditiveBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
+        scene.add(particleSystem2);
+
+        // Particle layer 3 (Far background) - Opacity increased
+        const particleCount3 = 20000;
+        const particles3 = new THREE.BufferGeometry();
+        const positions3 = new Float32Array(particleCount3 * 3);
+
+        for (let i = 0; i < particleCount3; i++) {
+            const i3 = i * 3;
+            positions3[i3] = (Math.random() - 0.5) * 26;
+            positions3[i3 + 1] = (Math.random() - 0.5) * 26;
+            positions3[i3 + 2] = (Math.random() - 0.5) * 12;
+        }
+
+        particles3.setAttribute('position', new THREE.BufferAttribute(positions3, 3));
+
+        const particleMaterial3 = new THREE.PointsMaterial({
+            size: 0.018,
+            color: 0xb5d5c5,
+            transparent: true,
+            opacity: 0.12, // Opacity increased from 0.08
+            sizeAttenuation: true,
+            blending: THREE.AdditiveBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem3 = new THREE.Points(particles3, particleMaterial3);
+        scene.add(particleSystem3);
+
+        // --- Kelp Generation ---
+        const kelpGroup = new THREE.Group();
+        const kelpCount = 50;
+        const kelpMaterial = new THREE.MeshLambertMaterial({
+            color: 0x3d664c,
+            transparent: true,
+            opacity: 0.35, // Opacity increased from 0.3
+            side: THREE.DoubleSide
+        });
+
+        function createKelp(height) {
+            const kelpStalk = new THREE.Group();
+            const stalkSegments = 5;
+            const segmentHeight = height / stalkSegments;
+
+            for (let i = 0; i < stalkSegments; i++) {
+                const cylinderGeometry = new THREE.CylinderGeometry(0.05, 0.08, segmentHeight, 4);
+                const segment = new THREE.Mesh(cylinderGeometry, kelpMaterial);
+
+                segment.position.y = (i * segmentHeight) + (segmentHeight / 2);
+                segment.rotation.x = Math.random() * 0.2 - 0.1;
+                segment.rotation.z = Math.random() * 0.2 - 0.1;
+                kelpStalk.add(segment);
+
+                if (i > 0 && i % 2 === 0) {
+                    const leafCount = Math.floor(Math.random() * 3) + 2;
+                    for (let j = 0; j < leafCount; j++) {
+                        const leafGeometry = new THREE.PlaneGeometry(0.3 + Math.random() * 0.4, 1.0 + Math.random() * 1.5, 1, 1);
+                        const leaf = new THREE.Mesh(leafGeometry, kelpMaterial);
+                        
+                        leaf.position.set(
+                            (Math.random() - 0.5) * 0.2,
+                            segment.position.y + (Math.random() - 0.5) * segmentHeight * 0.8,
+                            (Math.random() - 0.5) * 0.2
+                        );
+                        leaf.rotation.y = Math.random() * Math.PI * 2;
+                        leaf.rotation.z = Math.random() * 0.6 - 0.3;
+                        kelpStalk.add(leaf);
+                    }
+                }
+            }
+            return kelpStalk;
+        }
+
+        const kelpObjects = [];
+
+        for (let i = 0; i < kelpCount; i++) {
+            const kelpZ = (Math.random() * -25) - 5;
+            const depthFactor = (kelpZ + 5) / -25;
+            const minHeight = 4;
+            const maxHeight = 12;
+            const height = minHeight + depthFactor * (maxHeight - minHeight);
+
+            const kelp = createKelp(height);
+
+            kelp.position.set(
+                (Math.random() - 0.5) * 30,
+                -12 - (Math.random() * 3),
+                kelpZ
+            );
+
+            kelp.rotation.y = Math.random() * Math.PI * 2;
+            kelpGroup.add(kelp);
+            kelpObjects.push(kelp);
+        }
+        scene.add(kelpGroup);
+
+        // --- Initial Setup and Animation Loop ---
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x1f3d38, 1);
+        camera.position.z = 5;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const lightX = mouseX * 10;
+            const lightY = mouseY * 10;
+
+            // Update subtle background lighting position
+            cursorPointLight.position.x = lightX;
+            cursorPointLight.position.y = lightY;
+            cursorAmbientLight.position.x = lightX;
+            cursorAmbientLight.position.y = lightY;
+
+            const easingFactorCamera = 0.05;
+
+            // Subtle Camera Parallax
+            camera.position.x += (mouseX * 0.2 - camera.position.x) * easingFactorCamera;
+            camera.position.y += (mouseY * 0.2 - camera.position.y) * easingFactorCamera;
+            camera.lookAt(scene.position);
+            
+            // Particle Layer 1 Logic
+            const positions = particleSystem.geometry.attributes.position.array;
+            const colors = particleSystem.geometry.attributes.color.array;
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                // Subtle interaction with cursor light (less aggressive force)
+                const dx = mouseX * 5 - positions[i];
+                const dy = mouseY * 5 - positions[i + 1];
+                const dz = 3 - positions[i + 2];
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                if (distance < 1.0) { // Smaller radius
+                    const force = (1.0 - distance) * 0.008; // Less force
+                    positions[i] -= dx * force;
+                    positions[i + 1] -= dy * force;
+                    positions[i + 2] -= dz * force;
+                }
+
+                // Color lighting effect (subtle glow)
+                const lightDistance = Math.sqrt(
+                    Math.pow(lightX - positions[i], 2) +
+                    Math.pow(lightY - positions[i + 1], 2) +
+                    Math.pow(5 - positions[i + 2], 2)
+                );
+
+                const maxLightDistance = 8;
+                let lightIntensity = 0;
+                if (lightDistance < maxLightDistance) {
+                    lightIntensity = Math.pow(1 - (lightDistance / maxLightDistance), 3);
+                    lightIntensity *= 1.2;
+                }
+
+                const baseR = 0.8;
+                const baseG = 0.9;
+                const baseB = 0.8;
+                const lightR = 0.9;
+                const lightG = 0.8;
+                const lightB = 0.4;
+
+                colors[i] = baseR + (lightR - baseR) * lightIntensity;
+                colors[i + 1] = baseG + (lightG - baseG) * lightIntensity;
+                colors[i + 2] = baseB + (lightB - baseB) * lightIntensity;
+
+                // Particle drift and reset (slowed down)
+                positions[i] += velocities[i / 3].x * 0.5;
+                positions[i + 1] += velocities[i / 3].y * 0.5;
+                positions[i + 2] += velocities[i / 3].z * 0.5;
+
+                positions[i] += (originalPositions[i] - positions[i]) * 0.003;
+                positions[i + 1] += (originalPositions[i + 1] - positions[i + 1]) * 0.003;
+                positions[i + 2] += (originalPositions[i + 2] - positions[i + 2]) * 0.003;
+
+
+                if (Math.abs(positions[i]) > 18) positions[i] = originalPositions[i] * -1;
+                if (Math.abs(positions[i + 1]) > 18) positions[i + 1] = originalPositions[i + 1] * -1;
+                if (Math.abs(positions[i + 2]) > 10) positions[i + 2] = originalPositions[i + 2] * -1;
+            }
+
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+            particleSystem.geometry.attributes.color.needsUpdate = true;
+
+            // Layer 2 & 3 drift (slowed down)
+            const positions2 = particleSystem2.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount2 * 3; i += 3) {
+                positions2[i + 1] += 0.003;
+                if (positions2[i + 1] > 17) positions2[i + 1] = -17;
+            }
+            particleSystem2.geometry.attributes.position.needsUpdate = true;
+
+            const positions3 = particleSystem3.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount3 * 3; i += 3) {
+                positions3[i] += 0.0015;
+                positions3[i + 1] += 0.002;
+                if (positions3[i + 1] > 20) positions3[i + 1] = -20;
+                if (Math.abs(positions3[i]) > 20) positions3[i] = positions3[i] * -1;
+            }
+            particleSystem3.geometry.attributes.position.needsUpdate = true;
+
+            // Kelp Animation (slowed down)
+            const time = performance.now() * 0.00005; 
+            kelpObjects.forEach((kelp, index) => {
+                kelp.rotation.x = Math.sin(time + index * 0.5) * 0.03; 
+                kelp.rotation.z = Math.cos(time + index * 0.3) * 0.03; 
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('load', () => {
+            const handleMove = e => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                // Normalised mouse coordinates (for Three.js)
+                mouseX = (clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(clientY / window.innerHeight) * 2 + 1;
+            };
+            
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove);
+
+            animate(); // Start the animation loop
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
