@@ -3,128 +3,544 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon - Launching Q4 2025</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configure custom colors and font for Tailwind -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'primary-blue': '#1e40af',
-                        'primary-light': '#3b82f6',
-                        'bg-dark': '#0f172a',
-                    }
-                }
+    <title>Game Developer Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: linear-gradient(to bottom, #3a6b6d 0%, #2d5a5c 30%, #26534f 60%, #1f4a42 100%);
+        }
+
+        /* 3D Canvas Background */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Main content container */
+        .content {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+            padding: 2rem;
+            pointer-events: none;
+        }
+
+        .content * {
+            pointer-events: auto;
+        }
+
+        /* Logo/Brand */
+        .brand {
+            margin-bottom: 2rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        .brand h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            text-shadow: 0 0 30px rgba(200, 230, 235, 0.5),
+                         0 0 60px rgba(200, 230, 235, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+            transition: transform 0.3s ease;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px rgba(200, 230, 235, 0.3),
+                           0 0 40px rgba(200, 230, 235, 0.2);
+            }
+            to {
+                text-shadow: 0 0 30px rgba(200, 230, 235, 0.6),
+                           0 0 60px rgba(200, 230, 235, 0.4),
+                           0 0 90px rgba(200, 230, 235, 0.3);
             }
         }
-    </script>
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* Apply the custom font and smooth background */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Dark background */
+
+        .brand h2 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            color: #b8d8db;
+            transition: transform 0.3s ease;
+        }
+
+        /* Tagline */
+        .tagline {
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            opacity: 0.85;
+            max-width: 600px;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease 0.3s backwards;
+            transition: transform 0.3s ease;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            background: rgba(184, 216, 219, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(184, 216, 219, 0.3);
+            border-radius: 50px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.6s backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(184, 216, 219, 0.2);
+            transition: left 0.5s ease;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(184, 216, 219, 0.3);
+            border-color: rgba(184, 216, 219, 0.5);
+            background: rgba(184, 216, 219, 0.2);
+        }
+
+        /* Social Links - Bottom */
+        .social-container {
+            position: fixed;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            animation: fadeInUp 1s ease 0.9s backwards;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .social-link {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(184, 216, 219, 0.08);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            border: 2px solid rgba(184, 216, 219, 0.25);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .social-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(184, 216, 219, 0.25);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s ease;
+        }
+
+        .social-link:hover::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .social-link:hover {
+            transform: translateY(-8px) scale(1.1);
+            box-shadow: 0 15px 40px rgba(184, 216, 219, 0.4);
+            border-color: rgba(184, 216, 219, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .brand h1 {
+                font-size: 3rem;
+                letter-spacing: 4px;
+            }
+            .brand h2 {
+                font-size: 1.2rem;
+            }
+            .tagline {
+                font-size: 1.1rem;
+            }
+            .social-container {
+                bottom: 2rem;
+            }
+            .social-links {
+                gap: 1rem;
+            }
+            .social-link {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body>
+    <!-- 3D Canvas -->
+    <canvas id="canvas3d"></canvas>
 
-    <!-- Main Content Container -->
-    <div class="w-full max-w-2xl bg-white shadow-2xl rounded-xl p-8 md:p-12 text-center transform hover:scale-[1.01] transition duration-300 ease-in-out border-t-8 border-primary-light">
-
-        <!-- Logo/Icon Placeholder -->
-        <div class="mb-6">
-            <svg class="w-16 h-16 mx-auto text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+    <!-- Main Content -->
+    <div class="content">
+        <div class="brand">
+            <h1>YOUR NAME</h1>
+            <h2>Game Developer</h2>
         </div>
-
-        <!-- Headline -->
-        <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            We're Launching Soon!
-        </h1>
-
-        <!-- Subtext -->
-        <p class="text-xl md:text-2xl text-gray-600 mb-8">
-            The future of <strong class="text-primary-blue">[Your Product Name]</strong> is almost here. Get ready for something amazing in Q4 2025.
+        <p class="tagline">
+            Creating immersive gaming experiences that push the boundaries of interactive entertainment
         </p>
-
-        <!-- Countdown Placeholder (Optional - could be implemented with JS) -->
-        <div class="flex justify-center space-x-4 mb-10">
-            <div class="p-3 bg-primary-light text-white rounded-lg shadow-md">
-                <span class="block text-3xl md:text-5xl font-bold">00</span>
-                <span class="block text-sm uppercase">Days</span>
-            </div>
-            <div class="p-3 bg-primary-light text-white rounded-lg shadow-md">
-                <span class="block text-3xl md:text-5xl font-bold">00</span>
-                <span class="block text-sm uppercase">Hours</span>
-            </div>
-            <div class="p-3 bg-primary-light text-white rounded-lg shadow-md">
-                <span class="block text-3xl md:text-5xl font-bold">00</span>
-                <span class="block text-sm uppercase">Minutes</span>
-            </div>
-        </div>
-
-        <!-- Email Subscription Form -->
-        <div id="form-container">
-            <p class="text-lg text-gray-700 mb-4 font-semibold">
-                Be the first to know when we go live.
-            </p>
-            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 max-w-lg mx-auto">
-                <input
-                    type="email"
-                    id="email-input"
-                    placeholder="Enter your email address"
-                    class="flex-grow p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent transition"
-                >
-                <button
-                    id="subscribe-button"
-                    onclick="handleSubscribe()"
-                    class="px-6 py-3 bg-primary-blue text-white font-bold rounded-lg shadow-lg hover:bg-primary-light transition transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-primary-light active:bg-primary-blue"
-                >
-                    Notify Me
-                </button>
-            </div>
-            <!-- Message area for success/error -->
-            <p id="message-box" class="mt-4 text-sm font-medium h-5"></p>
-        </div>
-
-
+        <a href="#" class="cta-button">View My Work</a>
     </div>
 
-    <script>
-        // Simple JavaScript function to handle the subscription click
-        function handleSubscribe() {
-            const emailInput = document.getElementById('email-input');
-            const messageBox = document.getElementById('message-box');
-            const email = emailInput.value.trim();
+    <!-- Social Links -->
+    <div class="social-container">
+        <div class="social-links">
+            <a href="#" class="social-link" title="Twitter" aria-label="Twitter">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-link" title="YouTube" aria-label="YouTube">
+                <i class="fab fa-youtube"></i>
+            </a>
+            <a href="#" class="social-link" title="Twitch" aria-label="Twitch">
+                <i class="fab fa-twitch"></i>
+            </a>
+            <a href="#" class="social-link" title="Discord" aria-label="Discord">
+                <i class="fab fa-discord"></i>
+            </a>
+            <a href="#" class="social-link" title="GitHub" aria-label="GitHub">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="#" class="social-link" title="Instagram" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+    </div>
 
-            if (email === "") {
-                messageBox.textContent = "Please enter a valid email address.";
-                messageBox.classList.remove('text-green-600');
-                messageBox.classList.add('text-red-600');
-            } else if (!email.includes('@') || !email.includes('.')) {
-                messageBox.textContent = "Invalid email format.";
-                messageBox.classList.remove('text-green-600');
-                messageBox.classList.add('text-red-600');
-            } else {
-                // In a real application, you would send this email to your backend service (e.g., Firebase, Mailchimp API, etc.)
-                console.log("Subscribing email:", email);
-                messageBox.textContent = "Thanks for subscribing! We'll notify you soon.";
-                messageBox.classList.remove('text-red-600');
-                messageBox.classList.add('text-green-600');
-                emailInput.value = ''; // Clear the input
-            }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js Scene Setup
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x26534f, 0.035);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x26534f, 1);
+        camera.position.z = 5;
+
+        // Add ambient light for underwater atmosphere
+        const ambientLight = new THREE.AmbientLight(0x5a8e85, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x7aaeaa, 0.4);
+        directionalLight.position.set(3, 5, 5);
+        scene.add(directionalLight);
+
+        // Create texture for circular particles
+        const canvas2d = document.createElement('canvas');
+        canvas2d.width = 32;
+        canvas2d.height = 32;
+        const ctx = canvas2d.getContext('2d');
+        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        const particleTexture = new THREE.CanvasTexture(canvas2d);
+
+        // Create varied particle system - MANY more particles
+        const particleCount = 15000;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const sizes = new Float32Array(particleCount);
+        const velocities = [];
+        const originalPositions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            positions[i3] = (Math.random() - 0.5) * 30;
+            positions[i3 + 1] = (Math.random() - 0.5) * 30;
+            positions[i3 + 2] = (Math.random() - 0.5) * 15;
+            
+            originalPositions[i3] = positions[i3];
+            originalPositions[i3 + 1] = positions[i3 + 1];
+            originalPositions[i3 + 2] = positions[i3 + 2];
+            
+            // Much smaller particles
+            sizes[i] = Math.random() * 0.03 + 0.005;
+            
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.01,
+                y: (Math.random() - 0.5) * 0.008 + 0.003,
+                z: (Math.random() - 0.5) * 0.01
+            });
         }
 
-        // Note: The countdown numbers (00) are static placeholders. For a real countdown, you'd use JavaScript
-        // to calculate the difference between the current date and the launch date, and update the DOM elements.
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particles.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        // Particle material - very faint circular particles
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.015,
+            color: 0xe8f4f5,
+            transparent: true,
+            opacity: 0.15,
+            sizeAttenuation: true,
+            blending: THREE.NormalBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+
+        // Add second layer with even more particles
+        const particleCount2 = 10000;
+        const particles2 = new THREE.BufferGeometry();
+        const positions2 = new Float32Array(particleCount2 * 3);
+        const sizes2 = new Float32Array(particleCount2);
+
+        for (let i = 0; i < particleCount2; i++) {
+            const i3 = i * 3;
+            positions2[i3] = (Math.random() - 0.5) * 35;
+            positions2[i3 + 1] = (Math.random() - 0.5) * 35;
+            positions2[i3 + 2] = (Math.random() - 0.5) * 18;
+            sizes2[i] = Math.random() * 0.02 + 0.003;
+        }
+
+        particles2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
+        particles2.setAttribute('size', new THREE.BufferAttribute(sizes2, 1));
+
+        const particleMaterial2 = new THREE.PointsMaterial({
+            size: 0.01,
+            color: 0xd0e8e9,
+            transparent: true,
+            opacity: 0.08,
+            sizeAttenuation: true,
+            blending: THREE.NormalBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
+        scene.add(particleSystem2);
+
+        // Add third layer for even more depth
+        const particleCount3 = 8000;
+        const particles3 = new THREE.BufferGeometry();
+        const positions3 = new Float32Array(particleCount3 * 3);
+        const sizes3 = new Float32Array(particleCount3);
+
+        for (let i = 0; i < particleCount3; i++) {
+            const i3 = i * 3;
+            positions3[i3] = (Math.random() - 0.5) * 40;
+            positions3[i3 + 1] = (Math.random() - 0.5) * 40;
+            positions3[i3 + 2] = (Math.random() - 0.5) * 20;
+            sizes3[i] = Math.random() * 0.015 + 0.002;
+        }
+
+        particles3.setAttribute('position', new THREE.BufferAttribute(positions3, 3));
+        particles3.setAttribute('size', new THREE.BufferAttribute(sizes3, 1));
+
+        const particleMaterial3 = new THREE.PointsMaterial({
+            size: 0.008,
+            color: 0xbcd8d5,
+            transparent: true,
+            opacity: 0.05,
+            sizeAttenuation: true,
+            blending: THREE.NormalBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem3 = new THREE.Points(particles3, particleMaterial3);
+        scene.add(particleSystem3);
+
+        // Mouse tracking
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Parallax effect on content
+        const brandElement = document.querySelector('.brand');
+        const taglineElement = document.querySelector('.tagline');
+
+        document.addEventListener('mousemove', (event) => {
+            const xAxis = (window.innerWidth / 2 - event.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - event.pageY) / 25;
+            
+            if (brandElement) {
+                brandElement.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            }
+            if (taglineElement) {
+                taglineElement.style.transform = `translateX(${-xAxis}px) translateY(${-yAxis}px)`;
+            }
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth camera movement based on mouse
+            targetX = mouseX * 0.5;
+            targetY = mouseY * 0.5;
+            
+            camera.position.x += (targetX - camera.position.x) * 0.05;
+            camera.position.y += (targetY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            // Very slow rotation for organic feel
+            particleSystem.rotation.y += 0.0002;
+            particleSystem2.rotation.y -= 0.0003;
+            particleSystem2.rotation.x += 0.0001;
+            particleSystem3.rotation.y += 0.00015;
+            particleSystem3.rotation.x -= 0.00008;
+
+            // Animate particles
+            const positions = particleSystem.geometry.attributes.position.array;
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                // Calculate distance from mouse in 3D space
+                const dx = mouseX * 5 - positions[i];
+                const dy = mouseY * 5 - positions[i + 1];
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Very gentle push from cursor
+                if (distance < 3) {
+                    const force = (3 - distance) * 0.015;
+                    positions[i] -= dx * force;
+                    positions[i + 1] -= dy * force;
+                }
+                
+                // Gentle organic drift
+                positions[i] += velocities[i / 3].x;
+                positions[i + 1] += velocities[i / 3].y;
+                positions[i + 2] += velocities[i / 3].z;
+                
+                // Return to original position slowly
+                positions[i] += (originalPositions[i] - positions[i]) * 0.005;
+                positions[i + 1] += (originalPositions[i + 1] - positions[i + 1]) * 0.005;
+                positions[i + 2] += (originalPositions[i + 2] - positions[i + 2]) * 0.005;
+                
+                // Boundary check
+                if (Math.abs(positions[i]) > 18) velocities[i / 3].x *= -1;
+                if (Math.abs(positions[i + 1]) > 18) velocities[i / 3].y *= -1;
+                if (Math.abs(positions[i + 2]) > 10) velocities[i / 3].z *= -1;
+            }
+            
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+
+            // Animate second layer - slow upward drift
+            const positions2 = particleSystem2.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount2 * 3; i += 3) {
+                positions2[i + 1] += 0.005;
+                if (positions2[i + 1] > 17) positions2[i + 1] = -17;
+            }
+            particleSystem2.geometry.attributes.position.needsUpdate = true;
+
+            // Animate third layer - very slow drift
+            const positions3 = particleSystem3.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount3 * 3; i += 3) {
+                positions3[i] += 0.003;
+                positions3[i + 1] += 0.004;
+                if (positions3[i + 1] > 20) positions3[i + 1] = -20;
+                if (Math.abs(positions3[i]) > 20) positions3[i] *= -1;
+            }
+            particleSystem3.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
