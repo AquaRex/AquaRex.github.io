@@ -268,11 +268,11 @@
     <div class="vignette"></div>
     <div class="content">
         <div class="brand">
-            <h1>YOUR NAME</h1>
-            <h2>Game Developer</h2>
+            <h1>AquaRex</h1>
+            <h2>Software Developer</h2>
         </div>
         <p class="tagline">
-            Creating immersive gaming experiences that push the boundaries of interactive entertainment
+            Developing Software and Tools. Sometimes they go public. <br>Don't hesitate to reach out!
         </p>
         <a href="#" class="cta-button">View My Work</a>
     </div>
@@ -349,7 +349,7 @@
         const particleTexture = new THREE.CanvasTexture(canvas2d);
 
         // Particle layer 1 (Foreground)
-        const particleCount = 35000;
+        const particleCount = 10000;
         const particles = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
@@ -395,7 +395,7 @@
         scene.add(particleSystem);
 
         // Particle layer 2 (Mid-ground)
-        const particleCount2 = 25000;
+        const particleCount2 = 7000;
         const particles2 = new THREE.BufferGeometry();
         const positions2 = new Float32Array(particleCount2 * 3);
 
@@ -423,7 +423,7 @@
         scene.add(particleSystem2);
 
         // Particle layer 3 (Far background)
-        const particleCount3 = 20000;
+        const particleCount3 = 4000;
         const particles3 = new THREE.BufferGeometry();
         const positions3 = new Float32Array(particleCount3 * 3);
 
@@ -459,10 +459,10 @@
             // Shaft (cylinder)
             const shaftGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
             const shaftMaterial = new THREE.MeshBasicMaterial({
-                // Increased visual intensity (similar effect to emissive)
+                // Using bright colors and high opacity for 'emissive' effect
                 color: color, 
                 transparent: true,
-                opacity: 1.0 // Set to fully opaque
+                opacity: 1.0 
             });
             const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
             shaft.position.y = 1;
@@ -470,10 +470,10 @@
             // Arrow head (cone)
             const headGeometry = new THREE.ConeGeometry(0.15, 0.4, 8);
             const headMaterial = new THREE.MeshBasicMaterial({
-                // Increased visual intensity (similar effect to emissive)
+                // Using bright colors and high opacity for 'emissive' effect
                 color: color, 
                 transparent: true,
-                opacity: 1.0 // Set to fully opaque
+                opacity: 1.0 
             });
             const head = new THREE.Mesh(headGeometry, headMaterial);
             head.position.y = 2.2;
@@ -487,7 +487,6 @@
             return group;
         }
 
-        // Using brighter/more saturated colors for the 'emissive' effect
         const arrowY = createArrow(0x00FF00, null); // Bright Green - Y axis (up)
         const arrowX = createArrow(0xFF0000, {
             x: 0,
@@ -513,10 +512,10 @@
         const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
         gizmoGroup.add(centerSphere);
 
-        // Gizmo positioned left, slightly up, and far back
-        gizmoGroup.position.set(-6, 2, -25);
+        // Positioning the Gizmo further to the left and smaller
+        gizmoGroup.position.set(-8, 0, -8); // Moved further left (-6 to -8)
         gizmoGroup.rotation.set(Math.PI / 8, Math.PI / 4, 0);
-        gizmoGroup.scale.set(3.0, 3.0, 3.0);
+        gizmoGroup.scale.set(0.8, 0.8, 0.8); 
         scene.add(gizmoGroup);
 
         // --- Kelp Generation ---
@@ -607,14 +606,23 @@
             cursorAmbientLight.position.y = lightY;
             cursorAmbientLight.intensity = 1.5;
 
-            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
-            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+            const easingFactorCamera = 0.05;
+
+            // Camera Parallax
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * easingFactorCamera;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * easingFactorCamera;
             camera.lookAt(scene.position);
 
-            // Gizmo rotation and parallax effect
+            // Gizmo rotation
             gizmoGroup.rotation.y += 0.005;
-            gizmoGroup.position.x = -6 + mouseX * 2; 
-            gizmoGroup.position.y = 2 + mouseY * 2;
+            
+            // Gizmo Parallax with subtle drift and smooth easing (0.05)
+            const gizmoTargetX = -8 + mouseX * 0.2; // X-position further left, multiplier remains subtle
+            const gizmoTargetY = 0 + mouseY * 0.2;
+            
+            // Use the same easing factor as the camera for integration
+            gizmoGroup.position.x += (gizmoTargetX - gizmoGroup.position.x) * easingFactorCamera; 
+            gizmoGroup.position.y += (gizmoTargetY - gizmoGroup.position.y) * easingFactorCamera;
             
             // Particle Layer 1 Logic
             const positions = particleSystem.geometry.attributes.position.array;
