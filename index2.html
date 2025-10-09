@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Developer Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
+        }
+
+        /* 3D Canvas Background */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Sonar pulse effect */
+        .sonar {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            border: 1px solid rgba(220, 180, 60, 0.15);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sonar::before,
+        .sonar::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(220, 180, 60, 0.1);
+        }
+
+        .sonar::before {
+            width: 400px;
+            height: 400px;
+            animation: pulse 4s ease-out infinite;
+        }
+
+        .sonar::after {
+            width: 800px;
+            height: 800px;
+            animation: pulse 4s ease-out infinite 2s;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* Scanline overlay */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.08) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 0, 0, 0.08) 3px
+            );
+            pointer-events: none;
+            z-index: 3;
+            opacity: 0.15;
+        }
+
+        /* Depth indicator */
+        .depth-indicator {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            z-index: 10;
+            color: #d4b83c;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            animation: fadeIn 2s ease;
+            opacity: 0.5;
+        }
+
+        .depth-indicator .depth-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f0d060;
+            text-shadow: 0 0 10px rgba(240, 208, 96, 0.3);
+        }
+
+        /* Main content - centered */
+        .content {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #e8f0eb;
+            padding: 0 2rem;
+        }
+
+        /* Clean heading */
+        .label {
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            color: #f0d060;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            animation: fadeIn 1s ease 0.2s backwards;
+        }
+
+        .name {
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            animation: fadeInUp 1s ease 0.4s backwards;
+            letter-spacing: -1px;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            color: #c8d4b8;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        .bio {
+            max-width: 580px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+            color: #a8bfb0;
+            animation: fadeInUp 1s ease 0.8s backwards;
+            font-weight: 300;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            padding: 1rem 2.5rem;
+            font-size: 0.95rem;
+            background: transparent;
+            border: 1.5px solid rgba(240, 208, 96, 0.6);
+            border-radius: 2px;
+            color: #f0d060;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease 1s backwards;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: rgba(240, 208, 96, 0.1);
+            transition: width 0.4s ease;
+        }
+
+        .cta-button:hover::before {
+            width: 100%;
+        }
+
+        .cta-button:hover {
+            background: rgba(240, 208, 96, 0.08);
+            border-color: rgba(240, 208, 96, 0.9);
+            box-shadow: 0 0 30px rgba(240, 208, 96, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Social links - horizontal row */
+        .social-links {
+            display: flex;
+            gap: 2rem;
+            animation: fadeInUp 1s ease 1.2s backwards;
+        }
+
+        .social-item {
+            color: #c8d4b8;
+            text-decoration: none;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .social-item:hover {
+            color: #f0d060;
+            transform: translateY(-3px);
+        }
+
+        .social-item::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #f0d060;
+            transition: width 0.3s ease;
+        }
+
+        .social-item:hover::after {
+            width: 100%;
+        }
+
+        /* Bottom timestamp */
+        .timestamp {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #8a9f90;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            z-index: 10;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Vignette */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, transparent 20%, rgba(10, 20, 18, 0.5) 80%, rgba(10, 20, 18, 0.8) 100%);
+        }
+
+        /* Yellow equipment glow */
+        .equipment-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(ellipse at 20% 50%, rgba(220, 180, 60, 0.04) 0%, transparent 40%);
+        }
+
+        /* Corner brackets */
+        .corner-tl, .corner-tr, .corner-bl, .corner-br {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(220, 180, 60, 0.25);
+            z-index: 10;
+        }
+
+        .corner-tl {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-tr {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-bl {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-br {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .name {
+                font-size: 3rem;
+            }
+            .title {
+                font-size: 1.1rem;
+            }
+            .bio {
+                font-size: 0.95rem;
+            }
+            .social-links {
+                gap: 1.5rem;
+            }
+            .depth-indicator {
+                top: 20px;
+                right: 20px;
+                font-size: 0.65rem;
+            }
+            .depth-indicator .depth-value {
+                font-size: 1.2rem;
+            }
+            .timestamp {
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Canvas -->
+    <canvas id="canvas3d"></canvas>
+    
+    <!-- UI Overlays -->
+    <div class="equipment-glow"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+    <div class="sonar"></div>
+    
+    <!-- Corner brackets -->
+    <div class="corner-tl"></div>
+    <div class="corner-tr"></div>
+    <div class="corner-bl"></div>
+    <div class="corner-br"></div>
+    
+    <!-- Depth indicator -->
+    <div class="depth-indicator">
+        <div>DEPTH</div>
+        <div class="depth-value">248M</div>
+        <div>PRESSURE: 24.8 BAR</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="label">Game Developer</div>
+        <h1 class="name">Your Name</h1>
+        <p class="title">Creating Immersive Digital Experiences</p>
+        <p class="bio">
+            Specializing in atmospheric game design, underwater worlds, and interactive storytelling. 
+            Passionate about pushing the boundaries of what's possible in digital entertainment.
+        </p>
+        <a href="#" class="cta-button">View Portfolio</a>
+        
+        <div class="social-links">
+            <a href="#" class="social-item" title="Twitter">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-item" title="YouTube">
+                <i class="fab fa-youtube"></i>
+            </a>
+            <a href="#" class="social-item" title="Twitch">
+                <i class="fab fa-twitch"></i>
+            </a>
+            <a href="#" class="social-item" title="Discord">
+                <i class="fab fa-discord"></i>
+            </a>
+            <a href="#" class="social-item" title="GitHub">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="#" class="social-item" title="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Timestamp -->
+    <div class="timestamp" id="timestamp"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            const timestamp = now.toISOString().replace('T', ' ').substring(0, 19);
+            document.getElementById('timestamp').textContent = `UTC: ${timestamp}`;
+        }
+        updateTimestamp();
+        setInterval(updateTimestamp, 1000);
+
+        // Three.js Scene Setup
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x1f3d38, 0.06);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x1f3d38, 1);
+        camera.position.z = 5;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x3a6855, 0.4);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.3);
+        directionalLight.position.set(-5, 8, 3);
+        scene.add(directionalLight);
+
+        // Add subtle yellow accent light (like equipment lights)
+        const accentLight = new THREE.PointLight(0xd4b83c, 0.4, 30);
+        accentLight.position.set(-8, 2, 5);
+        scene.add(accentLight);
+
+        // Create circular particle texture
+        const canvas2d = document.createElement('canvas');
+        canvas2d.width = 32;
+        canvas2d.height = 32;
+        const ctx = canvas2d.getContext('2d');
+        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        const particleTexture = new THREE.CanvasTexture(canvas2d);
+
+        // Main particle layer
+        const particleCount = 40000;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = [];
+        const originalPositions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            positions[i3] = (Math.random() - 0.5) * 20;
+            positions[i3 + 1] = (Math.random() - 0.5) * 20;
+            positions[i3 + 2] = (Math.random() - 0.5) * 10;
+            
+            originalPositions[i3] = positions[i3];
+            originalPositions[i3 + 1] = positions[i3 + 1];
+            originalPositions[i3 + 2] = positions[i3 + 2];
+            
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.008,
+                y: (Math.random() - 0.5) * 0.006 + 0.002,
+                z: (Math.random() - 0.5) * 0.008
+            });
+        }
+
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.025,
+            color: 0xd5e0c5,
+            transparent: true,
+            opacity: 0.22,
+            sizeAttenuation: true,
+            blending: THREE.NormalBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+
+        // Second layer
+        const particleCount2 = 25000;
+        const particles2 = new THREE.BufferGeometry();
+        const positions2 = new Float32Array(particleCount2 * 3);
+
+        for (let i = 0; i < particleCount2; i++) {
+            const i3 = i * 3;
+            positions2[i3] = (Math.random() - 0.5) * 24;
+            positions2[i3 + 1] = (Math.random() - 0.5) * 24;
+            positions2[i3 + 2] = (Math.random() - 0.5) * 12;
+        }
+
+        particles2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
+
+        const particleMaterial2 = new THREE.PointsMaterial({
+            size: 0.018,
+            color: 0xc5d5b0,
+            transparent: true,
+            opacity: 0.15,
+            sizeAttenuation: true,
+            blending: THREE.NormalBlending,
+            map: particleTexture,
+            depthWrite: false
+        });
+
+        const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
+        scene.add(particleSystem2);
+
+        // Mouse tracking
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth camera movement
+            camera.position.x += (mouseX * 0.3 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.3 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            // Rotate particles
+            particleSystem.rotation.y += 0.0001;
+            particleSystem2.rotation.y -= 0.00015;
+
+            // Animate main particles
+            const positions = particleSystem.geometry.attributes.position.array;
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                const dx = mouseX * 5 - positions[i];
+                const dy = mouseY * 5 - positions[i + 1];
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 1.5) {
+                    const force = (1.5 - distance) * 0.01;
+                    positions[i] -= dx * force;
+                    positions[i + 1] -= dy * force;
+                }
+                
+                positions[i] += velocities[i / 3].x;
+                positions[i + 1] += velocities[i / 3].y;
+                positions[i + 2] += velocities[i / 3].z;
+                
+                positions[i] += (originalPositions[i] - positions[i]) * 0.004;
+                positions[i + 1] += (originalPositions[i + 1] - positions[i + 1]) * 0.004;
+                positions[i + 2] += (originalPositions[i + 2] - positions[i + 2]) * 0.004;
+                
+                if (Math.abs(positions[i]) > 15) velocities[i / 3].x *= -1;
+                if (Math.abs(positions[i + 1]) > 15) velocities[i / 3].y *= -1;
+                if (Math.abs(positions[i + 2]) > 8) velocities[i / 3].z *= -1;
+            }
+            
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+
+            // Animate second layer
+            const positions2 = particleSystem2.geometry.attributes.position.array;
+            for (let i = 0; i < particleCount2 * 3; i += 3) {
+                positions2[i + 1] += 0.004;
+                if (positions2[i + 1] > 12) positions2[i + 1] = -12;
+            }
+            particleSystem2.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
