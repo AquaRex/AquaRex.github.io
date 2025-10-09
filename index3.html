@@ -17,7 +17,7 @@
             overflow: hidden;
             height: 100vh;
             width: 100vw;
-            background: linear-gradient(to bottom, #3a6b6d 0%, #2d5a5c 30%, #26534f 60%, #1f4a42 100%);
+            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
         }
 
         /* 3D Canvas Background */
@@ -28,6 +28,22 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+        }
+
+        /* Cursor light effect */
+        .cursor-light {
+            position: fixed;
+            width: 2400px;
+            height: 2400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(240, 208, 96, 0.015) 0%, rgba(240, 208, 96, 0.008) 35%, rgba(240, 208, 96, 0.004) 60%, rgba(240, 208, 96, 0.001) 80%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            filter: blur(80px);
         }
 
         /* Main content container */
@@ -43,16 +59,20 @@
             text-align: center;
             padding: 2rem;
             pointer-events: none;
+            perspective: 1500px;
         }
 
         .content * {
             pointer-events: auto;
         }
 
-        /* Logo/Brand */
+        /* Brand */
         .brand {
             margin-bottom: 2rem;
             animation: fadeInDown 1s ease;
+            transform-style: preserve-3d;
+            will-change: transform;
+            backface-visibility: hidden;
         }
 
         .brand h1 {
@@ -61,21 +81,20 @@
             margin-bottom: 0.5rem;
             text-transform: uppercase;
             letter-spacing: 8px;
-            text-shadow: 0 0 30px rgba(200, 230, 235, 0.5),
-                         0 0 60px rgba(200, 230, 235, 0.3);
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3),
+                         0 10px 20px rgba(0, 0, 0, 0.3);
             animation: glow 2s ease-in-out infinite alternate;
-            transition: transform 0.3s ease;
         }
 
         @keyframes glow {
             from {
-                text-shadow: 0 0 20px rgba(200, 230, 235, 0.3),
-                           0 0 40px rgba(200, 230, 235, 0.2);
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.2),
+                           0 10px 20px rgba(0, 0, 0, 0.2);
             }
             to {
-                text-shadow: 0 0 30px rgba(200, 230, 235, 0.6),
-                           0 0 60px rgba(200, 230, 235, 0.4),
-                           0 0 90px rgba(200, 230, 235, 0.3);
+                text-shadow: 0 0 40px rgba(255, 255, 255, 0.4),
+                           0 0 60px rgba(255, 255, 255, 0.2),
+                           0 10px 30px rgba(0, 0, 0, 0.4);
             }
         }
 
@@ -84,31 +103,31 @@
             font-weight: 300;
             letter-spacing: 4px;
             text-transform: uppercase;
-            opacity: 0.85;
-            color: #b8d8db;
-            transition: transform 0.3s ease;
+            opacity: 0.8;
+            color: #d0e8dc;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         /* Tagline */
         .tagline {
             font-size: 1.4rem;
             margin-bottom: 3rem;
-            opacity: 0.85;
+            opacity: 0.75;
             max-width: 600px;
             line-height: 1.6;
             animation: fadeInUp 1s ease 0.3s backwards;
-            transition: transform 0.3s ease;
+            color: #b8cfc0;
         }
 
         /* CTA Button */
         .cta-button {
             padding: 1.2rem 3rem;
-            font-size: 1.2rem;
-            background: rgba(184, 216, 219, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(184, 216, 219, 0.3);
+            font-size: 1rem;
+            background: rgba(240, 208, 96, 0.12);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(240, 208, 96, 0.5);
             border-radius: 50px;
-            color: #fff;
+            color: #f0d060;
             cursor: pointer;
             transition: all 0.4s ease;
             text-decoration: none;
@@ -117,6 +136,10 @@
             animation: fadeInUp 1s ease 0.6s backwards;
             position: relative;
             overflow: hidden;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         .cta-button::before {
@@ -126,8 +149,8 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: rgba(184, 216, 219, 0.2);
-            transition: left 0.5s ease;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
         }
 
         .cta-button:hover::before {
@@ -136,9 +159,10 @@
 
         .cta-button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 40px rgba(184, 216, 219, 0.3);
-            border-color: rgba(184, 216, 219, 0.5);
-            background: rgba(184, 216, 219, 0.2);
+            box-shadow: 0 0 40px rgba(240, 208, 96, 0.4),
+                        0 10px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(240, 208, 96, 0.8);
+            background: rgba(240, 208, 96, 0.18);
         }
 
         /* Social Links - Bottom */
@@ -153,25 +177,27 @@
 
         .social-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 1.2rem;
             align-items: center;
         }
 
         .social-link {
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            background: rgba(184, 216, 219, 0.08);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            color: #fff;
+            font-size: 1.3rem;
+            color: #d0e8dc;
             text-decoration: none;
-            border: 2px solid rgba(184, 216, 219, 0.25);
+            border: 2px solid rgba(240, 208, 96, 0.3);
             transition: all 0.4s ease;
             position: relative;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
         .social-link::before {
@@ -181,10 +207,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(184, 216, 219, 0.25);
+            background: rgba(240, 208, 96, 0.2);
             border-radius: 50%;
             opacity: 0;
-            transform: scale(0);
+            transform: scale(0.8);
             transition: all 0.4s ease;
         }
 
@@ -194,9 +220,39 @@
         }
 
         .social-link:hover {
-            transform: translateY(-8px) scale(1.1);
-            box-shadow: 0 15px 40px rgba(184, 216, 219, 0.4);
-            border-color: rgba(184, 216, 219, 0.5);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 0 30px rgba(240, 208, 96, 0.4),
+                        0 8px 24px rgba(0, 0, 0, 0.3);
+            border-color: rgba(240, 208, 96, 0.7);
+            color: #f0d060;
+        }
+
+        /* Vignette */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 20, 18, 0.3) 80%, rgba(10, 20, 18, 0.6) 100%);
+        }
+
+        /* Volumetric fog overlay */
+        .fog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: 
+                radial-gradient(ellipse at 30% 40%, rgba(45, 79, 72, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(31, 61, 56, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(21, 45, 40, 0.1) 0%, transparent 50%);
+            opacity: 0.6;
         }
 
         /* Animations */
@@ -231,6 +287,9 @@
             .brand h2 {
                 font-size: 1.2rem;
             }
+            .brand {
+                transform: none !important;
+            }
             .tagline {
                 font-size: 1.1rem;
             }
@@ -251,6 +310,15 @@
 <body>
     <!-- 3D Canvas -->
     <canvas id="canvas3d"></canvas>
+    
+    <!-- Fog overlay -->
+    <div class="fog-overlay"></div>
+    
+    <!-- Cursor light -->
+    <div class="cursor-light" id="cursorLight"></div>
+    
+    <!-- Vignette -->
+    <div class="vignette"></div>
 
     <!-- Main Content -->
     <div class="content">
@@ -290,28 +358,94 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        // Mouse tracking variables
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+        let isMoving = false;
+
+        // Wait for DOM to be ready
+        window.addEventListener('load', () => {
+            // Cursor light effect
+            const cursorLight = document.getElementById('cursorLight');
+            const brandElement = document.querySelector('.brand');
+
+            console.log('Brand element:', brandElement); // Debug
+
+            document.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX;
+                cursorY = e.clientY;
+                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                cursorLight.style.left = cursorX + 'px';
+                cursorLight.style.top = cursorY + 'px';
+                cursorLight.style.opacity = '1';
+                isMoving = true;
+                
+                // 3D card rotation effect (only on desktop)
+                if (brandElement && window.innerWidth > 768) {
+                    const rect = brandElement.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const deltaX = cursorX - centerX;
+                    const deltaY = cursorY - centerY;
+                    
+                    const rotateX = (deltaY / window.innerHeight) * 25;
+                    const rotateY = (deltaX / window.innerWidth) * 25;
+                    
+                    brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
+                }
+                
+                clearTimeout(window.cursorTimeout);
+                window.cursorTimeout = setTimeout(() => {
+                    isMoving = false;
+                }, 100);
+            });
+
+            document.addEventListener('mouseleave', () => {
+                cursorLight.style.opacity = '0';
+                // Reset brand rotation (only on desktop)
+                if (brandElement && window.innerWidth > 768) {
+                    brandElement.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+                }
+            });
+        });
+
         // Three.js Scene Setup
         const canvas = document.getElementById('canvas3d');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x26534f, 0.035);
+        scene.fog = new THREE.FogExp2(0x1f3d38, 0.08);
         
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x26534f, 1);
+        renderer.setClearColor(0x1f3d38, 1);
         camera.position.z = 5;
 
-        // Add ambient light for underwater atmosphere
-        const ambientLight = new THREE.AmbientLight(0x5a8e85, 0.6);
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
         scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0x7aaeaa, 0.4);
-        directionalLight.position.set(3, 5, 5);
+        const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
+        directionalLight.position.set(-5, 8, 3);
         scene.add(directionalLight);
 
-        // Create texture for circular particles
+        // Dynamic light that follows cursor - larger range for volumetric effect
+        const cursorPointLight = new THREE.PointLight(0xf0d060, 2.5, 30);
+        cursorPointLight.position.set(0, 0, 5);
+        scene.add(cursorPointLight);
+
+        // Additional ambient cursor light for softer illumination
+        const cursorAmbientLight = new THREE.PointLight(0xe0c850, 1.2, 25);
+        cursorAmbientLight.position.set(0, 0, 4);
+        scene.add(cursorAmbientLight);
+
+        // Create circular particle texture
         const canvas2d = document.createElement('canvas');
         canvas2d.width = 32;
         canvas2d.height = 32;
@@ -324,17 +458,16 @@
         ctx.fillRect(0, 0, 32, 32);
         const particleTexture = new THREE.CanvasTexture(canvas2d);
 
-        // Create varied particle system - optimized count, better distribution
+        // Main particle layer
         const particleCount = 35000;
         const particles = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
-        const sizes = new Float32Array(particleCount);
+        const colors = new Float32Array(particleCount * 3);
         const velocities = [];
         const originalPositions = new Float32Array(particleCount * 3);
 
         for (let i = 0; i < particleCount; i++) {
             const i3 = i * 3;
-            // Concentrate particles closer to camera view
             positions[i3] = (Math.random() - 0.5) * 18;
             positions[i3 + 1] = (Math.random() - 0.5) * 18;
             positions[i3 + 2] = (Math.random() - 0.5) * 8;
@@ -343,8 +476,10 @@
             originalPositions[i3 + 1] = positions[i3 + 1];
             originalPositions[i3 + 2] = positions[i3 + 2];
             
-            // Varied particle sizes
-            sizes[i] = Math.random() * 0.04 + 0.008;
+            // Base color - greenish tint
+            colors[i3] = 0.8;     // R
+            colors[i3 + 1] = 0.9; // G
+            colors[i3 + 2] = 0.8; // B
             
             velocities.push({
                 x: (Math.random() - 0.5) * 0.01,
@@ -354,47 +489,43 @@
         }
 
         particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        particles.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-        // Particle material - very faint circular particles
         const particleMaterial = new THREE.PointsMaterial({
-            size: 0.02,
-            color: 0xe8f4f5,
+            size: 0.035,
             transparent: true,
-            opacity: 0.18,
+            opacity: 0.25,
             sizeAttenuation: true,
-            blending: THREE.NormalBlending,
+            blending: THREE.AdditiveBlending,
             map: particleTexture,
-            depthWrite: false
+            depthWrite: false,
+            vertexColors: true
         });
 
         const particleSystem = new THREE.Points(particles, particleMaterial);
         scene.add(particleSystem);
 
-        // Add second layer
+        // Second layer
         const particleCount2 = 25000;
         const particles2 = new THREE.BufferGeometry();
         const positions2 = new Float32Array(particleCount2 * 3);
-        const sizes2 = new Float32Array(particleCount2);
 
         for (let i = 0; i < particleCount2; i++) {
             const i3 = i * 3;
             positions2[i3] = (Math.random() - 0.5) * 22;
             positions2[i3 + 1] = (Math.random() - 0.5) * 22;
             positions2[i3 + 2] = (Math.random() - 0.5) * 10;
-            sizes2[i] = Math.random() * 0.03 + 0.005;
         }
 
         particles2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
-        particles2.setAttribute('size', new THREE.BufferAttribute(sizes2, 1));
 
         const particleMaterial2 = new THREE.PointsMaterial({
-            size: 0.015,
-            color: 0xd0e8e9,
+            size: 0.022,
+            color: 0xc5d5b0,
             transparent: true,
-            opacity: 0.12,
+            opacity: 0.22,
             sizeAttenuation: true,
-            blending: THREE.NormalBlending,
+            blending: THREE.AdditiveBlending,
             map: particleTexture,
             depthWrite: false
         });
@@ -402,30 +533,27 @@
         const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
         scene.add(particleSystem2);
 
-        // Add third layer - background depth
+        // Third layer
         const particleCount3 = 20000;
         const particles3 = new THREE.BufferGeometry();
         const positions3 = new Float32Array(particleCount3 * 3);
-        const sizes3 = new Float32Array(particleCount3);
 
         for (let i = 0; i < particleCount3; i++) {
             const i3 = i * 3;
             positions3[i3] = (Math.random() - 0.5) * 26;
             positions3[i3 + 1] = (Math.random() - 0.5) * 26;
             positions3[i3 + 2] = (Math.random() - 0.5) * 12;
-            sizes3[i] = Math.random() * 0.025 + 0.004;
         }
 
         particles3.setAttribute('position', new THREE.BufferAttribute(positions3, 3));
-        particles3.setAttribute('size', new THREE.BufferAttribute(sizes3, 1));
 
         const particleMaterial3 = new THREE.PointsMaterial({
-            size: 0.012,
-            color: 0xbcd8d5,
+            size: 0.018,
+            color: 0xb5d5c5,
             transparent: true,
-            opacity: 0.08,
+            opacity: 0.16,
             sizeAttenuation: true,
-            blending: THREE.NormalBlending,
+            blending: THREE.AdditiveBlending,
             map: particleTexture,
             depthWrite: false
         });
@@ -433,67 +561,78 @@
         const particleSystem3 = new THREE.Points(particles3, particleMaterial3);
         scene.add(particleSystem3);
 
-        // Mouse tracking
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
-
-        document.addEventListener('mousemove', (event) => {
-            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-        });
-
-        // Parallax effect on content
-        const brandElement = document.querySelector('.brand');
-        const taglineElement = document.querySelector('.tagline');
-
-        document.addEventListener('mousemove', (event) => {
-            const xAxis = (window.innerWidth / 2 - event.pageX) / 25;
-            const yAxis = (window.innerHeight / 2 - event.pageY) / 25;
-            
-            if (brandElement) {
-                brandElement.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-            }
-            if (taglineElement) {
-                taglineElement.style.transform = `translateX(${-xAxis}px) translateY(${-yAxis}px)`;
-            }
-        });
-
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
 
-            // Smooth camera movement based on mouse
-            targetX = mouseX * 0.5;
-            targetY = mouseY * 0.5;
+            // Update cursor light position in 3D space for volumetric lighting
+            const lightX = mouseX * 10;
+            const lightY = mouseY * 10;
             
-            camera.position.x += (targetX - camera.position.x) * 0.05;
-            camera.position.y += (targetY - camera.position.y) * 0.05;
+            cursorPointLight.position.x = lightX;
+            cursorPointLight.position.y = lightY;
+            cursorPointLight.intensity = isMoving ? 3.5 : 1.2;
+            
+            cursorAmbientLight.position.x = lightX;
+            cursorAmbientLight.position.y = lightY;
+            cursorAmbientLight.intensity = isMoving ? 2.0 : 0.8;
+
+            // Smooth camera movement
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
             camera.lookAt(scene.position);
 
-            // Very slow rotation for organic feel
+            // Rotate particles
             particleSystem.rotation.y += 0.0002;
             particleSystem2.rotation.y -= 0.0003;
             particleSystem2.rotation.x += 0.0001;
             particleSystem3.rotation.y += 0.00015;
             particleSystem3.rotation.x -= 0.00008;
 
-            // Animate particles
+            // Animate particles with dynamic lighting
             const positions = particleSystem.geometry.attributes.position.array;
+            const colors = particleSystem.geometry.attributes.color.array;
             
             for (let i = 0; i < particleCount * 3; i += 3) {
                 // Calculate distance from mouse in 3D space
                 const dx = mouseX * 5 - positions[i];
                 const dy = mouseY * 5 - positions[i + 1];
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                const dz = 3 - positions[i + 2];
+                const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 
-                // Very gentle push from cursor - much smaller radius
+                // Push particles away from cursor
                 if (distance < 1.2) {
                     const force = (1.2 - distance) * 0.012;
                     positions[i] -= dx * force;
                     positions[i + 1] -= dy * force;
                 }
+                
+                // Dynamic lighting - particles light up when close to light source
+                const lightDistance = Math.sqrt(
+                    Math.pow(lightX - positions[i], 2) +
+                    Math.pow(lightY - positions[i + 1], 2) +
+                    Math.pow(5 - positions[i + 2], 2)
+                );
+                
+                // Calculate light intensity based on distance (inverse square law)
+                const maxLightDistance = 8;
+                let lightIntensity = 0;
+                if (lightDistance < maxLightDistance) {
+                    lightIntensity = Math.pow(1 - (lightDistance / maxLightDistance), 2);
+                    lightIntensity *= isMoving ? 2.5 : 1.0;
+                }
+                
+                // Apply yellow light color when lit
+                const baseR = 0.8;
+                const baseG = 0.9;
+                const baseB = 0.8;
+                const lightR = 0.95;
+                const lightG = 0.85;
+                const lightB = 0.4;
+                
+                colors[i] = baseR + (lightR - baseR) * lightIntensity;
+                colors[i + 1] = baseG + (lightG - baseG) * lightIntensity;
+                colors[i + 2] = baseB + (lightB - baseB) * lightIntensity;
                 
                 // Gentle organic drift
                 positions[i] += velocities[i / 3].x;
@@ -512,8 +651,9 @@
             }
             
             particleSystem.geometry.attributes.position.needsUpdate = true;
+            particleSystem.geometry.attributes.color.needsUpdate = true;
 
-            // Animate second layer - slow upward drift
+            // Animate second layer
             const positions2 = particleSystem2.geometry.attributes.position.array;
             for (let i = 0; i < particleCount2 * 3; i += 3) {
                 positions2[i + 1] += 0.005;
@@ -521,7 +661,7 @@
             }
             particleSystem2.geometry.attributes.position.needsUpdate = true;
 
-            // Animate third layer - very slow drift
+            // Animate third layer
             const positions3 = particleSystem3.geometry.attributes.position.array;
             for (let i = 0; i < particleCount3 * 3; i += 3) {
                 positions3[i] += 0.003;
@@ -536,7 +676,7 @@
 
         animate();
 
-        // Handle window resize
+        // Handle resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
