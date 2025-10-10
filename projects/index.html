@@ -582,11 +582,18 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../services/GLTFLoader.js"></script>
+    <script src="../services/oceanBackground.js"></script>
+    <script src="../services/submarine.js"></script>
+    <script src="../services/kelp.js"></script>
     <script>
+        // Global variables for mouse tracking
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Three.js setup
         const canvas = document.getElementById('canvas3d');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x1f3d38, 0.08);
-        
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         
@@ -595,71 +602,10 @@
         renderer.setClearColor(0x1f3d38, 1);
         camera.position.z = 5;
 
-        const ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
-        scene.add(ambientLight);
+        // Initialize background systems
+        let oceanBackground, submarine, kelp;
 
-        const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
-        directionalLight.position.set(3, 5, 5);
-        scene.add(directionalLight);
-
-        // Create circular particle texture
-        const canvas2d = document.createElement('canvas');
-        canvas2d.width = 32;
-        canvas2d.height = 32;
-        const ctx = canvas2d.getContext('2d');
-        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 32, 32);
-        const particleTexture = new THREE.CanvasTexture(canvas2d);
-
-        // Particle system - Multiple layers
-        function createParticleLayer(count, spread, size, opacity, speed) {
-            const geometry = new THREE.BufferGeometry();
-            const positions = [];
-            const velocities = [];
-
-            for (let i = 0; i < count; i++) {
-                positions.push(
-                    (Math.random() - 0.5) * spread,
-                    (Math.random() - 0.5) * spread,
-                    (Math.random() - 0.5) * spread
-                );
-                velocities.push(
-                    (Math.random() - 0.5) * speed,
-                    Math.random() * speed * 0.3,
-                    (Math.random() - 0.5) * speed
-                );
-            }
-
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geometry.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
-
-            const material = new THREE.PointsMaterial({
-                size: size,
-                map: particleTexture,
-                transparent: true,
-                opacity: opacity,
-                depthWrite: false,
-                blending: THREE.AdditiveBlending,
-                vertexColors: false,
-                color: 0xffffff
-            });
-
-            return new THREE.Points(geometry, material);
-        }
-
-        const particles1 = createParticleLayer(18000, 40, 0.03, 0.25, 0.02);
-        const particles2 = createParticleLayer(12000, 30, 0.02, 0.2, 0.015);
-        const particles3 = createParticleLayer(10000, 25, 0.015, 0.15, 0.01);
-        
-        scene.add(particles1);
-        scene.add(particles2);
-        scene.add(particles3);
-
-        // Create 3D gizmo
+        // Create simple 3D gizmo for this page
         const gizmoGroup = new THREE.Group();
         
         const arrowLength = 1.2;
@@ -717,9 +663,6 @@
         scene.add(gizmoGroup);
 
         // Mouse interaction
-        let mouseX = 0;
-        let mouseY = 0;
-
         document.addEventListener('mousemove', (e) => {
             mouseX = (e.clientX / window.innerWidth) * 2 - 1;
             mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -729,37 +672,44 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            // Update background systems
+            if (oceanBackground) {
+                oceanBackground.updateMousePosition(mouseX, mouseY);
+                oceanBackground.update();
+            }
+
+            if (submarine) {
+                submarine.updateMousePosition(mouseX, mouseY);
+                submarine.update();
+            }
+
+            if (kelp) {
+                kelp.update();
+            }
+
+            // Camera parallax
             camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
             camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
             camera.lookAt(scene.position);
 
+            // Gizmo animation
             gizmoGroup.rotation.y += 0.005;
             gizmoGroup.position.x = -3 + mouseX * 0.3;
             gizmoGroup.position.y = -2 + mouseY * 0.3;
 
-            [particles1, particles2, particles3].forEach(particleSystem => {
-                const positions = particleSystem.geometry.attributes.position.array;
-                const velocities = particleSystem.geometry.attributes.velocity.array;
-
-                for (let i = 0; i < positions.length; i += 3) {
-                    positions[i] += velocities[i];
-                    positions[i + 1] += velocities[i + 1];
-                    positions[i + 2] += velocities[i + 2];
-
-                    const spread = 40;
-                    if (Math.abs(positions[i]) > spread / 2) positions[i] = -positions[i];
-                    if (Math.abs(positions[i + 1]) > spread / 2) positions[i + 1] = -positions[i + 1];
-                    if (Math.abs(positions[i + 2]) > spread / 2) positions[i + 2] = -positions[i + 2];
-                }
-
-                particleSystem.geometry.attributes.position.needsUpdate = true;
-                particleSystem.rotation.y += 0.0001;
-            });
-
             renderer.render(scene, camera);
         }
 
-        animate();
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            // Initialize modular background systems
+            oceanBackground = new OceanBackground(scene, camera);
+            submarine = new Submarine(scene, camera);
+            kelp = new Kelp(scene);
+
+            // Start animation loop
+            animate();
+        });
 
         // Scroll-based darkening effect
         const scrollOverlay = document.getElementById('scrollOverlay');
@@ -768,11 +718,12 @@
         container.addEventListener('scroll', () => {
             const scrollPosition = container.scrollTop;
             const maxScroll = container.scrollHeight - container.clientHeight;
-            const scrollPercentage = Math.min(scrollPosition / maxScroll, 1); // Full darkness at 100% scroll
+            const scrollPercentage = Math.min(scrollPosition / maxScroll, 1);
             
             scrollOverlay.style.opacity = scrollPercentage;
         });
 
+        // Resize handler
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();

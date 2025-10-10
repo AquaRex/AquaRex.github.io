@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="../services/GLTFLoader.js"></script>
+    <script src="../services/oceanBackground.js"></script>
+    <script src="../services/submarine.js"></script>
+    <script src="../services/kelp.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -488,838 +491,277 @@
     </div>
     
     <script>
-        // Global variables must be outside the load listener but must be defined before use
-// Global variables must be outside the load listener but must be defined before use
-let mouseX = 0,
-    mouseY = 0,
-    cursorX = 0,
-    cursorY = 0,
-    isMoving = false;
+        // Global variables for mouse tracking and UI interaction
+        let mouseX = 0,
+            mouseY = 0,
+            cursorX = 0,
+            cursorY = 0,
+            isMoving = false;
 
-// --- Animation Variables for Submarine Spotlights ---
-const spotlights = [];
-const spotlightBeams = [];
-let lastFlickerTime = 0;
-// Start the first flicker interval between 10 and 20 seconds
-let nextFlickerInterval = 10000 + Math.random() * 10000; 
-const FLICKER_DURATION = 100; // milliseconds for each on/off state
-let isFlickering = false;
-let flickerCounter = 0;
-const MAX_FLICKERS = 3; // The number of "blinks" in a sequence
-// ---------------------------------------------------
+        // Three.js setup
+        const canvas = document.getElementById('canvas3d');
+        const canvasCardGizmo = document.getElementById('canvasCardGizmo');
 
-// --- Three.js Variables (Declared Globally) ---
-const canvas = document.getElementById('canvas3d');
-const canvasCardGizmo = document.getElementById('canvasCardGizmo');
+        // Background scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-// Background scene
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x1f3d38, 0.08);
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Foreground scene for card gizmo
+        const cardScene = new THREE.Scene();
+        const cardCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-// Foreground scene for card gizmo
-const cardScene = new THREE.Scene();
-const cardCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-    alpha: true,
-    antialias: true
-});
-
-const cardRenderer = new THREE.WebGLRenderer({
-    canvas: canvasCardGizmo,
-    alpha: true,
-    antialias: true
-});
-
-// --- Clock Initialization (NEEDED FOR ANIMATION TIMING) ---
-const clock = new THREE.Clock(); 
-// --------------------------------------------------------
-
-// --- Lighting ---
-// Subtle ambient light to illuminate dark areas with a hint of green
-const ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
-scene.add(ambientLight);
-
-// Directional light for subtle shadows/depth
-const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
-directionalLight.position.set(-5, 8, 3);
-scene.add(directionalLight);
-
-// Mouse-following point light (gold/yellow color)
-const cursorPointLight = new THREE.PointLight(0xf0d060, 2.5, 30);
-cursorPointLight.position.set(0, 0, 5);
-scene.add(cursorPointLight);
-
-const cursorAmbientLight = new THREE.PointLight(0xe0c850, 1.2, 25);
-cursorAmbientLight.position.set(0, 0, 4);
-scene.add(cursorAmbientLight);
-
-// --- Particle System Setup (Existing Code) ---
-// Create a 2D canvas for a soft, glowing particle texture
-const canvas2d = document.createElement('canvas');
-canvas2d.width = 32;
-canvas2d.height = 32;
-const ctx = canvas2d.getContext('2d');
-const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
-gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-ctx.fillStyle = gradient;
-ctx.fillRect(0, 0, 32, 32);
-const particleTexture = new THREE.CanvasTexture(canvas2d);
-
-// Particle layer 1 (Foreground/Interactive)
-const particleCount = 10000;
-const particles = new THREE.BufferGeometry();
-const positions = new Float32Array(particleCount * 3);
-const colors = new Float32Array(particleCount * 3);
-const velocities = [];
-const originalPositions = new Float32Array(particleCount * 3);
-
-for (let i = 0; i < particleCount; i++) {
-    const i3 = i * 3;
-    positions[i3] = (Math.random() - 0.5) * 18;
-    positions[i3 + 1] = (Math.random() - 0.5) * 18;
-    positions[i3 + 2] = (Math.random() - 0.5) * 8;
-
-    originalPositions[i3] = positions[i3];
-    originalPositions[i3 + 1] = positions[i3 + 1];
-    originalPositions[i3 + 2] = positions[i3 + 2];
-
-    // Base color for particles (light green/white)
-    colors[i3] = 0.8;
-    colors[i3 + 1] = 0.9;
-    colors[i3 + 2] = 0.8;
-
-    velocities.push({
-        x: (Math.random() - 0.5) * 0.01,
-        y: (Math.random() - 0.5) * 0.008 + 0.003, // Slight upward drift
-        z: (Math.random() - 0.5) * 0.01
-    });
-}
-
-particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-const particleMaterial = new THREE.PointsMaterial({
-    size: 0.035,
-    transparent: true,
-    opacity: 0.25,
-    sizeAttenuation: true,
-    blending: THREE.AdditiveBlending,
-    map: particleTexture,
-    depthWrite: false,
-    vertexColors: true // Enables per-particle color changes for the light effect
-});
-
-const particleSystem = new THREE.Points(particles, particleMaterial);
-scene.add(particleSystem);
-
-// Particle layer 2 (Mid-ground) - Less visible, larger range
-const particleCount2 = 7000;
-const particles2 = new THREE.BufferGeometry();
-const positions2 = new Float32Array(particleCount2 * 3);
-
-for (let i = 0; i < particleCount2; i++) {
-    const i3 = i * 3;
-    positions2[i3] = (Math.random() - 0.5) * 22;
-    positions2[i3 + 1] = (Math.random() - 0.5) * 22;
-    positions2[i3 + 2] = (Math.random() - 0.5) * 10;
-}
-
-particles2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
-
-const particleMaterial2 = new THREE.PointsMaterial({
-    size: 0.022,
-    color: 0xc5d5b0,
-    transparent: true,
-    opacity: 0.22,
-    sizeAttenuation: true,
-    blending: THREE.AdditiveBlending,
-    map: particleTexture,
-    depthWrite: false
-});
-
-const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
-scene.add(particleSystem2);
-
-// Particle layer 3 (Far background) - Smallest size, largest range, horizontal drift
-const particleCount3 = 4000;
-const particles3 = new THREE.BufferGeometry();
-const positions3 = new Float32Array(particleCount3 * 3);
-
-for (let i = 0; i < particleCount3; i++) {
-    const i3 = i * 3;
-    positions3[i3] = (Math.random() - 0.5) * 26;
-    positions3[i3 + 1] = (Math.random() - 0.5) * 26;
-    positions3[i3 + 2] = (Math.random() - 0.5) * 12;
-}
-
-particles3.setAttribute('position', new THREE.BufferAttribute(positions3, 3));
-
-const particleMaterial3 = new THREE.PointsMaterial({
-    size: 0.018,
-    color: 0xb5d5c5,
-    transparent: true,
-    opacity: 0.16,
-    sizeAttenuation: true,
-    blending: THREE.AdditiveBlending,
-    map: particleTexture,
-    depthWrite: false
-});
-
-const particleSystem3 = new THREE.Points(particles3, particleMaterial3);
-scene.add(particleSystem3);
-
-// --- 3D Model Loading Setup ---
-const gizmoGroup = new THREE.Group();
-
-// Path to your GLB model
-const MODEL_URL = '/models/submarine.glb';
-
-// GLTF/GLB Loader
-const loader = new THREE.GLTFLoader();
-
-loader.load(
-    MODEL_URL,
-    function (gltf) {
-        // Model loaded successfully
-        console.log('GLB Model loaded successfully!');
-
-        const model = gltf.scene;
-
-        // Debug: Log model info
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        console.log('Model size:', size);
-        console.log('Model center:', box.getCenter(new THREE.Vector3()));
-
-        // === ADJUST THESE VALUES FOR YOUR MODEL ===
-        // Try different scale values: 0.1, 1, 10, 100, etc.
-        model.scale.set(1, 1, 1); // Changed from 0.01 to 1
-
-        // Rotation: Adjust orientation (in radians)
-        model.rotation.set(0, Math.PI / 4, 0);
-
-        // Position offset within the group (fine-tuning)
-        model.position.set(0, 0, 0);
-        // ==========================================
-
-        // Make model materials BLACK and receive lighting
-        model.traverse((child) => {
-            if (child.isMesh) {
-                // Replace material with black material
-                child.material = new THREE.MeshLambertMaterial({
-                    color: 0x0a0a0a, // Very dark black/gray
-                    emissive: 0x000000,
-                    emissiveIntensity: 0
-                });
-                child.material.needsUpdate = true;
-                console.log('Found mesh:', child.name, 'Material set to black');
-            }
+        const renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true
         });
 
-        // Add spotlights to the submarine
-        const spotlightPositions = [
-            { pos: [0.5, 0.3, 0.2], target: [0.5, 0.3, 6] }, // Front right - pointing forward
-            { pos: [0.5, 0.3, -0.2], target: [0.5, 0.3, 6] }, // Front left - pointing forward
-            { pos: [0.5, -0.3, 0], target: [0.5, -0.3, 6] } // Front bottom - pointing forward
-        ];
+        const cardRenderer = new THREE.WebGLRenderer({
+            canvas: canvasCardGizmo,
+            alpha: true,
+            antialias: true
+        });
 
-        spotlightPositions.forEach((spotData, index) => {
-            // Spotlight housing
-            const housingGeometry = new THREE.CylinderGeometry(0.08, 0.06, 0.12, 8);
-            const housingMaterial = new THREE.MeshLambertMaterial({
-                color: 0x1a1a1a,
-                emissive: 0x0a0a0a,
-                emissiveIntensity: 0.2
-            });
-            const housing = new THREE.Mesh(housingGeometry, housingMaterial);
-            housing.rotation.z = Math.PI / 2;
-            housing.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2]);
-            model.add(housing);
+        // Initialize background systems
+        let oceanBackground, submarine, kelp;
 
-            // Glowing lens
-            const lensGeometry = new THREE.CircleGeometry(0.06, 16);
-            const lensMaterial = new THREE.MeshBasicMaterial({
-                color: 0xf0d060,
-                emissive: 0xf0d060,
-                emissiveIntensity: 1
-            });
-            const lens = new THREE.Mesh(lensGeometry, lensMaterial);
-            lens.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2] + 0.07);
-            model.add(lens);
+        // --- 3D Card Plane (Represents the brand card in 3D space) ---
+        const cardPlaneGeometry = new THREE.PlaneGeometry(8, 4);
+        const cardPlaneMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide
+        });
+        const cardPlane = new THREE.Mesh(cardPlaneGeometry, cardPlaneMaterial);
+        cardPlane.position.set(0, 0, 0);
+        cardScene.add(cardPlane);
 
-            // Volumetric light beam (cone)
-            const beamLength = 8;
-            const beamGeometry = new THREE.ConeGeometry(0.06, beamLength, 16, 1, true);
-            const beamMaterial = new THREE.MeshBasicMaterial({
-                color: 0xf0d060,
+        // --- Brand Corner Gizmo (Attached to card plane) ---
+        const brandGizmoGroup = new THREE.Group();
+
+        function createSmallArrow(color, rotation) {
+            const group = new THREE.Group();
+
+            const shaftGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.6, 8);
+            const shaftMaterial = new THREE.MeshBasicMaterial({
+                color: color,
                 transparent: true,
-                opacity: 0.18,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
+                opacity: 1.0
             });
-            const beam = new THREE.Mesh(beamGeometry, beamMaterial);
-            beam.rotation.x = Math.PI / 2; // Rotate to point forward instead of right
-            beam.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2] + beamLength / 2);
-            model.add(beam);
+            const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+            shaft.position.y = 0.3;
 
-            // Actual Three.js SpotLight for lighting
-            const spotlight = new THREE.SpotLight(0xf0d060, 1.5, 12, Math.PI / 8, 0.5, 1);
-            spotlight.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2]);
-            spotlight.target.position.set(spotData.target[0], spotData.target[1], spotData.target[2]);
-            model.add(spotlight);
-            model.add(spotlight.target);
+            const headGeometry = new THREE.ConeGeometry(0.045, 0.12, 8);
+            const headMaterial = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 1.0
+            });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 0.66;
 
-            // Store beam for animation
-            beam.userData.isSpotlightBeam = true;
-            beam.userData.baseOpacity = 0.18;
-            beam.userData.index = index;
+            group.add(shaft);
+            group.add(head);
 
-            // --- Store references for animation (NEW) ---
-            spotlights.push(spotlight);
-            spotlightBeams.push(beam);
-        });
-
-        gizmoGroup.add(model);
-        console.log('Model added to scene at position:', gizmoGroup.position);
-    },
-    function (xhr) {
-        // Loading progress
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    function (error) {
-        // Error loading model
-        console.error('Error loading GLB model:', error);
-        console.log('Make sure the file exists at: ' + MODEL_URL);
-    }
-);
-
-// === GROUP POSITION (where the model appears in the scene) ===
-gizmoGroup.position.set(-12, 0, -15); // Updated to match the parallax base position
-gizmoGroup.rotation.set(Math.PI / 8, Math.PI / -2, 0);
-gizmoGroup.scale.set(0.8, 0.8, 0.8);
-// --- Store the base rotation for the 'looking around' movement (NEW) ---
-gizmoGroup.userData.baseRotationY = gizmoGroup.rotation.y;
-// ==============================================================
-
-scene.add(gizmoGroup);
-
-// --- 3D Card Plane (Represents the brand card in 3D space) ---
-const cardPlaneGeometry = new THREE.PlaneGeometry(8, 4);
-const cardPlaneMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0,
-    side: THREE.DoubleSide
-});
-const cardPlane = new THREE.Mesh(cardPlaneGeometry, cardPlaneMaterial);
-cardPlane.position.set(0, 0, 0);
-cardScene.add(cardPlane);
-
-// --- Brand Corner Gizmo (Attached to card plane - Existing Code) ---
-const brandGizmoGroup = new THREE.Group();
-
-function createSmallArrow(color, rotation) {
-    const group = new THREE.Group();
-
-    const shaftGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.6, 8);
-    const shaftMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 1.0
-    });
-    const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-    shaft.position.y = 0.3;
-
-    const headGeometry = new THREE.ConeGeometry(0.045, 0.12, 8);
-    const headMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 1.0
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 0.66;
-
-    group.add(shaft);
-    group.add(head);
-
-    if (rotation) {
-        group.rotation.set(rotation.x, rotation.y, rotation.z);
-    }
-
-    group.scale.set(0.35, 0.35, 0.35);
-
-    return group;
-}
-
-const smallArrowY = createSmallArrow(0x00FF00, null);
-const smallArrowX = createSmallArrow(0xFF0000, {
-    x: 0,
-    y: 0,
-    z: -Math.PI / 2
-});
-const smallArrowZ = createSmallArrow(0x0000FF, {
-    x: Math.PI / 2,
-    y: 0,
-    z: 0
-});
-
-brandGizmoGroup.add(smallArrowY);
-brandGizmoGroup.add(smallArrowX);
-brandGizmoGroup.add(smallArrowZ);
-
-const smallCenterGeometry = new THREE.SphereGeometry(0.015, 16, 16);
-const smallCenterMaterial = new THREE.MeshBasicMaterial({
-    color: 0xFFFFFF,
-    transparent: true,
-    opacity: 1.0
-});
-const smallCenterSphere = new THREE.Mesh(smallCenterGeometry, smallCenterMaterial);
-brandGizmoGroup.add(smallCenterSphere);
-
-// Position gizmo at top-left corner of the card plane
-brandGizmoGroup.position.set(-2.35, 1.15, 0);
-
-// Start with gizmo invisible to match card fade-in animation
-brandGizmoGroup.traverse((obj) => {
-    if (obj.material) {
-        obj.material.opacity = 0;
-    }
-});
-
-// Add gizmo as child of card plane so it inherits transformations
-cardPlane.add(brandGizmoGroup);
-
-// --- Kelp/Seaweed Loading from GLB (Existing Code) ---
-const kelpGroup = new THREE.Group();
-const kelpCount = 150;
-const kelpObjects = [];
-
-// Path to kelp model
-const KELP_MODEL_URL = '/models/kelp.glb';
-
-// Load kelp model and create instances
-loader.load(
-    KELP_MODEL_URL,
-    function (gltf) {
-        console.log('Kelp GLB Model loaded successfully!');
-
-        const kelpModel = gltf.scene;
-
-        // Debug: Log model info
-        const box = new THREE.Box3().setFromObject(kelpModel);
-        const size = box.getSize(new THREE.Vector3());
-        console.log('Kelp model size:', size);
-
-        // Make kelp materials receive lighting with deep green color
-        kelpModel.traverse((child) => {
-            if (child.isMesh) {
-                child.material = new THREE.MeshLambertMaterial({
-                    color: 0x3d664c,
-                    transparent: true,
-                    opacity: 0.5,
-                    side: THREE.DoubleSide
-                });
-                child.material.needsUpdate = true;
-            }
-        });
-
-        // Create multiple kelp instances
-        for (let i = 0; i < kelpCount; i++) {
-            // Clone the model for each instance
-            const kelp = kelpModel.clone();
-
-            // Calculate depth-based positioning
-            const kelpZ = (Math.random() * -35) - 7;
-            const depthFactor = (kelpZ + 5) / -25;
-            const minScale = 0.8;
-            const maxScale = 2.0;
-            const scale = minScale + depthFactor * (maxScale - minScale);
-
-            // Set scale based on depth
-            kelp.scale.set(scale, scale, scale);
-
-            // Position kelp
-            kelp.position.set(
-                (Math.random() - 0.5) * 50,
-                -15 - (Math.random() * 3), // Anchor below viewable area
-                kelpZ
-            );
-
-            // Random rotation
-            kelp.rotation.y = Math.random() * Math.PI * 2;
-
-            kelpGroup.add(kelp);
-            kelpObjects.push(kelp);
-        }
-
-        console.log(`Created ${kelpCount} kelp instances`);
-    },
-    function (xhr) {
-        console.log('Kelp: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    function (error) {
-        console.error('Error loading kelp GLB model:', error);
-        console.log('Make sure the file exists at: ' + KELP_MODEL_URL);
-    }
-);
-
-scene.add(kelpGroup);
-
-// --- SPOTLIGHT ANIMATION LOGIC (NEW) ---
-
-/**
- * Updates the spotlights to simulate a gentle movement and an occasional flicker.
- * @param {number} elapsedTime - The time elapsed since the start of the scene (from a THREE.Clock)
- */
-function updateSpotlights(elapsedTime) {
-    // === 1. Slight Movement (Looking Around) ===
-    const movementIntensity = 0.05; // Max movement in radians (approx 2.8 degrees)
-    const movementSpeed = 0.2; // How fast the movement oscillates
-
-    // Gently oscillate the entire group's Y rotation
-    gizmoGroup.rotation.y = gizmoGroup.userData.baseRotationY + Math.sin(elapsedTime * movementSpeed) * movementIntensity;
-
-    // === 2. Flicker Effect (MODIFIED FOR REALISM) ===
-    const currentTime = Date.now();
-    const timeSinceLastFlicker = currentTime - lastFlickerTime;
-
-    // --- A. Start a New Flicker Sequence ---
-    if (!isFlickering && timeSinceLastFlicker > nextFlickerInterval) {
-        // Initialize a new, randomized flicker sequence
-        isFlickering = true;
-        flickerCounter = 0;
-        lastFlickerTime = currentTime;
-        lastFlickerStateChangeTime = currentTime;
-        
-        // Randomize total number of on/off states (2 to 8 total blinks)
-        maxFlickersInSequence = Math.floor(Math.random() * 7) + 2; 
-
-        // Set the duration for the very first state (the first 'ON' period)
-        currentFlickerStateDuration = 100 + Math.random() * 200; // 100ms to 300ms
-    }
-
-    // --- B. Execute Flicker States ---
-    if (isFlickering) {
-        const timeSinceLastStateChange = currentTime - lastFlickerStateChangeTime;
-
-        // Check if the current state duration has passed
-        if (timeSinceLastStateChange > currentFlickerStateDuration) {
-            
-            flickerCounter++;
-
-            // Check if the sequence is finished
-            if (flickerCounter > maxFlickersInSequence * 2) { 
-                // Sequence ends
-                isFlickering = false;
-                lastFlickerTime = currentTime; 
-                // Randomize the next long interval (10 to 20 seconds)
-                nextFlickerInterval = 10000 + Math.random() * 10000; 
-
-                // Ensure lights are back to full power
-                spotlights.forEach((spotlight, index) => {
-                    spotlight.intensity = 1.5;
-                    spotlightBeams[index].material.opacity = spotlightBeams[index].userData.baseOpacity;
-                });
-                return; // Stop processing this cycle
+            if (rotation) {
+                group.rotation.set(rotation.x, rotation.y, rotation.z);
             }
 
-            // A new state begins
-            lastFlickerStateChangeTime = currentTime;
-            
-            const isVisible = (flickerCounter % 2 === 0); // After first state (flickerCounter=1) it's OFF
-
-            spotlights.forEach((spotlight, index) => {
-                const beam = spotlightBeams[index];
-                
-                if (isVisible) {
-                    // SET TO BRIGHT/ON STATE
-                    spotlight.intensity = 1.5;
-                    beam.material.opacity = beam.userData.baseOpacity;
-                    
-                    // NEW: Randomize the duration of the next ON state (short)
-                    currentFlickerStateDuration = 50 + Math.random() * 100; // 50ms to 150ms
-                } else {
-                    // SET TO DIM/OFF STATE
-                    // NEW: Randomize intensity drop for an uneven flicker
-                    const minDropIntensity = 0.05;
-                    const maxDropIntensity = 0.3;
-                    const flickerDrop = minDropIntensity + Math.random() * (maxDropIntensity - minDropIntensity);
-
-                    spotlight.intensity = flickerDrop;
-                    beam.material.opacity = 0.02; // Keep beam low visibility
-                    
-                    // NEW: Randomize the duration of the next OFF state (very short or medium)
-                    currentFlickerStateDuration = 20 + Math.random() * 80; // 20ms to 100ms
-                }
-            });
+            group.scale.set(0.35, 0.35, 0.35);
+            return group;
         }
-    }
-}
 
+        const smallArrowY = createSmallArrow(0x00FF00, null);
+        const smallArrowX = createSmallArrow(0xFF0000, {
+            x: 0,
+            y: 0,
+            z: -Math.PI / 2
+        });
+        const smallArrowZ = createSmallArrow(0x0000FF, {
+            x: Math.PI / 2,
+            y: 0,
+            z: 0
+        });
 
-// --- Initial Setup and Animation Loop (MODIFIED) ---
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0x1f3d38, 1);
+        brandGizmoGroup.add(smallArrowY);
+        brandGizmoGroup.add(smallArrowX);
+        brandGizmoGroup.add(smallArrowZ);
 
-cardRenderer.setSize(window.innerWidth, window.innerHeight);
-cardRenderer.setPixelRatio(window.devicePixelRatio);
-cardRenderer.setClearColor(0x000000, 0);
+        const smallCenterGeometry = new THREE.SphereGeometry(0.015, 16, 16);
+        const smallCenterMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFFFFF,
+            transparent: true,
+            opacity: 1.0
+        });
+        const smallCenterSphere = new THREE.Mesh(smallCenterGeometry, smallCenterMaterial);
+        brandGizmoGroup.add(smallCenterSphere);
 
-camera.position.z = 5;
-cardCamera.position.z = 4;
+        // Position gizmo at top-left corner of the card plane
+        brandGizmoGroup.position.set(-2.35, 1.15, 0);
 
-// Fade in gizmo to match brand card animation (1 second)
-let gizmoFadeProgress = 0;
-const gizmoFadeDuration = 1000; // 1 second to match fadeInDown animation
-let gizmoFadeStartTime = null;
-let allowCardRotation = false;
-
-// Enable card rotation after fade-in animation completes
-setTimeout(() => {
-    allowCardRotation = true;
-}, gizmoFadeDuration);
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    // Get elapsed time from the clock
-    const elapsedTime = clock.getElapsedTime(); 
-
-    // Call spotlight animation update
-    updateSpotlights(elapsedTime); 
-
-    // Fade in gizmo during first second
-    if (gizmoFadeProgress < 1) {
-        if (gizmoFadeStartTime === null) {
-            gizmoFadeStartTime = performance.now();
-        }
-        const elapsed = performance.now() - gizmoFadeStartTime;
-        gizmoFadeProgress = Math.min(elapsed / gizmoFadeDuration, 1);
-
+        // Start with gizmo invisible to match card fade-in animation
         brandGizmoGroup.traverse((obj) => {
-            if (obj.material && obj.material.transparent) {
-                obj.material.opacity = gizmoFadeProgress;
+            if (obj.material) {
+                obj.material.opacity = 0;
             }
         });
-    }
 
-    // Light position follows the mouse for 3D world space
-    const lightX = mouseX * 10;
-    const lightY = mouseY * 10;
+        // Add gizmo as child of card plane so it inherits transformations
+        cardPlane.add(brandGizmoGroup);
 
-    cursorPointLight.position.x = lightX;
-    cursorPointLight.position.y = lightY;
-    cursorPointLight.intensity = 2.5;
+        // --- Initial Setup and Animation Loop ---
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x1f3d38, 1);
 
-    cursorAmbientLight.position.x = lightX;
-    cursorAmbientLight.position.y = lightY;
-    cursorAmbientLight.intensity = 1.5;
+        cardRenderer.setSize(window.innerWidth, window.innerHeight);
+        cardRenderer.setPixelRatio(window.devicePixelRatio);
+        cardRenderer.setClearColor(0x000000, 0);
 
-    const easingFactorCamera = 0.05;
+        camera.position.z = 5;
+        cardCamera.position.z = 4;
 
-    // Camera Parallax: moves subtly with the mouse
-    camera.position.x += (mouseX * 0.5 - camera.position.x) * easingFactorCamera;
-    camera.position.y += (mouseY * 0.5 - camera.position.y) * easingFactorCamera;
-    camera.lookAt(scene.position);
+        // Fade in gizmo to match brand card animation (1 second)
+        let gizmoFadeProgress = 0;
+        const gizmoFadeDuration = 1000;
+        let gizmoFadeStartTime = null;
+        let allowCardRotation = false;
 
-    // Card camera stays fixed (no parallax)
-    cardCamera.lookAt(cardScene.position);
+        // Enable card rotation after fade-in animation completes
+        setTimeout(() => {
+            allowCardRotation = true;
+        }, gizmoFadeDuration);
 
-    // Gizmo Parallax
-    const gizmoTargetX = -12 + mouseX * 0.2; // Changed from -8 to -12 to move submarine further left
-    const gizmoTargetY = 0 + mouseY * 0.2;
+        function animate() {
+            requestAnimationFrame(animate);
 
-    gizmoGroup.position.x += (gizmoTargetX - gizmoGroup.position.x) * easingFactorCamera;
-    gizmoGroup.position.y += (gizmoTargetY - gizmoGroup.position.y) * easingFactorCamera;
+            // Update background systems
+            if (oceanBackground) {
+                oceanBackground.updateMousePosition(mouseX, mouseY);
+                oceanBackground.update();
+            }
 
-    // Particle Layer 1 Logic (Interactive, colors shift with light proximity - CORRECTED)
-    const positions = particleSystem.geometry.attributes.position.array;
-    const colors = particleSystem.geometry.attributes.color.array;
+            if (submarine) {
+                submarine.updateMousePosition(mouseX, mouseY);
+                submarine.update();
+            }
 
-    for (let i = 0; i < particleCount * 3; i += 3) {
-        const index = i / 3; // Calculate the individual particle index
+            if (kelp) {
+                kelp.update();
+            }
 
-        // Repulsion logic (pushes particles away from the camera's focus point)
-        const dx = mouseX * 5 - positions[i];
-        const dy = mouseY * 5 - positions[i + 1];
-        const dz = 3 - positions[i + 2];
-        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            // Fade in gizmo during first second
+            if (gizmoFadeProgress < 1) {
+                if (gizmoFadeStartTime === null) {
+                    gizmoFadeStartTime = performance.now();
+                }
+                const elapsed = performance.now() - gizmoFadeStartTime;
+                gizmoFadeProgress = Math.min(elapsed / gizmoFadeDuration, 1);
 
-        if (distance < 1.2) {
-            const force = (1.2 - distance) * 0.012;
-            positions[i] -= dx * force;
-            positions[i + 1] -= dy * force;
-            positions[i + 2] -= dz * force;
+                brandGizmoGroup.traverse((obj) => {
+                    if (obj.material && obj.material.transparent) {
+                        obj.material.opacity = gizmoFadeProgress;
+                    }
+                });
+            }
+
+            const easingFactorCamera = 0.05;
+
+            // Camera Parallax: moves subtly with the mouse
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * easingFactorCamera;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * easingFactorCamera;
+            camera.lookAt(scene.position);
+
+            // Card camera stays fixed (no parallax)
+            cardCamera.lookAt(cardScene.position);
+
+            // Render background scene
+            renderer.render(scene, camera);
+
+            // Render card gizmo scene to separate canvas
+            cardRenderer.render(cardScene, cardCamera);
         }
 
-        // Light interaction logic (color change)
-        const lightDistance = Math.sqrt(
-            Math.pow(lightX - positions[i], 2) +
-            Math.pow(lightY - positions[i + 1], 2) +
-            Math.pow(5 - positions[i + 2], 2)
-        );
+        // --- Event Listeners ---
+        window.addEventListener('load', () => {
+            // Initialize background systems
+            oceanBackground = new OceanBackground(scene, camera);
+            submarine = new Submarine(scene, camera);
+            kelp = new Kelp(scene);
 
-        const maxLightDistance = 8;
-        let lightIntensity = 0;
-        if (lightDistance < maxLightDistance) {
-            lightIntensity = Math.pow(1 - (lightDistance / maxLightDistance), 3);
-            lightIntensity *= 1.5;
-        }
+            const cursorLight = document.getElementById('cursorLight');
+            const brandElement = document.querySelector('.brand');
 
-        // Interpolate colors between base (green-white) and light (gold)
-        const baseR = 0.8;
-        const baseG = 0.9;
-        const baseB = 0.8;
-        const lightR = 0.95;
-        const lightG = 0.85;
-        const lightB = 0.4;
+            const handleMove = e => {
+                // Handle both mouse and touch events
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-        colors[i] = baseR + (lightR - baseR) * lightIntensity;
-        colors[i + 1] = baseG + (lightG - baseG) * lightIntensity;
-        colors[i + 2] = baseB + (lightB - baseB) * lightIntensity;
+                cursorX = clientX;
+                cursorY = clientY;
 
-        // Simple drift based on initial velocity (Kept)
-        positions[i] += velocities[index].x;
-        positions[i + 1] += velocities[index].y;
-        positions[i + 2] += velocities[index].z;
+                // Normalised mouse coordinates for Three.js (-1 to 1)
+                mouseX = (clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(clientY / window.innerHeight) * 2 + 1;
 
-        // --- ADDED: Constant Jitter/Wiggle for perpetual motion ---
-        // This replaces the damping logic and uses the elapsed time for continuous motion.
-        const jitterSpeed = 0.001; 
-        
-        // Use sine/cosine waves combined with a unique index for non-uniform motion
-        positions[i] += Math.sin(elapsedTime * 0.5 + index * 0.1) * jitterSpeed;
-        positions[i + 1] += Math.cos(elapsedTime * 0.6 + index * 0.1) * jitterSpeed;
-        positions[i + 2] += Math.sin(elapsedTime * 0.7 + index * 0.1) * jitterSpeed * 0.5;
+                // DOM Cursor Light update
+                cursorLight.style.left = cursorX + 'px';
+                cursorLight.style.top = cursorY + 'px';
+                cursorLight.style.opacity = '1';
+                isMoving = true;
 
-        // --- REMOVED: Damping to original position, which forced the particles to stop ---
-        positions[i] += (originalPositions[i] - positions[i]) * 0.005;
-        positions[i + 1] += (originalPositions[i + 1] - positions[i + 1]) * 0.005;
-        positions[i + 2] += (originalPositions[i + 2] - positions[i + 2]) * 0.005;
+                // Brand Parallax Effect (2D element moving with mouse)
+                if (brandElement && window.innerWidth > 768 && allowCardRotation) {
+                    const rect = brandElement.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const deltaX = cursorX - centerX;
+                    const deltaY = cursorY - centerY;
+                    const rotateX = (deltaY / window.innerHeight) * 25;
+                    const rotateY = (deltaX / window.innerWidth) * 25;
 
-        // Boundary wrap-around
-        if (Math.abs(positions[i]) > 18) positions[i] = originalPositions[i] * -1;
-        if (Math.abs(positions[i + 1]) > 18) positions[i + 1] = originalPositions[i + 1] * -1;
-        if (Math.abs(positions[i + 2]) > 10) positions[i + 2] = originalPositions[i + 2] * -1;
-    }
+                    brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
 
-    particleSystem.geometry.attributes.position.needsUpdate = true;
-    particleSystem.geometry.attributes.color.needsUpdate = true;
+                    // Update card plane to match rotation
+                    cardPlane.rotation.x = THREE.MathUtils.degToRad(rotateX);
+                    cardPlane.rotation.y = THREE.MathUtils.degToRad(rotateY);
+                }
 
-    // Particle Layer 2 Logic (Simple upward drift - Existing Code)
-    const positions2 = particleSystem2.geometry.attributes.position.array;
-    for (let i = 0; i < particleCount2 * 3; i += 3) {
-        positions2[i + 1] += 0.005;
-        if (positions2[i + 1] > 17) positions2[i + 1] = -17;
-    }
-    particleSystem2.geometry.attributes.position.needsUpdate = true;
+                // Debounce to fade out the light when movement stops
+                clearTimeout(window.cursorTimeout);
+                window.cursorTimeout = setTimeout(() => {
+                    isMoving = false
+                }, 100)
+            };
 
-    // Particle Layer 3 Logic (Diagonal drift - Existing Code)
-    const positions3 = particleSystem3.geometry.attributes.position.array;
-    for (let i = 0; i < particleCount3 * 3; i += 3) {
-        positions3[i] += 0.003;
-        positions3[i + 1] += 0.004;
-        if (positions3[i + 1] > 20) positions3[i + 1] = -20;
-        if (Math.abs(positions3[i]) > 20) positions3[i] = positions3[i] * -1;
-    }
-    particleSystem3.geometry.attributes.position.needsUpdate = true;
+            const handleLeave = () => {
+                cursorLight.style.opacity = '0';
+                if (brandElement && window.innerWidth > 768) {
+                    brandElement.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+                    cardPlane.rotation.x = 0;
+                    cardPlane.rotation.y = 0;
+                }
+            };
 
-    // Kelp Animation (subtle swaying - EXISTING CODE, which already implemented the sway)
-    const time = performance.now() * 0.0001;
-    kelpObjects.forEach((kelp, index) => {
-        // Kelp sway implementation (as requested)
-        kelp.rotation.x = Math.sin(time + index * 0.5) * 0.05;
-        kelp.rotation.z = Math.cos(time + index * 0.3) * 0.05;
-    });
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove);
+            document.addEventListener('mouseleave', handleLeave);
+            document.addEventListener('touchend', handleLeave);
 
-    // Render background scene
-    renderer.render(scene, camera);
+            // Start the main animation loop after all initial setup is complete
+            animate();
+        });
 
-    // Render card gizmo scene to separate canvas
-    cardRenderer.render(cardScene, cardCamera);
-}
-
-// --- Event Listeners (Accessing global variables - Existing Code) ---
-window.addEventListener('load', () => {
-    const cursorLight = document.getElementById('cursorLight');
-    const brandElement = document.querySelector('.brand');
-
-    const handleMove = e => {
-        // Handle both mouse and touch events
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-        cursorX = clientX;
-        cursorY = clientY;
-
-        // Normalised mouse coordinates for Three.js (-1 to 1)
-        mouseX = (clientX / window.innerWidth) * 2 - 1;
-        mouseY = -(clientY / window.innerHeight) * 2 + 1;
-
-        // DOM Cursor Light update
-        cursorLight.style.left = cursorX + 'px';
-        cursorLight.style.top = cursorY + 'px';
-        cursorLight.style.opacity = '1';
-        isMoving = true;
-
-        // Brand Parallax Effect (2D element moving with mouse)
-        if (brandElement && window.innerWidth > 768 && allowCardRotation) {
-            const rect = brandElement.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const deltaX = cursorX - centerX;
-            const deltaY = cursorY - centerY;
-            const rotateX = (deltaY / window.innerHeight) * 25;
-            const rotateY = (deltaX / window.innerWidth) * 25;
-
-            brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
-
-            // Update card plane to match rotation
-            cardPlane.rotation.x = THREE.MathUtils.degToRad(rotateX);
-            cardPlane.rotation.y = THREE.MathUtils.degToRad(rotateY);
-        }
-
-        // Debounce to fade out the light when movement stops
-        clearTimeout(window.cursorTimeout);
-        window.cursorTimeout = setTimeout(() => {
-            isMoving = false
-        }, 100)
-    };
-
-    const handleLeave = () => {
-        cursorLight.style.opacity = '0';
-        if (brandElement && window.innerWidth > 768) {
-            brandElement.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
-            cardPlane.rotation.x = 0;
-            cardPlane.rotation.y = 0;
-        }
-    };
-
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('touchmove', handleMove);
-    document.addEventListener('mouseleave', handleLeave);
-    document.addEventListener('touchend', handleLeave);
-
-    // Start the main animation loop after all initial setup is complete
-    animate();
-});
-
-// Resize handler for responsiveness
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    cardCamera.aspect = window.innerWidth / window.innerHeight;
-    cardCamera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    cardRenderer.setSize(window.innerWidth, window.innerHeight);
-});
+        // Resize handler for responsiveness
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            cardCamera.aspect = window.innerWidth / window.innerHeight;
+            cardCamera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            cardRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
