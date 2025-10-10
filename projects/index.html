@@ -463,11 +463,17 @@
                 kelp.update();
             }
 
-            // Camera parallax
-            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
-            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+            // Camera parallax (mouse interaction) - but preserve scroll-based Y position
+            const targetMouseX = mouseX * 0.5;
+            const scrollBasedY = baseCameraY + (maxCameraDepth * scrollProgress);
+            const targetMouseY = scrollBasedY + (mouseY * 0.15); // Much reduced mouse influence
             
-            camera.lookAt(scene.position);
+            camera.position.x += (targetMouseX - camera.position.x) * 0.05;
+            camera.position.y += (targetMouseY - camera.position.y) * 0.05;
+            
+            // Adjust look-at target to move down with camera, but look slightly upward
+            const lookAtY = scrollBasedY * 0.7; // Look at a point 70% of the way down
+            camera.lookAt(0, lookAtY, 0);
 
             renderer.render(scene, camera);
         }
