@@ -13,6 +13,13 @@ class OceanBackground {
         this.mouseX = 0;
         this.mouseY = 0;
         this.clock = new THREE.Clock();
+        this.scrollDepth = 0;
+        
+        // Store original fog and lighting values
+        this.originalFogColor = 0x1f3d38;
+        this.originalFogDensity = 0.08;
+        this.targetFogColor = 0x0a1a18; // Much darker for deep ocean
+        this.targetFogDensity = 0.15;   // Denser fog
         
         this.init();
     }
@@ -24,18 +31,19 @@ class OceanBackground {
     }
 
     setupFog() {
-        this.scene.fog = new THREE.FogExp2(0x1f3d38, 0.08);
+        this.scene.fog = new THREE.FogExp2(this.originalFogColor, this.originalFogDensity);
+        this.scene.background = new THREE.Color(this.originalFogColor);
     }
 
     setupLighting() {
         // Subtle ambient light to illuminate dark areas with a hint of green
-        const ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
-        this.scene.add(ambientLight);
+        this.ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
+        this.scene.add(this.ambientLight);
 
         // Directional light for subtle shadows/depth
-        const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
-        directionalLight.position.set(-5, 8, 3);
-        this.scene.add(directionalLight);
+        this.directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
+        this.directionalLight.position.set(-5, 8, 3);
+        this.scene.add(this.directionalLight);
 
         // Mouse-following point light (gold/yellow color)
         this.cursorPointLight = new THREE.PointLight(0xf0d060, 2.5, 30);
@@ -187,6 +195,42 @@ class OceanBackground {
     updateMousePosition(mouseX, mouseY) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
+    }
+
+    updateScrollDepth(scrollProgress) {
+        this.scrollDepth = scrollProgress;
+        
+        // Interpolate fog color from original to target based on scroll
+        const originalColor = new THREE.Color(this.originalFogColor);
+        const targetColor = new THREE.Color(this.targetFogColor);
+        const currentColor = originalColor.clone().lerp(targetColor, scrollProgress);
+        
+        // Update fog
+        if (this.scene.fog) {
+            this.scene.fog.color = currentColor;
+            this.scene.fog.density = this.originalFogDensity + (this.targetFogDensity - this.originalFogDensity) * scrollProgress;
+        }
+        
+        // Update renderer background color to match fog
+        this.scene.background = currentColor;
+        
+        // Reduce ambient lighting intensity as we go deeper
+        if (this.ambientLight) {
+            this.ambientLight.intensity = 0.15 * (1 - scrollProgress * 0.7); // Reduce by up to 70%
+        }
+        
+        if (this.directionalLight) {
+            this.directionalLight.intensity = 0.15 * (1 - scrollProgress * 0.8); // Reduce by up to 80%
+        }
+        
+        // Make cursor lights slightly dimmer in deep water
+        if (this.cursorPointLight) {
+            this.cursorPointLight.intensity = 2.5 * (1 - scrollProgress * 0.3);
+        }
+        
+        if (this.cursorAmbientLight) {
+            this.cursorAmbientLight.intensity = 1.2 * (1 - scrollProgress * 0.3);
+        }
     }
 
     update() {
