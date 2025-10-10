@@ -29,34 +29,10 @@
             width: 100%;
             height: 100%;
             z-index: 0;
-            filter: blur(3px);
+            filter: blur(4px);
         }
 
-        /* Scroll-based darkening overlay */
-        .scroll-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.8) 70%, rgba(0, 0, 0, 0.95) 100%);
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
 
-        /* Dark vignette effect */
-        .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.3) 70%, rgba(0, 0, 0, 0.5) 100%);
-            z-index: 2;
-        }
 
         /* Content Container */
         .container {
@@ -401,8 +377,6 @@
     </a>
 
     <canvas id="canvas3d"></canvas>
-    <div class="scroll-overlay" id="scrollOverlay"></div>
-    <div class="vignette"></div>
     
     <div class="container">
         <div class="page-header">
@@ -411,173 +385,7 @@
         </div>
 
         <div class="projects-list">
-            <div class="project-row">
-                <div class="project-image-container">
-                    <i class="fas fa-water project-image-placeholder"></i>
-                    <!-- Replace with: <img src="your-image.jpg" alt="Ocean Explorer VR"> -->
-                </div>
-                <div class="project-content-wrapper">
-                    <div class="project-main">
-                        <h2 class="project-title">Ocean Explorer VR</h2>
-                        <p class="project-description">Immersive underwater exploration with realistic marine life and dynamic weather systems.</p>
-                        <div class="project-tags">
-                            <span class="tech-tag">Unity</span>
-                            <span class="tech-tag">VR</span>
-                            <span class="tech-tag">C#</span>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Started</span>
-                            <span class="meta-value">Jan 2024</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Status</span>
-                            <span class="status-badge status-active">Active</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-row">
-                <div class="project-image-container">
-                    <i class="fas fa-skull-crossbones project-image-placeholder"></i>
-                    <!-- Replace with: <img src="your-image.jpg" alt="Survival Island"> -->
-                </div>
-                <div class="project-content-wrapper">
-                    <div class="project-main">
-                        <h2 class="project-title">Survival Island</h2>
-                        <p class="project-description">Open-world survival with crafting systems and procedurally generated islands.</p>
-                        <div class="project-tags">
-                            <span class="tech-tag">Unreal Engine</span>
-                            <span class="tech-tag">Blueprints</span>
-                            <span class="tech-tag">Multiplayer</span>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Started</span>
-                            <span class="meta-value">Aug 2023</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Status</span>
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-row">
-                <div class="project-image-container">
-                    <i class="fas fa-robot project-image-placeholder"></i>
-                    <!-- Replace with: <img src="your-image.jpg" alt="Mech Arena"> -->
-                </div>
-                <div class="project-content-wrapper">
-                    <div class="project-main">
-                        <h2 class="project-title">Mech Arena</h2>
-                        <p class="project-description">Fast-paced competitive multiplayer with customizable mechs and physics-based movement.</p>
-                        <div class="project-tags">
-                            <span class="tech-tag">Unity</span>
-                            <span class="tech-tag">Photon</span>
-                            <span class="tech-tag">Shader Graph</span>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Started</span>
-                            <span class="meta-value">Mar 2024</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Status</span>
-                            <span class="status-badge status-active">Active</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-row">
-                <div class="project-image-container">
-                    <i class="fas fa-ghost project-image-placeholder"></i>
-                    <!-- Replace with: <img src="your-image.jpg" alt="Haunted Mansion"> -->
-                </div>
-                <div class="project-content-wrapper">
-                    <div class="project-main">
-                        <h2 class="project-title">Haunted Mansion</h2>
-                        <p class="project-description">Psychological horror with adaptive AI that learns from player behavior.</p>
-                        <div class="project-tags">
-                            <span class="tech-tag">Unreal Engine</span>
-                            <span class="tech-tag">Wwise</span>
-                            <span class="tech-tag">AI</span>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Started</span>
-                            <span class="meta-value">Dec 2023</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Status</span>
-                            <span class="status-badge status-paused">Paused</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-row">
-                <div class="project-image-container">
-                    <i class="fas fa-puzzle-piece project-image-placeholder"></i>
-                    <!-- Replace with: <img src="your-image.jpg" alt="Mind Maze"> -->
-                </div>
-                <div class="project-content-wrapper">
-                    <div class="project-main">
-                        <h2 class="project-title">Mind Maze</h2>
-                        <p class="project-description">First-person puzzle game with reality-shifting mechanics and mind-bending environments.</p>
-                        <div class="project-tags">
-                            <span class="tech-tag">Unity</span>
-                            <span class="tech-tag">Custom Shaders</span>
-                            <span class="tech-tag">Level Design</span>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Started</span>
-                            <span class="meta-value">May 2022</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Status</span>
-                            <span class="status-badge status-completed">Completed</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-row">
-                <div class="project-image-container">
-                    <i class="fas fa-rocket project-image-placeholder"></i>
-                    <!-- Replace with: <img src="your-image.jpg" alt="Starship Commander"> -->
-                </div>
-                <div class="project-content-wrapper">
-                    <div class="project-main">
-                        <h2 class="project-title">Starship Commander</h2>
-                        <p class="project-description">Space simulation with realistic orbital mechanics and massive fleet battles.</p>
-                        <div class="project-tags">
-                            <span class="tech-tag">Unity</span>
-                            <span class="tech-tag">Networking</span>
-                            <span class="tech-tag">Physics</span>
-                        </div>
-                    </div>
-                    <div class="project-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Started</span>
-                            <span class="meta-value">Feb 2021</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Status</span>
-                            <span class="status-badge status-archived">Archived</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Projects will be dynamically generated by ProjectListManager -->
         </div>
     </div>
 
@@ -586,6 +394,8 @@
     <script src="../services/oceanBackground.js"></script>
     <script src="../services/submarine.js"></script>
     <script src="../services/kelp.js"></script>
+    <script src="../services/projectListElement.js"></script>
+    <script src="../services/projectListManager.js"></script>
     <script>
         // Global variables for mouse tracking
         let mouseX = 0;
@@ -603,64 +413,7 @@
         camera.position.z = 5;
 
         // Initialize background systems
-        let oceanBackground, submarine, kelp;
-
-        // Create simple 3D gizmo for this page
-        const gizmoGroup = new THREE.Group();
-        
-        const arrowLength = 1.2;
-        const arrowRadius = 0.02;
-        const coneHeight = 0.2;
-        const coneRadius = 0.06;
-        
-        function createArrow(color, rotation) {
-            const group = new THREE.Group();
-            
-            const shaftGeometry = new THREE.CylinderGeometry(arrowRadius, arrowRadius, arrowLength, 8);
-            const shaftMaterial = new THREE.MeshBasicMaterial({ 
-                color: color,
-                transparent: true,
-                opacity: 0.9
-            });
-            const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-            shaft.position.y = arrowLength / 2;
-            
-            const coneGeometry = new THREE.ConeGeometry(coneRadius, coneHeight, 8);
-            const coneMaterial = new THREE.MeshBasicMaterial({ 
-                color: color,
-                transparent: true,
-                opacity: 0.9
-            });
-            const cone = new THREE.Mesh(coneGeometry, coneMaterial);
-            cone.position.y = arrowLength;
-            
-            group.add(shaft);
-            group.add(cone);
-            group.rotation.set(rotation.x, rotation.y, rotation.z);
-            
-            return group;
-        }
-        
-        const xArrow = createArrow(0xff0000, new THREE.Euler(0, 0, -Math.PI / 2));
-        const yArrow = createArrow(0x00ff00, new THREE.Euler(0, 0, 0));
-        const zArrow = createArrow(0x0000ff, new THREE.Euler(Math.PI / 2, 0, 0));
-        
-        gizmoGroup.add(xArrow);
-        gizmoGroup.add(yArrow);
-        gizmoGroup.add(zArrow);
-        
-        const centerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
-        const centerMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0xcccccc,
-            transparent: true,
-            opacity: 0.9
-        });
-        const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
-        gizmoGroup.add(centerSphere);
-        
-        gizmoGroup.position.set(-3, -2, -8);
-        gizmoGroup.scale.set(0.8, 0.8, 0.8);
-        scene.add(gizmoGroup);
+        let oceanBackground, submarine, kelp, projectManager;
 
         // Mouse interaction
         document.addEventListener('mousemove', (e) => {
@@ -690,12 +443,8 @@
             // Camera parallax
             camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
             camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+            
             camera.lookAt(scene.position);
-
-            // Gizmo animation
-            gizmoGroup.rotation.y += 0.005;
-            gizmoGroup.position.x = -3 + mouseX * 0.3;
-            gizmoGroup.position.y = -2 + mouseY * 0.3;
 
             renderer.render(scene, camera);
         }
@@ -707,20 +456,66 @@
             submarine = new Submarine(scene, camera);
             kelp = new Kelp(scene);
 
+            // Initialize project list manager
+            projectManager = new ProjectListManager('.projects-list');
+
+            // Add projects using the simple addProject method
+            projectManager.addProject({
+                title: 'Ocean Explorer VR',
+                description: 'Immersive underwater exploration with realistic marine life and dynamic weather systems.',
+                icon: 'fas fa-water',
+                tags: ['Unity', 'VR', 'C#'],
+                startDate: 'Jan 2024',
+                status: 'active'
+            });
+
+            projectManager.addProject({
+                title: 'Survival Island',
+                description: 'Open-world survival with crafting systems and procedurally generated islands.',
+                icon: 'fas fa-skull-crossbones',
+                tags: ['Unreal Engine', 'Blueprints', 'Multiplayer'],
+                startDate: 'Aug 2023',
+                status: 'completed'
+            });
+
+            projectManager.addProject({
+                title: 'Mech Arena',
+                description: 'Fast-paced competitive multiplayer with customizable mechs and physics-based movement.',
+                icon: 'fas fa-robot',
+                tags: ['Unity', 'Photon', 'Shader Graph'],
+                startDate: 'Mar 2024',
+                status: 'active'
+            });
+
+            projectManager.addProject({
+                title: 'Haunted Mansion',
+                description: 'Psychological horror with adaptive AI that learns from player behavior.',
+                icon: 'fas fa-ghost',
+                tags: ['Unreal Engine', 'Wwise', 'AI'],
+                startDate: 'Dec 2023',
+                status: 'paused'
+            });
+
+            projectManager.addProject({
+                title: 'Mind Maze',
+                description: 'First-person puzzle game with reality-shifting mechanics and mind-bending environments.',
+                icon: 'fas fa-puzzle-piece',
+                tags: ['Unity', 'Custom Shaders', 'Level Design'],
+                startDate: 'May 2022',
+                status: 'completed'
+            });
+
+            projectManager.addProject({
+                title: 'Starship Commander',
+                description: 'Space simulation with realistic orbital mechanics and massive fleet battles.',
+                icon: 'fas fa-rocket',
+                tags: ['Unity', 'Networking', 'Physics'],
+                startDate: 'Feb 2021',
+                status: 'archived'
+            });
+
             // Start animation loop
             animate();
-        });
-
-        // Scroll-based darkening effect
-        const scrollOverlay = document.getElementById('scrollOverlay');
-        const container = document.querySelector('.container');
-
-        container.addEventListener('scroll', () => {
-            const scrollPosition = container.scrollTop;
-            const maxScroll = container.scrollHeight - container.clientHeight;
-            const scrollPercentage = Math.min(scrollPosition / maxScroll, 1);
-            
-            scrollOverlay.style.opacity = scrollPercentage;
         });
 
         // Resize handler

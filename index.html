@@ -10,6 +10,7 @@
     <script src="../services/oceanBackground.js"></script>
     <script src="../services/submarine.js"></script>
     <script src="../services/kelp.js"></script>
+    <script src="../services/rotatableCard.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -523,92 +524,7 @@
         });
 
         // Initialize background systems
-        let oceanBackground, submarine, kelp;
-
-        // --- 3D Card Plane (Represents the brand card in 3D space) ---
-        const cardPlaneGeometry = new THREE.PlaneGeometry(8, 4);
-        const cardPlaneMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0,
-            side: THREE.DoubleSide
-        });
-        const cardPlane = new THREE.Mesh(cardPlaneGeometry, cardPlaneMaterial);
-        cardPlane.position.set(0, 0, 0);
-        cardScene.add(cardPlane);
-
-        // --- Brand Corner Gizmo (Attached to card plane) ---
-        const brandGizmoGroup = new THREE.Group();
-
-        function createSmallArrow(color, rotation) {
-            const group = new THREE.Group();
-
-            const shaftGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.6, 8);
-            const shaftMaterial = new THREE.MeshBasicMaterial({
-                color: color,
-                transparent: true,
-                opacity: 1.0
-            });
-            const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-            shaft.position.y = 0.3;
-
-            const headGeometry = new THREE.ConeGeometry(0.045, 0.12, 8);
-            const headMaterial = new THREE.MeshBasicMaterial({
-                color: color,
-                transparent: true,
-                opacity: 1.0
-            });
-            const head = new THREE.Mesh(headGeometry, headMaterial);
-            head.position.y = 0.66;
-
-            group.add(shaft);
-            group.add(head);
-
-            if (rotation) {
-                group.rotation.set(rotation.x, rotation.y, rotation.z);
-            }
-
-            group.scale.set(0.35, 0.35, 0.35);
-            return group;
-        }
-
-        const smallArrowY = createSmallArrow(0x00FF00, null);
-        const smallArrowX = createSmallArrow(0xFF0000, {
-            x: 0,
-            y: 0,
-            z: -Math.PI / 2
-        });
-        const smallArrowZ = createSmallArrow(0x0000FF, {
-            x: Math.PI / 2,
-            y: 0,
-            z: 0
-        });
-
-        brandGizmoGroup.add(smallArrowY);
-        brandGizmoGroup.add(smallArrowX);
-        brandGizmoGroup.add(smallArrowZ);
-
-        const smallCenterGeometry = new THREE.SphereGeometry(0.015, 16, 16);
-        const smallCenterMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFFFFF,
-            transparent: true,
-            opacity: 1.0
-        });
-        const smallCenterSphere = new THREE.Mesh(smallCenterGeometry, smallCenterMaterial);
-        brandGizmoGroup.add(smallCenterSphere);
-
-        // Position gizmo at top-left corner of the card plane
-        brandGizmoGroup.position.set(-2.35, 1.15, 0);
-
-        // Start with gizmo invisible to match card fade-in animation
-        brandGizmoGroup.traverse((obj) => {
-            if (obj.material) {
-                obj.material.opacity = 0;
-            }
-        });
-
-        // Add gizmo as child of card plane so it inherits transformations
-        cardPlane.add(brandGizmoGroup);
+        let oceanBackground, submarine, kelp, rotatableCard;
 
         // --- Initial Setup and Animation Loop ---
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -622,16 +538,7 @@
         camera.position.z = 5;
         cardCamera.position.z = 4;
 
-        // Fade in gizmo to match brand card animation (1 second)
-        let gizmoFadeProgress = 0;
-        const gizmoFadeDuration = 1000;
-        let gizmoFadeStartTime = null;
-        let allowCardRotation = false;
 
-        // Enable card rotation after fade-in animation completes
-        setTimeout(() => {
-            allowCardRotation = true;
-        }, gizmoFadeDuration);
 
         function animate() {
             requestAnimationFrame(animate);
@@ -651,19 +558,8 @@
                 kelp.update();
             }
 
-            // Fade in gizmo during first second
-            if (gizmoFadeProgress < 1) {
-                if (gizmoFadeStartTime === null) {
-                    gizmoFadeStartTime = performance.now();
-                }
-                const elapsed = performance.now() - gizmoFadeStartTime;
-                gizmoFadeProgress = Math.min(elapsed / gizmoFadeDuration, 1);
-
-                brandGizmoGroup.traverse((obj) => {
-                    if (obj.material && obj.material.transparent) {
-                        obj.material.opacity = gizmoFadeProgress;
-                    }
-                });
+            if (rotatableCard) {
+                rotatableCard.update();
             }
 
             const easingFactorCamera = 0.05;
@@ -690,8 +586,26 @@
             submarine = new Submarine(scene, camera);
             kelp = new Kelp(scene);
 
-            const cursorLight = document.getElementById('cursorLight');
+            // Initialize rotatable card system
             const brandElement = document.querySelector('.brand');
+            rotatableCard = new RotatableCard({
+                targetElement: brandElement,
+                cardScene: cardScene,
+                cardCamera: cardCamera,
+                cardRenderer: cardRenderer,
+                cardWidth: 8,
+                cardHeight: 4,
+                gizmoPosition: { x: -2.35, y: 1.15, z: 0 },
+                enableRotation: true,
+                fadeInDuration: 1000,
+                rotationIntensity: 25,
+                onRotationChange: (rotationData) => {
+                    // Optional: Handle rotation changes if needed
+                    // console.log('Card rotated:', rotationData);
+                }
+            });
+
+            const cursorLight = document.getElementById('cursorLight');
 
             const handleMove = e => {
                 // Handle both mouse and touch events
@@ -711,23 +625,6 @@
                 cursorLight.style.opacity = '1';
                 isMoving = true;
 
-                // Brand Parallax Effect (2D element moving with mouse)
-                if (brandElement && window.innerWidth > 768 && allowCardRotation) {
-                    const rect = brandElement.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-                    const deltaX = cursorX - centerX;
-                    const deltaY = cursorY - centerY;
-                    const rotateX = (deltaY / window.innerHeight) * 25;
-                    const rotateY = (deltaX / window.innerWidth) * 25;
-
-                    brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
-
-                    // Update card plane to match rotation
-                    cardPlane.rotation.x = THREE.MathUtils.degToRad(rotateX);
-                    cardPlane.rotation.y = THREE.MathUtils.degToRad(rotateY);
-                }
-
                 // Debounce to fade out the light when movement stops
                 clearTimeout(window.cursorTimeout);
                 window.cursorTimeout = setTimeout(() => {
@@ -737,11 +634,6 @@
 
             const handleLeave = () => {
                 cursorLight.style.opacity = '0';
-                if (brandElement && window.innerWidth > 768) {
-                    brandElement.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
-                    cardPlane.rotation.x = 0;
-                    cardPlane.rotation.y = 0;
-                }
             };
 
             document.addEventListener('mousemove', handleMove);
