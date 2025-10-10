@@ -6,7 +6,7 @@
     <title>Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="GLTFLoader.js"></script>
+    <script src="../services/GLTFLoader.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -467,7 +467,7 @@
         <p class="tagline">
             Developing <span class="squiggly-error">Software</span> and Tools. Sometimes they go public. <br>Don't hesitate to reach out!
         </p>
-        <a href="projects.html" class="cta-button">Coming Soon</a>
+        <a href="/projects" class="cta-button">Coming Soon</a>
     </div>
 
     <div class="social-container">
@@ -677,7 +677,7 @@ scene.add(particleSystem3);
 const gizmoGroup = new THREE.Group();
 
 // Path to your GLB model
-const MODEL_URL = 'models/submarine.glb';
+const MODEL_URL = '/models/submarine.glb';
 
 // GLTF/GLB Loader
 const loader = new THREE.GLTFLoader();
@@ -901,7 +901,7 @@ const kelpCount = 150;
 const kelpObjects = [];
 
 // Path to kelp model
-const KELP_MODEL_URL = 'models/kelp.glb';
+const KELP_MODEL_URL = '/models/kelp.glb';
 
 // Load kelp model and create instances
 loader.load(
