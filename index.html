@@ -858,72 +858,80 @@
         // Add gizmo as child of card plane so it inherits transformations
         cardPlane.add(brandGizmoGroup);
 
-        // --- Kelp/Seaweed Generation (Abstract geometry) ---
+// --- Kelp/Seaweed Loading from GLB ---
         const kelpGroup = new THREE.Group();
         const kelpCount = 50;
-        const kelpMaterial = new THREE.MeshLambertMaterial({
-            color: 0x3d664c, // Deep green color
-            transparent: true,
-            opacity: 0.4,
-            side: THREE.DoubleSide
-        });
-
-        function createKelp(height) {
-            const kelpStalk = new THREE.Group();
-            const stalkSegments = 5;
-            const segmentHeight = height / stalkSegments;
-
-            for (let i = 0; i < stalkSegments; i++) {
-                const cylinderGeometry = new THREE.CylinderGeometry(0.05, 0.08, segmentHeight, 4);
-                const segment = new THREE.Mesh(cylinderGeometry, kelpMaterial);
-
-                segment.position.y = (i * segmentHeight) + (segmentHeight / 2);
-                segment.rotation.x = Math.random() * 0.2 - 0.1;
-                segment.rotation.z = Math.random() * 0.2 - 0.1;
-                kelpStalk.add(segment);
-
-                // Add leaves at segments
-                if (i > 0 && i % 2 === 0) {
-                    const leafCount = Math.floor(Math.random() * 3) + 2;
-                    for (let j = 0; j < leafCount; j++) {
-                        const leafGeometry = new THREE.PlaneGeometry(0.3 + Math.random() * 0.4, 1.0 + Math.random() * 1.5, 1, 1);
-                        const leaf = new THREE.Mesh(leafGeometry, kelpMaterial);
-                        
-                        leaf.position.set(
-                            (Math.random() - 0.5) * 0.2,
-                            segment.position.y + (Math.random() - 0.5) * segmentHeight * 0.8,
-                            (Math.random() - 0.5) * 0.2
-                        );
-                        leaf.rotation.y = Math.random() * Math.PI * 2;
-                        leaf.rotation.z = Math.random() * 0.6 - 0.3;
-                        kelpStalk.add(leaf);
-                    }
-                }
-            }
-            return kelpStalk;
-        }
-
         const kelpObjects = [];
-
-        for (let i = 0; i < kelpCount; i++) {
-            const kelpZ = (Math.random() * -25) - 5;
-            const depthFactor = (kelpZ + 5) / -25;
-            const minHeight = 4;
-            const maxHeight = 12;
-            const height = minHeight + depthFactor * (maxHeight - minHeight);
-
-            const kelp = createKelp(height);
-
-            kelp.position.set(
-                (Math.random() - 0.5) * 30,
-                -12 - (Math.random() * 3), // Anchor below the viewable area
-                kelpZ
-            );
-
-            kelp.rotation.y = Math.random() * Math.PI * 2;
-            kelpGroup.add(kelp);
-            kelpObjects.push(kelp);
-        }
+        
+        // Path to kelp model
+        const KELP_MODEL_URL = 'models/kelp.glb';
+        
+        // Load kelp model and create instances
+        loader.load(
+            KELP_MODEL_URL,
+            function (gltf) {
+                console.log('Kelp GLB Model loaded successfully!');
+                
+                const kelpModel = gltf.scene;
+                
+                // Debug: Log model info
+                const box = new THREE.Box3().setFromObject(kelpModel);
+                const size = box.getSize(new THREE.Vector3());
+                console.log('Kelp model size:', size);
+                
+                // Make kelp materials receive lighting with deep green color
+                kelpModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshLambertMaterial({
+                            color: 0x3d664c,
+                            transparent: true,
+                            opacity: 0.5,
+                            side: THREE.DoubleSide
+                        });
+                        child.material.needsUpdate = true;
+                    }
+                });
+                
+                // Create multiple kelp instances
+                for (let i = 0; i < kelpCount; i++) {
+                    // Clone the model for each instance
+                    const kelp = kelpModel.clone();
+                    
+                    // Calculate depth-based positioning
+                    const kelpZ = (Math.random() * -25) - 5;
+                    const depthFactor = (kelpZ + 5) / -25;
+                    const minScale = 0.8;
+                    const maxScale = 2.0;
+                    const scale = minScale + depthFactor * (maxScale - minScale);
+                    
+                    // Set scale based on depth
+                    kelp.scale.set(scale, scale, scale);
+                    
+                    // Position kelp
+                    kelp.position.set(
+                        (Math.random() - 0.5) * 30,
+                        -12 - (Math.random() * 3), // Anchor below viewable area
+                        kelpZ
+                    );
+                    
+                    // Random rotation
+                    kelp.rotation.y = Math.random() * Math.PI * 2;
+                    
+                    kelpGroup.add(kelp);
+                    kelpObjects.push(kelp);
+                }
+                
+                console.log(`Created ${kelpCount} kelp instances`);
+            },
+            function (xhr) {
+                console.log('Kelp: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.error('Error loading kelp GLB model:', error);
+                console.log('Make sure the file exists at: ' + KELP_MODEL_URL);
+            }
+        );
+        
         scene.add(kelpGroup);
 
         // --- Initial Setup and Animation Loop ---
