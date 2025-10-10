@@ -6,12 +6,22 @@
     <title>Hetland</title>
     <!-- Font Awesome for social icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Three.js for 3D graphics --><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GLTF / GLB 3D Model Loader --><script src="GLTFLoader.js"></script>
     <style>
         /* Base Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box
+        }
+        /* Custom text selection color */
+        ::selection {
+            background: #f0d060;
+            color: #000000;
+        }
+        ::-moz-selection {
+            background: #f0d060;
+            color: #000000;
         }
         /* Body and Background */
         body {
@@ -31,6 +41,16 @@
             height: 100%;
             z-index: 0;
             filter: blur(2px); /* Added blur effect */
+        }
+        /* Card Gizmo Canvas Layer */
+        #canvasCardGizmo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 11;
+            pointer-events: none;
         }
         /* Cursor Light (DOM Element) */
         .cursor-light {
@@ -143,17 +163,24 @@
             margin-bottom: .5rem;
             text-transform: uppercase;
             letter-spacing: 8px;
-            /* White text with subtle glow */
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3), 0 10px 20px rgba(0, 0, 0, 0.3);
-            animation: glow 2s ease-in-out infinite alternate
+            /* Yellow selection highlight effect */
+            background: #f0d060;
+            color: #000000;
+            padding: 0.1rem 0.8rem;
+            border-radius: 2px;
+            /* Subtle shadow for depth */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 0 10px 20px rgba(0, 0, 0, 0.2)
-            }
-            to {
-                text-shadow: 0 0 40px rgba(255, 255, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.2), 0 10px 30px rgba(0, 0, 0, 0.4)
-            }
+        /* Brand Gizmo Canvas */
+        #brandGizmoCanvas {
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+            z-index: 20;
+            display: none;
         }
         .brand h2 {
             font-size: 1.8rem;
@@ -372,6 +399,12 @@
                 /* Disable 3D transform on mobile for performance/simplicity */
                 transform: none!important
             }
+            #brandGizmoCanvas {
+                display: none;
+            }
+            #canvasCardGizmo {
+                display: none;
+            }
             .tagline {
                 font-size: 1.1rem
             }
@@ -409,13 +442,14 @@
     </a>
 
     <!-- 3D Canvas for Three.js background --><canvas id="canvas3d"></canvas>
+    <!-- 3D Canvas for Card Gizmo --><canvas id="canvasCardGizmo"></canvas>
     <!-- Fog and Vignette Overlays (CSS effects) --><div class="fog-overlay"></div>
     <div class="cursor-light" id="cursorLight"></div>
     <div class="vignette"></div>
     
     <!-- Main Content --><div class="content">
         <div class="brand">
-
+            <!-- Brand Gizmo Canvas --><canvas id="brandGizmoCanvas"></canvas>
             <!-- Corner dots -->
             <div class="corner-tl"></div>
             <div class="corner-tr"></div>
@@ -457,13 +491,25 @@
 
         // --- Three.js Variables (Declared Globally) ---
         const canvas = document.getElementById('canvas3d');
+        const canvasCardGizmo = document.getElementById('canvasCardGizmo');
+        
+        // Background scene
         const scene = new THREE.Scene();
-        // Fog matches the dark background color for a deep, underwater feel
         scene.fog = new THREE.FogExp2(0x1f3d38, 0.08);
-
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        // Foreground scene for card gizmo
+        const cardScene = new THREE.Scene();
+        const cardCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
         const renderer = new THREE.WebGLRenderer({
             canvas: canvas,
+            alpha: true,
+            antialias: true
+        });
+
+        const cardRenderer = new THREE.WebGLRenderer({
+            canvas: canvasCardGizmo,
             alpha: true,
             antialias: true
         });
@@ -604,31 +650,171 @@
         const particleSystem3 = new THREE.Points(particles3, particleMaterial3);
         scene.add(particleSystem3);
 
-        // --- 3D Gizmo Object (Center of focus) ---
+// --- 3D Model Loading Setup ---
         const gizmoGroup = new THREE.Group();
+        
+        // Path to your GLB model
+        const MODEL_URL = 'models/submarine.glb';
+        
+        // GLTF/GLB Loader
+        const loader = new THREE.GLTFLoader();
+        
+        loader.load(
+            MODEL_URL,
+            function (gltf) {
+                // Model loaded successfully
+                console.log('GLB Model loaded successfully!');
+                
+                const model = gltf.scene;
+                
+                // Debug: Log model info
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                console.log('Model size:', size);
+                console.log('Model center:', box.getCenter(new THREE.Vector3()));
+                
+                // === ADJUST THESE VALUES FOR YOUR MODEL ===
+                // Try different scale values: 0.1, 1, 10, 100, etc.
+                model.scale.set(1, 1, 1); // Changed from 0.01 to 1
+                
+                // Rotation: Adjust orientation (in radians)
+                model.rotation.set(0, Math.PI / 4, 0);
+                
+                // Position offset within the group (fine-tuning)
+                model.position.set(0, 0, 0);
+                // ==========================================
+                
+                // Make model materials BLACK and receive lighting
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        // Replace material with black material
+                        child.material = new THREE.MeshLambertMaterial({
+                            color: 0x0a0a0a, // Very dark black/gray
+                            emissive: 0x000000,
+                            emissiveIntensity: 0
+                        });
+                        child.material.needsUpdate = true;
+                        console.log('Found mesh:', child.name, 'Material set to black');
+                    }
+                });
+                
+                // Add spotlights to the submarine
+                const spotlightPositions = [
+                    { pos: [0.5, 0.3, 0.2], target: [0.5, 0.3, 6] },   // Front right - pointing forward
+                    { pos: [0.5, 0.3, -0.2], target: [0.5, 0.3, 6] }, // Front left - pointing forward
+                    { pos: [0.5, -0.3, 0], target: [0.5, -0.3, 6] }      // Front bottom - pointing forward
+                ];
+                
+                spotlightPositions.forEach((spotData, index) => {
+                    // Spotlight housing
+                    const housingGeometry = new THREE.CylinderGeometry(0.08, 0.06, 0.12, 8);
+                    const housingMaterial = new THREE.MeshLambertMaterial({
+                        color: 0x1a1a1a,
+                        emissive: 0x0a0a0a,
+                        emissiveIntensity: 0.2
+                    });
+                    const housing = new THREE.Mesh(housingGeometry, housingMaterial);
+                    housing.rotation.z = Math.PI / 2;
+                    housing.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2]);
+                    model.add(housing);
+                    
+                    // Glowing lens
+                    const lensGeometry = new THREE.CircleGeometry(0.06, 16);
+                    const lensMaterial = new THREE.MeshBasicMaterial({
+                        color: 0xf0d060,
+                        emissive: 0xf0d060,
+                        emissiveIntensity: 1
+                    });
+                    const lens = new THREE.Mesh(lensGeometry, lensMaterial);
+                    lens.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2] + 0.07);
+                    model.add(lens);
+                    
+                    // Volumetric light beam (cone)
+                    const beamLength = 8;
+                    const beamGeometry = new THREE.ConeGeometry(0.06, beamLength, 16, 1, true);
+                    const beamMaterial = new THREE.MeshBasicMaterial({
+                        color: 0xf0d060,
+                        transparent: true,
+                        opacity: 0.18,
+                        side: THREE.DoubleSide,
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false
+                    });
+                    const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+                    beam.rotation.x = Math.PI / 2;  // Rotate to point forward instead of right
+                    beam.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2] + beamLength / 2);
+                    model.add(beam);
+                    
+                    // Actual Three.js SpotLight for lighting
+                    const spotlight = new THREE.SpotLight(0xf0d060, 1.5, 12, Math.PI / 8, 0.5, 1);
+                    spotlight.position.set(spotData.pos[0], spotData.pos[1], spotData.pos[2]);
+                    spotlight.target.position.set(spotData.target[0], spotData.target[1], spotData.target[2]);
+                    model.add(spotlight);
+                    model.add(spotlight.target);
+                    
+                    // Store beam for animation
+                    beam.userData.isSpotlightBeam = true;
+                    beam.userData.baseOpacity = 0.18;
+                    beam.userData.index = index;
+                });
+                
+                gizmoGroup.add(model);
+                console.log('Model added to scene at position:', gizmoGroup.position);
+            },
+            function (xhr) {
+                // Loading progress
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                // Error loading model
+                console.error('Error loading GLB model:', error);
+                console.log('Make sure the file exists at: ' + MODEL_URL);
+            }
+        );
 
-        function createArrow(color, rotation) {
+        // === GROUP POSITION (where the model appears in the scene) ===
+        gizmoGroup.position.set(-12, 0, -15);  // Updated to match the parallax base position
+        gizmoGroup.rotation.set(Math.PI / 8, Math.PI / -2, 0);
+        gizmoGroup.scale.set(0.8, 0.8, 0.8);
+        // ==============================================================
+        
+        scene.add(gizmoGroup);
+
+        // --- 3D Card Plane (Represents the brand card in 3D space) ---
+        const cardPlaneGeometry = new THREE.PlaneGeometry(8, 4);
+        const cardPlaneMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide
+        });
+        const cardPlane = new THREE.Mesh(cardPlaneGeometry, cardPlaneMaterial);
+        cardPlane.position.set(0, 0, 0);
+        cardScene.add(cardPlane);
+
+        // --- Brand Corner Gizmo (Attached to card plane) ---
+        const brandGizmoGroup = new THREE.Group();
+
+        function createSmallArrow(color, rotation) {
             const group = new THREE.Group();
             
-            // Shaft (cylinder)
-            const shaftGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
+            const shaftGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.6, 8);
             const shaftMaterial = new THREE.MeshBasicMaterial({
                 color: color, 
                 transparent: true,
                 opacity: 1.0 
             });
             const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-            shaft.position.y = 1;
+            shaft.position.y = 0.3;
             
-            // Arrow head (cone)
-            const headGeometry = new THREE.ConeGeometry(0.15, 0.4, 8);
+            const headGeometry = new THREE.ConeGeometry(0.045, 0.12, 8);
             const headMaterial = new THREE.MeshBasicMaterial({
                 color: color, 
                 transparent: true,
                 opacity: 1.0 
             });
             const head = new THREE.Mesh(headGeometry, headMaterial);
-            head.position.y = 2.2;
+            head.position.y = 0.66;
             
             group.add(shaft);
             group.add(head);
@@ -636,39 +822,41 @@
             if (rotation) {
                 group.rotation.set(rotation.x, rotation.y, rotation.z);
             }
+
+            group.scale.set(0.35,0.35,0.35);
+
             return group;
         }
 
-        const arrowY = createArrow(0x00FF00, null); // Bright Green (Y axis)
-        const arrowX = createArrow(0xFF0000, {
-            x: 0,
-            y: 0,
-            z: -Math.PI / 2
-        }); // Bright Red (X axis)
-        const arrowZ = createArrow(0x0000FF, {
-            x: Math.PI / 2,
-            y: 0,
-            z: 0
-        }); // Bright Blue (Z axis)
+        const smallArrowY = createSmallArrow(0x00FF00, null);
+        const smallArrowX = createSmallArrow(0xFF0000, {x: 0, y: 0, z: -Math.PI / 2});
+        const smallArrowZ = createSmallArrow(0x0000FF, {x: Math.PI / 2, y: 0, z: 0});
 
-        gizmoGroup.add(arrowY);
-        gizmoGroup.add(arrowX);
-        gizmoGroup.add(arrowZ);
+        brandGizmoGroup.add(smallArrowY);
+        brandGizmoGroup.add(smallArrowX);
+        brandGizmoGroup.add(smallArrowZ);
 
-        const centerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
-        const centerMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFFFFF, // Bright White center
+        const smallCenterGeometry = new THREE.SphereGeometry(0.015, 16, 16);
+        const smallCenterMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFFFFF,
             transparent: true,
             opacity: 1.0
         });
-        const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
-        gizmoGroup.add(centerSphere);
+        const smallCenterSphere = new THREE.Mesh(smallCenterGeometry, smallCenterMaterial);
+        brandGizmoGroup.add(smallCenterSphere);
 
-        // Positioning the Gizmo off-center
-        gizmoGroup.position.set(-8, 0, -8); 
-        gizmoGroup.rotation.set(Math.PI / 8, Math.PI / 4, 0);
-        gizmoGroup.scale.set(0.8, 0.8, 0.8); 
-        scene.add(gizmoGroup);
+        // Position gizmo at top-left corner of the card plane
+        brandGizmoGroup.position.set(-2.35, 1.15, 0);
+        
+        // Start with gizmo invisible to match card fade-in animation
+        brandGizmoGroup.traverse((obj) => {
+            if (obj.material) {
+                obj.material.opacity = 0;
+            }
+        });
+        
+        // Add gizmo as child of card plane so it inherits transformations
+        cardPlane.add(brandGizmoGroup);
 
         // --- Kelp/Seaweed Generation (Abstract geometry) ---
         const kelpGroup = new THREE.Group();
@@ -742,10 +930,42 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x1f3d38, 1);
+        
+        cardRenderer.setSize(window.innerWidth, window.innerHeight);
+        cardRenderer.setPixelRatio(window.devicePixelRatio);
+        cardRenderer.setClearColor(0x000000, 0);
+        
         camera.position.z = 5;
+        cardCamera.position.z = 4;
+
+        // Fade in gizmo to match brand card animation (1 second)
+        let gizmoFadeProgress = 0;
+        const gizmoFadeDuration = 1000; // 1 second to match fadeInDown animation
+        let gizmoFadeStartTime = null;
+        let allowCardRotation = false;
+
+        // Enable card rotation after fade-in animation completes
+        setTimeout(() => {
+            allowCardRotation = true;
+        }, gizmoFadeDuration);
 
         function animate() {
             requestAnimationFrame(animate);
+
+            // Fade in gizmo during first second
+            if (gizmoFadeProgress < 1) {
+                if (gizmoFadeStartTime === null) {
+                    gizmoFadeStartTime = performance.now();
+                }
+                const elapsed = performance.now() - gizmoFadeStartTime;
+                gizmoFadeProgress = Math.min(elapsed / gizmoFadeDuration, 1);
+                
+                brandGizmoGroup.traverse((obj) => {
+                    if (obj.material && obj.material.transparent) {
+                        obj.material.opacity = gizmoFadeProgress;
+                    }
+                });
+            }
 
             // Light position follows the mouse for 3D world space
             const lightX = mouseX * 10;
@@ -766,11 +986,11 @@
             camera.position.y += (mouseY * 0.5 - camera.position.y) * easingFactorCamera;
             camera.lookAt(scene.position);
 
-            // Gizmo rotation (disabled - now using static 2D gizmo)
-            // gizmoGroup.rotation.y += 0.005;
-            
+            // Card camera stays fixed (no parallax)
+            cardCamera.lookAt(cardScene.position);
+
             // Gizmo Parallax
-            const gizmoTargetX = -8 + mouseX * 0.2; 
+            const gizmoTargetX = -12 + mouseX * 0.2;  // Changed from -8 to -12 to move submarine further left
             const gizmoTargetY = 0 + mouseY * 0.2;
             
             gizmoGroup.position.x += (gizmoTargetX - gizmoGroup.position.x) * easingFactorCamera; 
@@ -864,8 +1084,11 @@
                 kelp.rotation.z = Math.cos(time + index * 0.3) * 0.05;
             });
 
-            // Render main scene
+            // Render background scene
             renderer.render(scene, camera);
+            
+            // Render card gizmo scene to separate canvas
+            cardRenderer.render(cardScene, cardCamera);
         }
 
         // --- Event Listeners (Accessing global variables) ---
@@ -892,7 +1115,7 @@
                 isMoving = true;
 
                 // Brand Parallax Effect (2D element moving with mouse)
-                if (brandElement && window.innerWidth > 768) {
+                if (brandElement && window.innerWidth > 768 && allowCardRotation) {
                     const rect = brandElement.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
                     const centerY = rect.top + rect.height / 2;
@@ -901,7 +1124,11 @@
                     const rotateX = (deltaY / window.innerHeight) * 25;
                     const rotateY = (deltaX / window.innerWidth) * 25;
 
-                    brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`
+                    brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
+
+                    // Update card plane to match rotation
+                    cardPlane.rotation.x = THREE.MathUtils.degToRad(rotateX);
+                    cardPlane.rotation.y = THREE.MathUtils.degToRad(rotateY);
                 }
 
                 // Debounce to fade out the light when movement stops
@@ -914,7 +1141,9 @@
             const handleLeave = () => {
                 cursorLight.style.opacity = '0';
                 if (brandElement && window.innerWidth > 768) {
-                    brandElement.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)'
+                    brandElement.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+                    cardPlane.rotation.x = 0;
+                    cardPlane.rotation.y = 0;
                 }
             };
             
@@ -931,7 +1160,10 @@
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+            cardCamera.aspect = window.innerWidth / window.innerHeight;
+            cardCamera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            cardRenderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
