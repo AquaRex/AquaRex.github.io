@@ -1,0 +1,14 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .logo-text {
+        fill: #d0e8dc;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 900;
+        font-size: 18px;
+        letter-spacing: 2px;
+      }
+    </style>
+  </defs>
+  <text x="10" y="35" class="logo-text">HETLAND</text>
+</svg>

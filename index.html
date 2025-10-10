@@ -4,34 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hetland</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Font Awesome for social icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js for 3D graphics --><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
+        /* Base Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box
         }
+        /* Body and Background */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             height: 100vh;
             width: 100vw;
+            /* Original dark, deep forest green gradient */
             background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%)
         }
+        /* 3D Canvas Layer */
         #canvas3d {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0
+            z-index: 0;
+            filter: blur(2px); /* Added blur effect */
         }
+        /* Cursor Light (DOM Element) */
         .cursor-light {
             position: fixed;
             width: 2400px;
             height: 2400px;
             border-radius: 50%;
+            /* Soft yellow/gold radial gradient */
             background: radial-gradient(circle, rgba(240, 208, 96, 0.015) 0%, rgba(240, 208, 96, 0.008) 35%, rgba(240, 208, 96, 0.004) 60%, rgba(240, 208, 96, 0.001) 80%, transparent 100%);
             pointer-events: none;
             z-index: 1;
@@ -41,6 +48,7 @@
             transition: opacity 0.4s ease;
             filter: blur(80px)
         }
+        /* Main Content Overlay */
         .content {
             position: relative;
             z-index: 10;
@@ -58,19 +66,84 @@
         .content * {
             pointer-events: auto
         }
+        /* Brand/Name Section */
         .brand {
             margin-bottom: 2rem;
             animation: fadeInDown 1s ease;
             transform-style: preserve-3d;
             will-change: transform;
-            backface-visibility: hidden
+            backface-visibility: hidden;
+            position: relative;
+            padding: 2rem 3rem;
+            border: 2px solid rgba(240, 208, 96, 0.4);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
+        .brand::before,
+        .brand::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f0d060;
+        }
+        .brand::before {
+            top: -3px;
+            left: -3px;
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 8px;
+        }
+        .brand::after {
+            bottom: -3px;
+            right: -3px;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 8px;
+        }
+        .brand .corner-tl,
+        .brand .corner-tr,
+        .brand .corner-bl,
+        .brand .corner-br {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px dotted #f0d060;
+        }
+        .brand .corner-tl {
+            top: -8px;
+            left: -8px;
+            border-right: none;
+            border-bottom: none;
+        }
+        .brand .corner-tr {
+            top: -8px;
+            right: -8px;
+            border-left: none;
+            border-bottom: none;
+        }
+        .brand .corner-bl {
+            bottom: -8px;
+            left: -8px;
+            border-right: none;
+            border-top: none;
+        }
+        .brand .corner-br {
+            bottom: -8px;
+            right: -8px;
+            border-left: none;
+            border-top: none;
+        }
+
         .brand h1 {
             font-size: 5rem;
             font-weight: 900;
             margin-bottom: .5rem;
             text-transform: uppercase;
             letter-spacing: 8px;
+            /* White text with subtle glow */
             text-shadow: 0 0 30px rgba(255, 255, 255, 0.3), 0 10px 20px rgba(0, 0, 0, 0.3);
             animation: glow 2s ease-in-out infinite alternate
         }
@@ -88,9 +161,11 @@
             letter-spacing: 4px;
             text-transform: uppercase;
             opacity: .8;
+            /* Subtly lighter green/white */
             color: #d0e8dc;
             text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3)
         }
+        /* Tagline/Description */
         .tagline {
             font-size: 1.4rem;
             margin-bottom: 3rem;
@@ -98,13 +173,17 @@
             max-width: 600px;
             line-height: 1.6;
             animation: fadeInUp 1s ease 0.3s backwards;
+            /* Muted green/white */
             color: #b8cfc0
         }
+        /* Call to Action Button */
         .cta-button {
             padding: 1.2rem 3rem;
             font-size: 1rem;
+            /* Semi-transparent background with blur */
             background: rgba(240, 208, 96, 0.12);
             backdrop-filter: blur(15px);
+            /* Gold border and text color */
             border: 2px solid rgba(240, 208, 96, 0.5);
             border-radius: 50px;
             color: #f0d060;
@@ -135,17 +214,45 @@
         }
         .cta-button:hover {
             transform: translateY(-3px);
+            /* Stronger gold glow on hover */
             box-shadow: 0 0 40px rgba(240, 208, 96, 0.4), 0 10px 40px rgba(0, 0, 0, 0.4);
             border-color: rgba(240, 208, 96, 0.8);
             background: rgba(240, 208, 96, 0.18)
         }
+        /* Company Logo */
+        .company-logo {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 15;
+            width: 150px;
+            height: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: fadeInDown 1s ease 0.3s backwards;
+            opacity: 0.9;
+        }
+        .company-logo:hover {
+            transform: scale(1.05);
+            opacity: 1;
+            filter: drop-shadow(0 0 15px rgba(240, 208, 96, 0.3));
+        }
+        .company-logo:hover .logo-text {
+            fill: #f0d060;
+        }
+        .company-logo svg {
+            width: 100%;
+            height: auto;
+        }
+        /* Social Links */
         .social-container {
             position: fixed;
             bottom: 3rem;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(30px);
+            opacity: 0;
             z-index: 10;
-            animation: fadeInUp 1s ease 0.9s backwards
+            animation: fadeInUpCenter 1s ease 0.9s forwards
         }
         .social-links {
             display: flex;
@@ -156,14 +263,17 @@
             width: 56px;
             height: 56px;
             border-radius: 50%;
+            /* Semi-transparent background with blur */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
+            /* Link color */
             color: #d0e8dc;
             text-decoration: none;
+            /* Gold border */
             border: 2px solid rgba(240, 208, 96, 0.3);
             transition: all 0.4s ease;
             position: relative;
@@ -176,6 +286,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            /* Gold hover effect */
             background: rgba(240, 208, 96, 0.2);
             border-radius: 50%;
             opacity: 0;
@@ -188,10 +299,12 @@
         }
         .social-link:hover {
             transform: translateY(-8px) scale(1.05);
+            /* Stronger gold glow on hover */
             box-shadow: 0 0 30px rgba(240, 208, 96, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
             border-color: rgba(240, 208, 96, 0.7);
             color: #f0d060
         }
+        /* Visual Overlays */
         .vignette {
             position: fixed;
             top: 0;
@@ -200,6 +313,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 2;
+            /* Darken edges for focus */
             background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 20, 18, 0.3) 80%, rgba(10, 20, 18, 0.6) 100%)
         }
         .fog-overlay {
@@ -210,9 +324,11 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
+            /* Subtle layered gradient fog effect */
             background: radial-gradient(ellipse at 30% 40%, rgba(45, 79, 72, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(31, 61, 56, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(21, 45, 40, 0.1) 0%, transparent 50%);
             opacity: .6
         }
+        /* Animations */
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -233,6 +349,17 @@
                 transform: translateY(0)
             }
         }
+        @keyframes fadeInUpCenter {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(30px)
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+        }
+        /* Responsive Adjustments */
         @media (max-width:768px) {
             .brand h1 {
                 font-size: 3rem;
@@ -242,6 +369,7 @@
                 font-size: 1.2rem
             }
             .brand {
+                /* Disable 3D transform on mobile for performance/simplicity */
                 transform: none!important
             }
             .tagline {
@@ -262,21 +390,47 @@
     </style>
 </head>
 <body>
-    <canvas id="canvas3d"></canvas>
-    <div class="fog-overlay"></div>
+    <!-- Company Logo --><a href="index.html" class="company-logo" title="Hetland - Home" aria-label="Go to home page">
+        <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <style>
+                    .logo-text {
+                        fill: #d0e8dc;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-weight: 900;
+                        font-size: 18px;
+                        letter-spacing: 2px;
+                        transition: fill 0.3s ease;
+                    }
+                </style>
+            </defs>
+            <text x="10" y="35" class="logo-text">HETLAND</text>
+        </svg>
+    </a>
+
+    <!-- 3D Canvas for Three.js background --><canvas id="canvas3d"></canvas>
+    <!-- Fog and Vignette Overlays (CSS effects) --><div class="fog-overlay"></div>
     <div class="cursor-light" id="cursorLight"></div>
     <div class="vignette"></div>
-    <div class="content">
+    
+    <!-- Main Content --><div class="content">
         <div class="brand">
+
+            <!-- Corner dots -->
+            <div class="corner-tl"></div>
+            <div class="corner-tr"></div>
+            <div class="corner-bl"></div>
+            <div class="corner-br"></div>
             <h1>Thomas Hetland</h1>
             <h2>Software Developer</h2>
         </div>
         <p class="tagline">
             Developing Software and Tools. Sometimes they go public. <br>Don't hesitate to reach out!
         </p>
-        <a href="projects" class="cta-button">Coming Soon</a>
+        <a href="projects.html" class="cta-button">Coming Soon</a>
     </div>
-    <div class="social-container">
+
+    <!-- Social Links --><div class="social-container">
         <div class="social-links">
             <a href="https://www.youtube.com/@DefaltRat" class="social-link" title="YouTube" aria-label="YouTube">
                 <i class="fab fa-youtube"></i>
@@ -292,7 +446,8 @@
             </a>
         </div>
     </div>
-    <script>
+    
+    <!-- JavaScript for Three.js and interactivity --><script>
         // Global variables must be outside the load listener but must be defined before use
         let mouseX = 0,
             mouseY = 0,
@@ -303,6 +458,7 @@
         // --- Three.js Variables (Declared Globally) ---
         const canvas = document.getElementById('canvas3d');
         const scene = new THREE.Scene();
+        // Fog matches the dark background color for a deep, underwater feel
         scene.fog = new THREE.FogExp2(0x1f3d38, 0.08);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -313,14 +469,16 @@
         });
 
         // --- Lighting ---
+        // Subtle ambient light to illuminate dark areas with a hint of green
         const ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
         scene.add(ambientLight);
 
-        // Directional Light is at its original position
+        // Directional light for subtle shadows/depth
         const directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
         directionalLight.position.set(-5, 8, 3);
         scene.add(directionalLight);
 
+        // Mouse-following point light (gold/yellow color)
         const cursorPointLight = new THREE.PointLight(0xf0d060, 2.5, 30);
         cursorPointLight.position.set(0, 0, 5);
         scene.add(cursorPointLight);
@@ -330,6 +488,7 @@
         scene.add(cursorAmbientLight);
 
         // --- Particle System Setup ---
+        // Create a 2D canvas for a soft, glowing particle texture
         const canvas2d = document.createElement('canvas');
         canvas2d.width = 32;
         canvas2d.height = 32;
@@ -342,7 +501,7 @@
         ctx.fillRect(0, 0, 32, 32);
         const particleTexture = new THREE.CanvasTexture(canvas2d);
 
-        // Particle layer 1 (Foreground)
+        // Particle layer 1 (Foreground/Interactive)
         const particleCount = 10000;
         const particles = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
@@ -360,13 +519,14 @@
             originalPositions[i3 + 1] = positions[i3 + 1];
             originalPositions[i3 + 2] = positions[i3 + 2];
 
+            // Base color for particles (light green/white)
             colors[i3] = 0.8;
             colors[i3 + 1] = 0.9;
             colors[i3 + 2] = 0.8;
 
             velocities.push({
                 x: (Math.random() - 0.5) * 0.01,
-                y: (Math.random() - 0.5) * 0.008 + 0.003,
+                y: (Math.random() - 0.5) * 0.008 + 0.003, // Slight upward drift
                 z: (Math.random() - 0.5) * 0.01
             });
         }
@@ -382,13 +542,13 @@
             blending: THREE.AdditiveBlending,
             map: particleTexture,
             depthWrite: false,
-            vertexColors: true
+            vertexColors: true // Enables per-particle color changes for the light effect
         });
 
         const particleSystem = new THREE.Points(particles, particleMaterial);
         scene.add(particleSystem);
 
-        // Particle layer 2 (Mid-ground)
+        // Particle layer 2 (Mid-ground) - Less visible, larger range
         const particleCount2 = 7000;
         const particles2 = new THREE.BufferGeometry();
         const positions2 = new Float32Array(particleCount2 * 3);
@@ -416,7 +576,7 @@
         const particleSystem2 = new THREE.Points(particles2, particleMaterial2);
         scene.add(particleSystem2);
 
-        // Particle layer 3 (Far background)
+        // Particle layer 3 (Far background) - Smallest size, largest range, horizontal drift
         const particleCount3 = 4000;
         const particles3 = new THREE.BufferGeometry();
         const positions3 = new Float32Array(particleCount3 * 3);
@@ -444,7 +604,7 @@
         const particleSystem3 = new THREE.Points(particles3, particleMaterial3);
         scene.add(particleSystem3);
 
-        // --- 3D Gizmo Object ---
+        // --- 3D Gizmo Object (Center of focus) ---
         const gizmoGroup = new THREE.Group();
 
         function createArrow(color, rotation) {
@@ -453,7 +613,6 @@
             // Shaft (cylinder)
             const shaftGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
             const shaftMaterial = new THREE.MeshBasicMaterial({
-                // Using bright colors and high opacity for 'emissive' effect
                 color: color, 
                 transparent: true,
                 opacity: 1.0 
@@ -464,7 +623,6 @@
             // Arrow head (cone)
             const headGeometry = new THREE.ConeGeometry(0.15, 0.4, 8);
             const headMaterial = new THREE.MeshBasicMaterial({
-                // Using bright colors and high opacity for 'emissive' effect
                 color: color, 
                 transparent: true,
                 opacity: 1.0 
@@ -481,17 +639,17 @@
             return group;
         }
 
-        const arrowY = createArrow(0x00FF00, null); // Bright Green - Y axis (up)
+        const arrowY = createArrow(0x00FF00, null); // Bright Green (Y axis)
         const arrowX = createArrow(0xFF0000, {
             x: 0,
             y: 0,
             z: -Math.PI / 2
-        }); // Bright Red - X axis (right)
+        }); // Bright Red (X axis)
         const arrowZ = createArrow(0x0000FF, {
             x: Math.PI / 2,
             y: 0,
             z: 0
-        }); // Bright Blue - Z axis (forward)
+        }); // Bright Blue (Z axis)
 
         gizmoGroup.add(arrowY);
         gizmoGroup.add(arrowX);
@@ -499,24 +657,24 @@
 
         const centerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
         const centerMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFFFFF, // Bright White
+            color: 0xFFFFFF, // Bright White center
             transparent: true,
             opacity: 1.0
         });
         const centerSphere = new THREE.Mesh(centerGeometry, centerMaterial);
         gizmoGroup.add(centerSphere);
 
-        // Positioning the Gizmo further to the left and smaller
-        gizmoGroup.position.set(-8, 0, -8); // Moved further left (-6 to -8)
+        // Positioning the Gizmo off-center
+        gizmoGroup.position.set(-8, 0, -8); 
         gizmoGroup.rotation.set(Math.PI / 8, Math.PI / 4, 0);
         gizmoGroup.scale.set(0.8, 0.8, 0.8); 
         scene.add(gizmoGroup);
 
-        // --- Kelp Generation ---
+        // --- Kelp/Seaweed Generation (Abstract geometry) ---
         const kelpGroup = new THREE.Group();
         const kelpCount = 50;
         const kelpMaterial = new THREE.MeshLambertMaterial({
-            color: 0x3d664c,
+            color: 0x3d664c, // Deep green color
             transparent: true,
             opacity: 0.4,
             side: THREE.DoubleSide
@@ -536,6 +694,7 @@
                 segment.rotation.z = Math.random() * 0.2 - 0.1;
                 kelpStalk.add(segment);
 
+                // Add leaves at segments
                 if (i > 0 && i % 2 === 0) {
                     const leafCount = Math.floor(Math.random() * 3) + 2;
                     for (let j = 0; j < leafCount; j++) {
@@ -567,10 +726,9 @@
 
             const kelp = createKelp(height);
 
-            // Kelp position is reset to original random range for a balanced scene
             kelp.position.set(
                 (Math.random() - 0.5) * 30,
-                -12 - (Math.random() * 3),
+                -12 - (Math.random() * 3), // Anchor below the viewable area
                 kelpZ
             );
 
@@ -589,6 +747,7 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            // Light position follows the mouse for 3D world space
             const lightX = mouseX * 10;
             const lightY = mouseY * 10;
 
@@ -602,27 +761,27 @@
 
             const easingFactorCamera = 0.05;
 
-            // Camera Parallax
+            // Camera Parallax: moves subtly with the mouse
             camera.position.x += (mouseX * 0.5 - camera.position.x) * easingFactorCamera;
             camera.position.y += (mouseY * 0.5 - camera.position.y) * easingFactorCamera;
             camera.lookAt(scene.position);
 
-            // Gizmo rotation
-            gizmoGroup.rotation.y += 0.005;
+            // Gizmo rotation (disabled - now using static 2D gizmo)
+            // gizmoGroup.rotation.y += 0.005;
             
-            // Gizmo Parallax with subtle drift and smooth easing (0.05)
-            const gizmoTargetX = -8 + mouseX * 0.2; // X-position further left, multiplier remains subtle
+            // Gizmo Parallax
+            const gizmoTargetX = -8 + mouseX * 0.2; 
             const gizmoTargetY = 0 + mouseY * 0.2;
             
-            // Use the same easing factor as the camera for integration
             gizmoGroup.position.x += (gizmoTargetX - gizmoGroup.position.x) * easingFactorCamera; 
             gizmoGroup.position.y += (gizmoTargetY - gizmoGroup.position.y) * easingFactorCamera;
             
-            // Particle Layer 1 Logic
+            // Particle Layer 1 Logic (Interactive, colors shift with light proximity)
             const positions = particleSystem.geometry.attributes.position.array;
             const colors = particleSystem.geometry.attributes.color.array;
 
             for (let i = 0; i < particleCount * 3; i += 3) {
+                // Repulsion logic (pushes particles away from the camera's focus point)
                 const dx = mouseX * 5 - positions[i];
                 const dy = mouseY * 5 - positions[i + 1];
                 const dz = 3 - positions[i + 2];
@@ -635,6 +794,7 @@
                     positions[i + 2] -= dz * force;
                 }
 
+                // Light interaction logic (color change)
                 const lightDistance = Math.sqrt(
                     Math.pow(lightX - positions[i], 2) +
                     Math.pow(lightY - positions[i + 1], 2) +
@@ -648,6 +808,7 @@
                     lightIntensity *= 1.5;
                 }
 
+                // Interpolate colors between base (green-white) and light (gold)
                 const baseR = 0.8;
                 const baseG = 0.9;
                 const baseB = 0.8;
@@ -659,14 +820,17 @@
                 colors[i + 1] = baseG + (lightG - baseG) * lightIntensity;
                 colors[i + 2] = baseB + (lightB - baseB) * lightIntensity;
 
+                // Simple drift based on initial velocity
                 positions[i] += velocities[i / 3].x;
                 positions[i + 1] += velocities[i / 3].y;
                 positions[i + 2] += velocities[i / 3].z;
-
+                
+                // Return to original position slowly (damping)
                 positions[i] += (originalPositions[i] - positions[i]) * 0.005;
                 positions[i + 1] += (originalPositions[i + 1] - positions[i + 1]) * 0.005;
                 positions[i + 2] += (originalPositions[i + 2] - positions[i + 2]) * 0.005;
 
+                // Boundary wrap-around
                 if (Math.abs(positions[i]) > 18) positions[i] = originalPositions[i] * -1;
                 if (Math.abs(positions[i + 1]) > 18) positions[i + 1] = originalPositions[i + 1] * -1;
                 if (Math.abs(positions[i + 2]) > 10) positions[i + 2] = originalPositions[i + 2] * -1;
@@ -675,7 +839,7 @@
             particleSystem.geometry.attributes.position.needsUpdate = true;
             particleSystem.geometry.attributes.color.needsUpdate = true;
 
-            // Particle Layer 2 Logic
+            // Particle Layer 2 Logic (Simple upward drift)
             const positions2 = particleSystem2.geometry.attributes.position.array;
             for (let i = 0; i < particleCount2 * 3; i += 3) {
                 positions2[i + 1] += 0.005;
@@ -683,7 +847,7 @@
             }
             particleSystem2.geometry.attributes.position.needsUpdate = true;
 
-            // Particle Layer 3 Logic
+            // Particle Layer 3 Logic (Diagonal drift)
             const positions3 = particleSystem3.geometry.attributes.position.array;
             for (let i = 0; i < particleCount3 * 3; i += 3) {
                 positions3[i] += 0.003;
@@ -693,13 +857,14 @@
             }
             particleSystem3.geometry.attributes.position.needsUpdate = true;
 
-            // Kelp Animation
+            // Kelp Animation (subtle swaying)
             const time = performance.now() * 0.0001;
             kelpObjects.forEach((kelp, index) => {
                 kelp.rotation.x = Math.sin(time + index * 0.5) * 0.05;
                 kelp.rotation.z = Math.cos(time + index * 0.3) * 0.05;
             });
 
+            // Render main scene
             renderer.render(scene, camera);
         }
 
@@ -709,13 +874,14 @@
             const brandElement = document.querySelector('.brand');
 
             const handleMove = e => {
+                // Handle both mouse and touch events
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 
                 cursorX = clientX;
                 cursorY = clientY;
                 
-                // Normalised mouse coordinates (for Three.js)
+                // Normalised mouse coordinates for Three.js (-1 to 1)
                 mouseX = (clientX / window.innerWidth) * 2 - 1;
                 mouseY = -(clientY / window.innerHeight) * 2 + 1;
 
@@ -725,7 +891,7 @@
                 cursorLight.style.opacity = '1';
                 isMoving = true;
 
-                // Brand Parallax Effect
+                // Brand Parallax Effect (2D element moving with mouse)
                 if (brandElement && window.innerWidth > 768) {
                     const rect = brandElement.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
@@ -738,6 +904,7 @@
                     brandElement.style.transform = `perspective(1000px) rotateX(${-rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`
                 }
 
+                // Debounce to fade out the light when movement stops
                 clearTimeout(window.cursorTimeout);
                 window.cursorTimeout = setTimeout(() => {
                     isMoving = false
@@ -756,9 +923,11 @@
             document.addEventListener('mouseleave', handleLeave);
             document.addEventListener('touchend', handleLeave);
 
-            animate(); // Start the animation loop
+            // Start the main animation loop after all initial setup is complete
+            animate(); 
         });
 
+        // Resize handler for responsiveness
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
