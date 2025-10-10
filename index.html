@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hetland</title>
-    <!-- Font Awesome for social icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Three.js for 3D graphics --><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- GLTF / GLB 3D Model Loader --><script src="GLTFLoader.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="GLTFLoader.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -202,6 +202,13 @@
             animation: fadeInUp 1s ease 0.3s backwards;
             /* Muted green/white */
             color: #b8cfc0
+        }
+        /* Custom Squiggly Underline Style */
+        .squiggly-error {
+            /* Creates the squiggly line */
+            text-decoration: underline wavy #ff5d5b;
+            /* Moves the line slightly down to avoid touching the text */
+            text-underline-offset: 4px;
         }
         /* Call to Action Button */
         .cta-button {
@@ -423,7 +430,7 @@
     </style>
 </head>
 <body>
-    <!-- Company Logo --><a href="index.html" class="company-logo" title="Hetland - Home" aria-label="Go to home page">
+    <a href="" class="company-logo" title="Hetland - Home" aria-label="Go to home page">
         <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <style>
@@ -431,7 +438,7 @@
                         fill: #d0e8dc;
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         font-weight: 900;
-                        font-size: 18px;
+                        font-size: 28px;
                         letter-spacing: 2px;
                         transition: fill 0.3s ease;
                     }
@@ -441,16 +448,15 @@
         </svg>
     </a>
 
-    <!-- 3D Canvas for Three.js background --><canvas id="canvas3d"></canvas>
-    <!-- 3D Canvas for Card Gizmo --><canvas id="canvasCardGizmo"></canvas>
-    <!-- Fog and Vignette Overlays (CSS effects) --><div class="fog-overlay"></div>
+    <canvas id="canvas3d"></canvas>
+    <canvas id="canvasCardGizmo"></canvas>
+    <div class="fog-overlay"></div>
     <div class="cursor-light" id="cursorLight"></div>
     <div class="vignette"></div>
     
-    <!-- Main Content --><div class="content">
+    <div class="content">
         <div class="brand">
-            <!-- Brand Gizmo Canvas --><canvas id="brandGizmoCanvas"></canvas>
-            <!-- Corner dots -->
+            <canvas id="brandGizmoCanvas"></canvas>
             <div class="corner-tl"></div>
             <div class="corner-tr"></div>
             <div class="corner-bl"></div>
@@ -459,12 +465,12 @@
             <h2>Software Developer</h2>
         </div>
         <p class="tagline">
-            Developing Software and Tools. Sometimes they go public. <br>Don't hesitate to reach out!
+            Developing <span class="squiggly-error">Software</span> and Tools. Sometimes they go public. <br>Don't hesitate to reach out!
         </p>
         <a href="projects.html" class="cta-button">Coming Soon</a>
     </div>
 
-    <!-- Social Links --><div class="social-container">
+    <div class="social-container">
         <div class="social-links">
             <a href="https://www.youtube.com/@DefaltRat" class="social-link" title="YouTube" aria-label="YouTube">
                 <i class="fab fa-youtube"></i>
@@ -481,7 +487,7 @@
         </div>
     </div>
     
-    <!-- JavaScript for Three.js and interactivity --><script>
+    <script>
         // Global variables must be outside the load listener but must be defined before use
 // Global variables must be outside the load listener but must be defined before use
 let mouseX = 0,
