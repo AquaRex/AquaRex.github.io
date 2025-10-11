@@ -192,6 +192,8 @@ class ProjectListElement {
                 break;
         }
     }
+
+
 }
 
 // Export for use in other files

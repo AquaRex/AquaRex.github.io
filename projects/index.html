@@ -153,12 +153,14 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .project-row:hover {
-            transform: translateX(8px);
-            border-color: rgba(240, 208, 96, 0.4);
-            box-shadow: 0 8px 32px rgba(240, 208, 96, 0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border-color: rgba(240, 208, 96, 0.3);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .project-image-container {
@@ -357,25 +359,6 @@
     </style>
 </head>
 <body>
-    <!-- Company Logo -->
-    <a href="/" class="company-logo" title="Hetland - Home" aria-label="Go to home page">
-        <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <style>
-                    .logo-text {
-                        fill: #d0e8dc;
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        font-weight: 900;
-                        font-size: 18px;
-                        letter-spacing: 2px;
-                        transition: fill 0.3s ease;
-                    }
-                </style>
-            </defs>
-            <text x="10" y="35" class="logo-text">HETLAND</text>
-        </svg>
-    </a>
-
     <canvas id="canvas3d"></canvas>
     
     <div class="container">
@@ -394,8 +377,10 @@
     <script src="../services/oceanBackground.js"></script>
     <script src="../services/submarine.js"></script>
     <script src="../services/kelp.js"></script>
+    <script src="../services/editableCard.js"></script>
     <script src="../services/projectListElement.js"></script>
     <script src="../services/projectListManager.js"></script>
+    <script src="../services/header.js"></script>
     <script>
         // Global variables for mouse tracking and scroll
         let mouseX = 0;
@@ -414,6 +399,7 @@
         
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x1f3d38, 1);
         camera.position.set(0, baseCameraY, 5);
 
         // Initialize background systems
@@ -545,6 +531,8 @@
                 startDate: 'Feb 2021',
                 status: 'archived'
             });
+
+            // Projects are now using original styling without EditableCard borders
 
             // Start animation loop
             animate();

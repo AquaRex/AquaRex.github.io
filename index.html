@@ -10,7 +10,9 @@
     <script src="../services/oceanBackground.js"></script>
     <script src="../services/submarine.js"></script>
     <script src="../services/kelp.js"></script>
+    <script src="../services/editableCard.js"></script>
     <script src="../services/rotatableCard.js"></script>
+    <script src="../services/header.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -92,73 +94,10 @@
         }
         /* Brand/Name Section */
         .brand {
+            /* Content styling only - frame will be added by EditableCard */
             margin-bottom: 2rem;
             animation: fadeInDown 1s ease;
-            transform-style: preserve-3d;
-            will-change: transform;
-            backface-visibility: hidden;
-            position: relative;
             padding: 2rem 3rem;
-            border: 2px solid rgba(240, 208, 96, 0.4);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        .brand::before,
-        .brand::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f0d060;
-        }
-        .brand::before {
-            top: -3px;
-            left: -3px;
-            border-right: none;
-            border-bottom: none;
-            border-top-left-radius: 8px;
-        }
-        .brand::after {
-            bottom: -3px;
-            right: -3px;
-            border-left: none;
-            border-top: none;
-            border-bottom-right-radius: 8px;
-        }
-        .brand .corner-tl,
-        .brand .corner-tr,
-        .brand .corner-bl,
-        .brand .corner-br {
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            border: 2px dotted #f0d060;
-        }
-        .brand .corner-tl {
-            top: -8px;
-            left: -8px;
-            border-right: none;
-            border-bottom: none;
-        }
-        .brand .corner-tr {
-            top: -8px;
-            right: -8px;
-            border-left: none;
-            border-bottom: none;
-        }
-        .brand .corner-bl {
-            bottom: -8px;
-            left: -8px;
-            border-right: none;
-            border-top: none;
-        }
-        .brand .corner-br {
-            bottom: -8px;
-            right: -8px;
-            border-left: none;
-            border-top: none;
         }
 
         .brand h1 {
@@ -174,17 +113,6 @@
             border-radius: 2px;
             /* Subtle shadow for depth */
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        /* Brand Gizmo Canvas */
-        #brandGizmoCanvas {
-            position: absolute;
-            top: -50px;
-            left: -50px;
-            width: 100px;
-            height: 100px;
-            pointer-events: none;
-            z-index: 20;
-            display: none;
         }
         .brand h2 {
             font-size: 1.8rem;
@@ -257,31 +185,7 @@
             border-color: rgba(240, 208, 96, 0.8);
             background: rgba(240, 208, 96, 0.18)
         }
-        /* Company Logo */
-        .company-logo {
-            position: fixed;
-            top: 2rem;
-            left: 2rem;
-            z-index: 15;
-            width: 150px;
-            height: auto;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            animation: fadeInDown 1s ease 0.3s backwards;
-            opacity: 0.9;
-        }
-        .company-logo:hover {
-            transform: scale(1.05);
-            opacity: 1;
-            filter: drop-shadow(0 0 15px rgba(240, 208, 96, 0.3));
-        }
-        .company-logo:hover .logo-text {
-            fill: #f0d060;
-        }
-        .company-logo svg {
-            width: 100%;
-            height: auto;
-        }
+        /* Company Logo styles will be handled by Header class */
         /* Social Links */
         .social-container {
             position: fixed;
@@ -410,9 +314,6 @@
                 /* Disable 3D transform on mobile for performance/simplicity */
                 transform: none!important
             }
-            #brandGizmoCanvas {
-                display: none;
-            }
             #canvasCardGizmo {
                 display: none;
             }
@@ -434,24 +335,6 @@
     </style>
 </head>
 <body>
-    <a href="" class="company-logo" title="Hetland - Home" aria-label="Go to home page">
-        <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <style>
-                    .logo-text {
-                        fill: #d0e8dc;
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        font-weight: 900;
-                        font-size: 28px;
-                        letter-spacing: 2px;
-                        transition: fill 0.3s ease;
-                    }
-                </style>
-            </defs>
-            <text x="10" y="35" class="logo-text">HETLAND</text>
-        </svg>
-    </a>
-
     <canvas id="canvas3d"></canvas>
     <canvas id="canvasCardGizmo"></canvas>
     <div class="fog-overlay"></div>
@@ -459,12 +342,7 @@
     <div class="vignette"></div>
     
     <div class="content">
-        <div class="brand">
-            <canvas id="brandGizmoCanvas"></canvas>
-            <div class="corner-tl"></div>
-            <div class="corner-tr"></div>
-            <div class="corner-bl"></div>
-            <div class="corner-br"></div>
+        <div class="brand" id="main-brand-card">
             <h1>Thomas Hetland</h1>
             <h2>Software Developer</h2>
         </div>
@@ -586,19 +464,15 @@
             submarine = new Submarine(scene, camera);
             kelp = new Kelp(scene);
 
-            // Initialize rotatable card system
+            // Initialize editable card system for main brand
             const brandElement = document.querySelector('.brand');
-            rotatableCard = new RotatableCard({
+            const mainBrandCard = new EditableCard({
                 targetElement: brandElement,
-                cardScene: cardScene,
-                cardCamera: cardCamera,
-                cardRenderer: cardRenderer,
-                cardWidth: 8,
-                cardHeight: 4,
-                gizmoPosition: { x: -2.35, y: 1.15, z: 0 },
                 enableRotation: true,
-                fadeInDuration: 1000,
                 rotationIntensity: 25,
+                fadeInDuration: 1000,
+                alwaysVisible: true,
+                showGizmoOnHover: false,
                 onRotationChange: (rotationData) => {
                     // Optional: Handle rotation changes if needed
                     // console.log('Card rotated:', rotationData);

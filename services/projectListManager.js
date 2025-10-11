@@ -4,7 +4,7 @@
  */
 
 class ProjectListManager {
-    constructor(containerSelector = '.projects-list') {
+    constructor(containerSelector = '.projects-list', options = {}) {
         this.container = document.querySelector(containerSelector);
         this.projects = [];
         this.templateEngine = new ProjectListElement();
@@ -101,6 +101,8 @@ class ProjectListManager {
         this.container.innerHTML = projectsHtml;
         this.addEventListeners();
     }
+
+
 
     // Change the visual template
     setTemplate(templateName) {
