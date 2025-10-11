@@ -94,6 +94,8 @@
         .page-header {
             margin: 4rem 0 3rem 0;
             animation: fadeInDown 1s ease;
+            position: relative;
+            z-index: 5; /* Ensure it stays below any fixed elements */
         }
         
         .page-title {
@@ -107,6 +109,10 @@
             padding: 0.1rem 0.8rem;
             border-radius: 2px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            white-space: nowrap; /* Prevent text wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis if needed */
+            max-width: 100%; /* Ensure it fits container */
         }
         
         .page-subtitle {
@@ -481,7 +487,20 @@
         }
 
         /* Responsive Adjustments */
+        @media (max-width: 1200px) {
+            .page-title {
+                font-size: 3.5rem;
+                letter-spacing: 5px;
+            }
+        }
+
         @media (max-width: 1024px) {
+            .page-title {
+                font-size: 3rem;
+                letter-spacing: 4px;
+                padding: 0.1rem 0.7rem;
+            }
+            
             .filters-container {
                 max-width: none;
                 padding: 0 2rem;
@@ -501,18 +520,25 @@
             }
         }
 
+        @media (max-width: 900px) {
+            .page-title {
+                font-size: 2.8rem;
+                letter-spacing: 3px;
+            }
+        }
+
         @media (max-width: 768px) {
             .content {
                 padding: 1rem;
             }
             
             .page-header {
-                margin: 2rem 0 2rem 0;
+                margin: 4rem 0 2rem 0; /* Increase top margin to compensate for stacked filters */
             }
             
             .page-title {
                 font-size: 2.5rem;
-                letter-spacing: 3px;
+                letter-spacing: 2px;
                 padding: 0.1rem 0.6rem;
             }
             
@@ -655,19 +681,72 @@
             }
         }
 
+        @media (max-width: 650px) {
+            .page-title {
+                font-size: 2rem;
+                letter-spacing: 1px;
+            }
+        }
+
+        @media (max-width: 580px) {
+            .page-title {
+                font-size: 1.75rem;
+                letter-spacing: 0.5px;
+                padding: 0.1rem 0.5rem;
+            }
+        }
+
+        /* Critical breakpoint for overlap prevention */
+        @media (max-width: 550px) and (min-width: 480px) {
+            .page-title {
+                font-size: 1.6rem;
+                letter-spacing: 0.3px;
+                padding: 0.1rem 0.4rem;
+                max-width: calc(100vw - 120px); /* Leave space for HETLAND */
+            }
+            
+            .page-header {
+                margin-top: 5rem; /* Increase top margin for stacked filters */
+            }
+        }
+
+        @media (max-width: 520px) {
+            .page-title {
+                font-size: 1.5rem;
+                letter-spacing: 0.5px;
+                padding: 0.1rem 0.4rem;
+            }
+        }
+
         @media (max-width: 480px) {
             .content {
                 padding: 0.5rem;
             }
             
             .page-header {
-                margin: 1.5rem 0 1.5rem 0;
+                margin: 3rem 0 1.5rem 0; /* Increase top margin for mobile stacked layout */
             }
             
             .page-title {
-                font-size: 2rem;
-                letter-spacing: 2px;
+                font-size: 1.4rem;
+                letter-spacing: 0.5px;
                 padding: 0.1rem 0.4rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .page-title {
+                font-size: 1.3rem;
+                letter-spacing: 0.3px;
+                padding: 0.1rem 0.3rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .page-title {
+                font-size: 1.2rem;
+                letter-spacing: 0.2px;
+                padding: 0.1rem 0.3rem;
             }
             
             .page-subtitle {
