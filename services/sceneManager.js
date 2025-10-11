@@ -14,6 +14,10 @@ class SceneManager {
         this.systems = [];
         this.isInitialized = false;
         
+        // LookAt targets (can be modified by scroll effects)
+        this.cameraLookAtTarget = new THREE.Vector3(0, 0, 0);
+        this.cardCameraLookAtTarget = new THREE.Vector3(0, 0, 0);
+        
         this.init();
     }
 
@@ -111,8 +115,8 @@ class SceneManager {
             }
         });
 
-        // Camera look-at for both scenes
-        this.camera.lookAt(this.scene.position);
+        // Camera look-at for both scenes (skip main camera - handled by scroll effects)
+        // this.camera.lookAt(this.scene.position); // Disabled for scroll effects
         this.cardCamera.lookAt(this.cardScene.position);
 
         // Render both scenes
@@ -140,6 +144,11 @@ class SceneManager {
 
     getCardCamera() {
         return this.cardCamera;
+    }
+
+    // Update camera lookAt target (for scroll effects)
+    setCameraLookAtTarget(x, y, z) {
+        this.cameraLookAtTarget.set(x, y, z);
     }
 }
 

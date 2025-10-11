@@ -717,8 +717,12 @@
             const scene = sceneManager.getScene();
             const camera = sceneManager.getCamera();
             
-            // Initialize background systems
-            const oceanBackground = new OceanBackground(scene, camera);
+            // Initialize background systems with scroll effects enabled
+            const oceanBackground = new OceanBackground(scene, camera, {
+                enableScrollCameraMovement: true,
+                cameraMovement: cameraMovement,
+                sceneManager: sceneManager
+            });
             const submarine = new Submarine(scene, camera);
             const kelp = new Kelp(scene);
             

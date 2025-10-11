@@ -13,6 +13,9 @@ class CameraMovement {
         this.cameras = [];
         this.easingFactor = 0.05;
         
+        // Base positions for cameras (can be modified by scroll effects)
+        this.baseCameraPositions = new Map();
+        
         this.init();
     }
 
@@ -75,15 +78,40 @@ class CameraMovement {
             camera: camera,
             parallaxIntensity: parallaxIntensity
         });
+        
+        // Store the initial base position
+        this.baseCameraPositions.set(camera, {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z
+        });
     }
 
     // Update camera positions based on mouse movement
     updateCameras() {
         this.cameras.forEach(({ camera, parallaxIntensity }) => {
-            // Camera Parallax: moves subtly with the mouse
-            camera.position.x += (this.mouseX * parallaxIntensity - camera.position.x) * this.easingFactor;
-            camera.position.y += (this.mouseY * parallaxIntensity - camera.position.y) * this.easingFactor;
+            const basePos = this.baseCameraPositions.get(camera);
+            if (basePos) {
+                // Calculate target position: base position + parallax offset
+                const targetX = basePos.x + (this.mouseX * parallaxIntensity);
+                const targetY = basePos.y + (this.mouseY * parallaxIntensity);
+                
+                // Apply easing to reach target position
+                camera.position.x += (targetX - camera.position.x) * this.easingFactor;
+                camera.position.y += (targetY - camera.position.y) * this.easingFactor;
+                // Don't modify Z position to preserve scroll-based depth changes
+            }
         });
+    }
+
+    // Update base position for a camera (used by scroll effects)
+    updateCameraBasePosition(camera, x, y, z) {
+        const basePos = this.baseCameraPositions.get(camera);
+        if (basePos) {
+            if (x !== undefined) basePos.x = x;
+            if (y !== undefined) basePos.y = y;
+            if (z !== undefined) basePos.z = z;
+        }
     }
 
     // Get current mouse position (normalized -1 to 1)

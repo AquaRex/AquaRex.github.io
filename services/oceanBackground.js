@@ -4,7 +4,7 @@
  */
 
 class OceanBackground {
-    constructor(scene, camera) {
+    constructor(scene, camera, options = {}) {
         this.scene = scene;
         this.camera = camera;
         this.particleSystems = [];
@@ -15,11 +15,17 @@ class OceanBackground {
         this.clock = new THREE.Clock();
         this.scrollDepth = 0;
         
+        // Scroll-based camera movement options
+        this.enableScrollCameraMovement = options.enableScrollCameraMovement || false;
+        this.cameraMovement = options.cameraMovement || null;
+        this.sceneManager = options.sceneManager || null;
+        this.initialCameraY = camera.position.y;
+        
         // Store original fog and lighting values
         this.originalFogColor = 0x1f3d38;
         this.originalFogDensity = 0.08;
-        this.targetFogColor = 0x0a1a18; // Much darker for deep ocean
-        this.targetFogDensity = 0.15;   // Denser fog
+        this.targetFogColor = 0x050e0c; // Much darker for deep ocean (nearly black with slight green tint)
+        this.targetFogDensity = 0.20;   // Even denser fog for abyss effect
         
         this.init();
     }
@@ -28,6 +34,11 @@ class OceanBackground {
         this.setupFog();
         this.setupLighting();
         this.setupParticles();
+        
+        // Enable scroll effects if configured
+        if (this.enableScrollCameraMovement) {
+            this.enableScrollEffects();
+        }
     }
 
     setupFog() {
@@ -214,23 +225,51 @@ class OceanBackground {
         // Update renderer background color to match fog
         this.scene.background = currentColor;
         
-        // Reduce ambient lighting intensity as we go deeper
+        // Reduce ambient lighting intensity as we go deeper (more dramatic)
         if (this.ambientLight) {
-            this.ambientLight.intensity = 0.15 * (1 - scrollProgress * 0.7); // Reduce by up to 70%
+            this.ambientLight.intensity = 0.15 * (1 - scrollProgress * 0.9); // Reduce by up to 90%
         }
         
         if (this.directionalLight) {
-            this.directionalLight.intensity = 0.15 * (1 - scrollProgress * 0.8); // Reduce by up to 80%
+            this.directionalLight.intensity = 0.15 * (1 - scrollProgress * 0.95); // Reduce by up to 95%
         }
         
-        // Make cursor lights slightly dimmer in deep water
+        // Make cursor lights dimmer in deep water but keep some visibility
         if (this.cursorPointLight) {
-            this.cursorPointLight.intensity = 2.5 * (1 - scrollProgress * 0.3);
+            this.cursorPointLight.intensity = 2.5 * (1 - scrollProgress * 0.5); // Reduce by up to 50%
         }
         
         if (this.cursorAmbientLight) {
-            this.cursorAmbientLight.intensity = 1.2 * (1 - scrollProgress * 0.3);
+            this.cursorAmbientLight.intensity = 1.2 * (1 - scrollProgress * 0.5); // Reduce by up to 50%
         }
+    }
+
+    // Enable scroll-based camera movement effects
+    enableScrollEffects() {
+        if (!this.enableScrollCameraMovement) return;
+        
+        window.addEventListener('scroll', () => {
+            // Calculate scroll progress (0 to 1)
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollProgress = Math.min(Math.max(scrollTop / scrollHeight, 0), 1);
+            
+            // Update ocean background darkness (already handled by updateScrollDepth)
+            this.updateScrollDepth(scrollProgress);
+            
+            // Move camera down and tilt it to look slightly upward as we dive deeper
+            const cameraDepth = scrollProgress * 20; // Move down up to 20 units
+            const newCameraY = this.initialCameraY - cameraDepth;
+            
+            // Update the base position in CameraMovement system
+            if (this.cameraMovement && this.cameraMovement.updateCameraBasePosition) {
+                this.cameraMovement.updateCameraBasePosition(this.camera, undefined, newCameraY, undefined);
+            }
+            
+            // Add slight upward tilt as we go deeper (looking up toward surface)
+            const tiltAngle = scrollProgress * 0.1; // Gradual upward tilt
+            this.camera.rotation.x = tiltAngle;
+        });
     }
 
     update() {
