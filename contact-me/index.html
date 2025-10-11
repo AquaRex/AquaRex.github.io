@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Me - Hetland</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../styles/selection.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../services/GLTFLoader.js"></script>
+    <script src="../services/sceneManager.js"></script>
+    <script src="../services/cameraMovement.js"></script>
+    <script src="../services/oceanBackground.js"></script>
+    <script src="../services/submarine.js"></script>
+    <script src="../services/kelp.js"></script>
+    <script src="../services/editableCard.js"></script>
+    <script src="../services/rotatableCard.js"></script>
+    <script src="../services/header.js"></script>
+    <!-- EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body and Background */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            /* Original dark, deep forest green gradient */
+            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
+            background-attachment: fixed;
+        }
+
+        /* 3D Canvas Layer */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+        /* Card Gizmo Canvas Layer */
+        #canvasCardGizmo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 11;
+            pointer-events: none;
+        }
+
+        /* Cursor Light */
+        .cursor-light {
+            position: fixed;
+            width: 2400px;
+            height: 2400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(240, 208, 96, 0.015) 0%, rgba(240, 208, 96, 0.008) 35%, rgba(240, 208, 96, 0.004) 60%, rgba(240, 208, 96, 0.001) 80%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            filter: blur(80px);
+        }
+
+        /* Main Content Overlay */
+        .content {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+            padding: 2rem;
+            pointer-events: none;
+            perspective: 1500px;
+        }
+
+        .content * {
+            pointer-events: auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin: 4rem 0 3rem 0;
+            animation: fadeInDown 1s ease;
+            position: relative;
+            z-index: 5;
+        }
+
+        .page-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: .5rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: #f0d060;
+            color: #000000;
+            padding: 0.1rem 0.8rem;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .page-subtitle {
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 1;
+            color: rgba(208, 232, 220, 0.8);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Contact Form Container */
+        .contact-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease 0.3s backwards;
+        }
+
+        .contact-form {
+            background: rgba(240, 208, 96, 0.1);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(240, 208, 96, 0.6);
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .contact-form:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(240, 208, 96, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: #d0e8dc;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(240, 208, 96, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(240, 208, 96, 0.4);
+            border-radius: 8px;
+            color: #d0e8dc;
+            font-size: 1rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: rgba(240, 208, 96, 0.8);
+            background: rgba(240, 208, 96, 0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(240, 208, 96, 0.2);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(184, 207, 192, 0.6);
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            font-size: 1.1rem;
+            background: rgba(240, 208, 96, 0.12);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(240, 208, 96, 0.5);
+            border-radius: 8px;
+            color: #f0d060;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .submit-button:hover::before {
+            left: 100%;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 40px rgba(240, 208, 96, 0.4), 0 10px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(240, 208, 96, 0.8);
+            background: rgba(240, 208, 96, 0.18);
+        }
+
+        .submit-button:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-button:disabled:hover {
+            transform: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-color: rgba(240, 208, 96, 0.5);
+            background: rgba(240, 208, 96, 0.12);
+        }
+
+        /* Status Messages */
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 1px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-message.success {
+            background: rgba(46, 204, 113, 0.1);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(46, 204, 113, 0.6);
+            color: #2ecc71;
+        }
+
+        .status-message.error {
+            background: rgba(231, 76, 60, 0.1);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(231, 76, 60, 0.6);
+            color: #e74c3c;
+        }
+
+        /* Visual Overlays */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 20, 18, 0.3) 80%, rgba(10, 20, 18, 0.6) 100%);
+        }
+
+        .fog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(ellipse at 30% 40%, rgba(45, 79, 72, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(31, 61, 56, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(21, 45, 40, 0.1) 0%, transparent 50%);
+            opacity: .6;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1200px) {
+            .page-title {
+                font-size: 3.5rem;
+                letter-spacing: 5px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .page-title {
+                font-size: 3rem;
+                letter-spacing: 4px;
+                padding: 0.1rem 0.7rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .page-title {
+                font-size: 2.8rem;
+                letter-spacing: 3px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                margin: 4rem 0 2rem 0;
+            }
+
+            .page-title {
+                font-size: 2.5rem;
+                letter-spacing: 2px;
+                padding: 0.1rem 0.6rem;
+            }
+
+            .page-subtitle {
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+            }
+
+            .contact-form {
+                padding: 2rem;
+            }
+
+            #canvasCardGizmo {
+                display: none;
+            }
+
+            .back-link {
+                top: 1rem;
+                left: 1rem;
+                width: 48px;
+                height: 48px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .page-title {
+                font-size: 2rem;
+                letter-spacing: 1px;
+            }
+        }
+
+        @media (max-width: 580px) {
+            .page-title {
+                font-size: 1.75rem;
+                letter-spacing: 0.5px;
+                padding: 0.1rem 0.5rem;
+            }
+        }
+
+        @media (max-width: 550px) and (min-width: 480px) {
+            .page-title {
+                font-size: 1.6rem;
+                letter-spacing: 0.3px;
+                padding: 0.1rem 0.4rem;
+                max-width: calc(100vw - 120px);
+            }
+
+            .page-header {
+                margin-top: 5rem;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .page-title {
+                font-size: 1.5rem;
+                letter-spacing: 0.5px;
+                padding: 0.1rem 0.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content {
+                padding: 0.5rem;
+            }
+
+            .page-header {
+                margin: 3rem 0 1.5rem 0;
+            }
+
+            .page-title {
+                font-size: 1.4rem;
+                letter-spacing: 0.5px;
+                padding: 0.1rem 0.4rem;
+            }
+
+            .page-subtitle {
+                font-size: 1rem;
+                letter-spacing: 1px;
+            }
+
+            .contact-form {
+                padding: 1.5rem;
+            }
+
+            .form-input,
+            .form-textarea {
+                padding: 0.8rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .page-title {
+                font-size: 1.3rem;
+                letter-spacing: 0.3px;
+                padding: 0.1rem 0.3rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .page-title {
+                font-size: 1.2rem;
+                letter-spacing: 0.2px;
+                padding: 0.1rem 0.3rem;
+            }
+        }
+
+        /* Mobile optimizations - keep all visual effects but optimize performance */
+        @media (max-width: 768px) {
+            /* Optimize scrolling performance */
+            body {
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Optimize form rendering */
+            .contact-container {
+                contain: layout style paint;
+                transform: translateZ(0);
+            }
+
+            .contact-form {
+                contain: layout style paint;
+                transform: translateZ(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Same structure as other pages -->
+    <canvas id="canvas3d"></canvas>
+    <canvas id="canvasCardGizmo"></canvas>
+    <div class="fog-overlay"></div>
+    <div class="cursor-light" id="cursorLight"></div>
+    <div class="vignette"></div>
+
+    <!-- Back to home link -->
+    <a href="/" class="back-link" title="Back to Home" aria-label="Back to Home">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="content">
+        <div class="page-header">
+            <h1 class="page-title">Contact Me</h1>
+            <p class="page-subtitle">Let's get in touch</p>
+        </div>
+
+        <div class="contact-container">
+            <form class="contact-form" id="contactForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" class="form-input" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Your Email</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email address" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" class="form-input" placeholder="What's this about?" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" class="form-textarea" placeholder="Tell me what's on your mind..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-button" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    <span id="buttonText">Send Message</span>
+                </button>
+
+                <div class="status-message" id="statusMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize all systems when page loads
+        window.addEventListener('load', () => {
+            // Mobile detection and optimization
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            window.innerWidth <= 768;
+            const isLowEndDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+            
+            // Performance monitoring
+            let frameCount = 0;
+            let lastFPSCheck = performance.now();
+            let averageFPS = 60;
+            
+            const monitorPerformance = () => {
+                frameCount++;
+                const now = performance.now();
+                
+                if (now - lastFPSCheck >= 1000) {
+                    const currentFPS = frameCount;
+                    frameCount = 0;
+                    lastFPSCheck = now;
+                    
+                    averageFPS = averageFPS * 0.9 + currentFPS * 0.1;
+                    
+                    if (averageFPS < 30 && !animationPaused) {
+                        console.warn('Low FPS detected:', averageFPS.toFixed(1));
+                    }
+                }
+            };
+
+            // Initialize core systems
+            const sceneManager = new SceneManager();
+            const cameraMovement = new CameraMovement();
+            
+            // Get scene references
+            const scene = sceneManager.getScene();
+            const camera = sceneManager.getCamera();
+            
+            // Mobile-optimized background systems
+            const oceanOptions = {
+                enableScrollCameraMovement: true,
+                cameraMovement: cameraMovement,
+                sceneManager: sceneManager
+            };
+            
+            // Keep full quality on all devices - the website is meant to be impressive!
+            
+            const oceanBackground = new OceanBackground(scene, camera, oceanOptions);
+            const submarine = new Submarine(scene, camera);
+            const kelp = new Kelp(scene);
+            
+            // Register camera for parallax movement (main camera only)
+            cameraMovement.addCamera(camera, 0.5);
+            
+            // Mobile scroll performance optimization
+            let isScrolling = false;
+            let scrollTimeout;
+            let animationPaused = false;
+            
+            if (isMobile) {
+                // Pause 3D animations during scroll on mobile
+                window.addEventListener('scroll', () => {
+                    if (!isScrolling) {
+                        isScrolling = true;
+                        animationPaused = true;
+                        
+                        // Reduce canvas quality during scroll
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.3';
+                        }
+                    }
+                    
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        isScrolling = false;
+                        animationPaused = false;
+                        
+                        // Restore canvas quality after scroll
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.7';
+                        }
+                    }, 150);
+                }, { passive: true });
+            }
+            
+            // Add systems to scene manager for animation loop with error handling
+            sceneManager.addSystem({
+                update: () => {
+                    try {
+                        // Skip heavy updates during scroll on mobile
+                        if (isMobile && animationPaused) {
+                            return;
+                        }
+                        
+                        // Check if systems are still valid
+                        if (!cameraMovement || !oceanBackground || !submarine || !kelp) {
+                            console.warn('Some systems are null/undefined, skipping update');
+                            return;
+                        }
+                        
+                        const mousePos = cameraMovement.getMousePosition();
+                        
+                        // Validate mouse position to prevent infinite loops
+                        if (!mousePos || typeof mousePos.x !== 'number' || typeof mousePos.y !== 'number') {
+                            return;
+                        }
+                        
+                        // Update background systems with error handling
+                        if (oceanBackground.updateMousePosition) {
+                            oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (oceanBackground.update) {
+                            oceanBackground.update();
+                        }
+                        
+                        if (submarine.updateMousePosition) {
+                            submarine.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (submarine.update) {
+                            submarine.update();
+                        }
+                        
+                        if (kelp.update) {
+                            kelp.update();
+                        }
+                        
+                        // Update camera movement
+                        if (cameraMovement.update) {
+                            cameraMovement.update();
+                        }
+                    } catch (error) {
+                        console.error('Error in animation loop:', error);
+                        // Don't break the entire loop, just skip this frame
+                    }
+                }
+            });
+            
+            // Start the main animation loop with throttling only for genuinely low-end devices
+            if (isLowEndDevice && navigator.hardwareConcurrency <= 2) {
+                // Throttle to 30fps on low-end devices by modifying the update frequency
+                let lastFrame = 0;
+                const targetFPS = 30;
+                const frameDelay = 1000 / targetFPS;
+                
+                // Override the scene manager's animation loop to prevent double loops
+                let animationId;
+                const throttledUpdate = (time) => {
+                    monitorPerformance(); // Monitor FPS
+                    
+                    if (time - lastFrame >= frameDelay) {
+                        // Call the scene manager's render method directly instead of start()
+                        if (sceneManager.render) {
+                            sceneManager.render();
+                        } else if (sceneManager.update) {
+                            sceneManager.update();
+                        }
+                        lastFrame = time;
+                    }
+                    
+                    // Only continue animation if page is visible and not paused
+                    if (!document.hidden && !animationPaused) {
+                        animationId = requestAnimationFrame(throttledUpdate);
+                    }
+                };
+                
+                // Start throttled animation
+                animationId = requestAnimationFrame(throttledUpdate);
+                
+                // Store reference for cleanup
+                window.animationId = animationId;
+            } else {
+                // Start normal animation loop on desktop
+                sceneManager.start();
+            }
+            
+            // Cleanup function to prevent memory leaks
+            const cleanup = () => {
+                // Cancel animation frames
+                if (window.animationId) {
+                    cancelAnimationFrame(window.animationId);
+                }
+                
+                // Stop scene manager
+                if (sceneManager && sceneManager.stop) {
+                    sceneManager.stop();
+                }
+                
+                // Clear timeouts
+                if (scrollTimeout) {
+                    clearTimeout(scrollTimeout);
+                }
+                
+                // Remove event listeners
+                window.removeEventListener('scroll', arguments.callee);
+                document.removeEventListener('click', arguments.callee);
+                document.removeEventListener('touchstart', arguments.callee);
+            };
+            
+            // Add cleanup event listeners
+            window.addEventListener('beforeunload', cleanup);
+            window.addEventListener('unload', cleanup);
+            
+            // Add visibility change listener to pause animations when tab is hidden
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // Pause animations when tab is hidden
+                    animationPaused = true;
+                    if (window.animationId) {
+                        cancelAnimationFrame(window.animationId);
+                    }
+                } else {
+                    // Resume animations when tab is visible
+                    animationPaused = false;
+                    if (isLowEndDevice && navigator.hardwareConcurrency <= 2) {
+                        window.animationId = requestAnimationFrame(throttledUpdate);
+                    }
+                }
+            });
+
+            // Mobile-specific cursor light handling
+            const cursorLight = document.getElementById('cursorLight');
+            let touchActive = false;
+            
+            if (isMobile) {
+                // Hide cursor light initially on mobile
+                cursorLight.style.opacity = '0';
+                
+                // Show cursor light on touch and hide after delay
+                document.addEventListener('touchstart', (e) => {
+                    touchActive = true;
+                    cursorLight.style.opacity = '0.8';
+                    const touch = e.touches[0];
+                    cursorLight.style.left = touch.clientX + 'px';
+                    cursorLight.style.top = touch.clientY + 'px';
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (touchActive) {
+                        const touch = e.touches[0];
+                        cursorLight.style.left = touch.clientX + 'px';
+                        cursorLight.style.top = touch.clientY + 'px';
+                    }
+                });
+                
+                document.addEventListener('touchend', () => {
+                    touchActive = false;
+                    setTimeout(() => {
+                        if (!touchActive) {
+                            cursorLight.style.opacity = '0';
+                        }
+                    }, 500);
+                });
+            } else {
+                // Desktop cursor tracking (existing behavior)
+                document.addEventListener('mousemove', (e) => {
+                    cursorLight.style.left = e.clientX + 'px';
+                    cursorLight.style.top = e.clientY + 'px';
+                    cursorLight.style.opacity = '1';
+                });
+                
+                document.addEventListener('mouseleave', () => {
+                    cursorLight.style.opacity = '0';
+                });
+            }
+        });
+
+        // Initialize EmailJS with your credentials
+        emailjs.init("TDDqlu5EAgUHSEORj");
+
+        // Form submission handling
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const buttonText = document.getElementById('buttonText');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Get form data
+            const formData = new FormData(this);
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            buttonText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            // Hide any previous status messages
+            statusMessage.classList.remove('show', 'success', 'error');
+            
+            // Prepare template parameters to match your EmailJS template
+            const templateParams = {
+                name: name,
+                message: message,
+                email: email,
+                subject: subject
+            };
+            
+            // Send email using EmailJS
+            emailjs.send('service_5ttbgzl', 'template_dduf7nr', templateParams) //oh well, whole website is open anyway.. 
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    
+                    // Show success message
+                    statusMessage.textContent = 'Message sent successfully! I\'ll get back to you soon.';
+                    statusMessage.classList.add('success', 'show');
+                    
+                    // Reset form
+                    document.getElementById('contactForm').reset();
+                    
+                    // Re-enable button
+                    submitBtn.disabled = false;
+                    buttonText.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                    
+                    // Hide status message after 5 seconds
+                    setTimeout(() => {
+                        statusMessage.classList.remove('show');
+                    }, 5000);
+                    
+                }, function(error) {
+                    console.log('EmailJS FAILED...', error);
+                    
+                    // Show error message with fallback option
+                    statusMessage.innerHTML = `
+                        <div>Unable to send message directly.</div>
+                        <div style="font-size: 0.9em; margin-top: 0.5rem; opacity: 0.8;">
+                            Please email me at: <strong>hetland.th@gmail.com</strong>
+                        </div>
+                    `;
+                    statusMessage.classList.add('error', 'show');
+                    
+                    // Re-enable button
+                    submitBtn.disabled = false;
+                    buttonText.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                    
+                    // Hide status message after 8 seconds
+                    setTimeout(() => {
+                        statusMessage.classList.remove('show');
+                    }, 8000);
+                });
+        });
+    </script>
+</body>
+</html>
