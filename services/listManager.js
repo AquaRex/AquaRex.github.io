@@ -185,7 +185,11 @@ class ListManager {
             this.items.forEach(item => {
                 const element = this.container.querySelector(`[data-item-id="${item.id}"]`);
                 if (element && item.frameType && item.frameType !== 'none') {
-                    this.applyFrameToElement(element, item.frameType, item.frameOptions);
+                    // Check if frame has already been applied to avoid duplicates
+                    if (!element.hasAttribute('data-frame-applied')) {
+                        this.applyFrameToElement(element, item.frameType, item.frameOptions);
+                        element.setAttribute('data-frame-applied', item.frameType);
+                    }
                 }
             });
         }, 100);
@@ -202,7 +206,7 @@ class ListManager {
                         rotationIntensity: options.rotationIntensity || 8,
                         cornerColor: options.cornerColor || '#f0d060',
                         alwaysVisible: options.alwaysVisible !== false,
-                        showGizmoOnHover: true,
+                        showGizmoOnHover: false, // Make gizmo always visible for projects
                         ...options
                     });
                 }

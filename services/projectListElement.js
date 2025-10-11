@@ -233,7 +233,7 @@ class ProjectListElement {
                     border-radius: 12px;
                     transition: all 0.3s ease;
                     cursor: pointer;
-                    overflow: hidden;
+                    overflow: visible; /* Allow corner elements and gizmo to show */
                 }
 
                 .project-row:hover {

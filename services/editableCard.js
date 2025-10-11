@@ -131,6 +131,8 @@ class EditableCard {
         const target = this.options.targetElement;
         const positions = ['tl', 'tr', 'bl', 'br'];
         
+        console.log('EditableCard: Creating corner elements for:', target);
+        
         positions.forEach(position => {
             const corner = document.createElement('div');
             corner.className = `corner-${position}`;
@@ -140,6 +142,7 @@ class EditableCard {
             corner.style.width = '15px';
             corner.style.height = '15px';
             corner.style.border = '2px dotted #f0d060';
+            corner.style.zIndex = '9999'; // Make sure corners are visible
 
             // Position corners - EXACT same as main page
             switch(position) {
@@ -171,7 +174,10 @@ class EditableCard {
 
             target.appendChild(corner);
             this.cornerElements.push(corner);
+            console.log('EditableCard: Created corner element:', position, corner);
         });
+        
+        console.log('EditableCard: Total corner elements created:', this.cornerElements.length);
     }
 
     createSelectionHandles() {
@@ -222,6 +228,9 @@ class EditableCard {
     createGizmoCanvas() {
         const target = this.options.targetElement;
         
+        console.log('EditableCard: Creating gizmo canvas for:', target);
+        console.log('EditableCard: showGizmoOnHover option:', this.options.showGizmoOnHover);
+        
         // Create canvas exactly like main page
         this.gizmoCanvas = document.createElement('canvas');
         this.gizmoCanvas.id = `gizmoCanvas-${Math.random().toString(36).substr(2, 9)}`;
@@ -239,6 +248,8 @@ class EditableCard {
         this.gizmoCanvas.style.transition = 'opacity 0.2s ease';
         
         target.appendChild(this.gizmoCanvas);
+        
+        console.log('EditableCard: Gizmo canvas created with opacity:', this.gizmoCanvas.style.opacity);
         
         // Initialize the canvas with basic gizmo drawing (can be enhanced later)
         this.initializeGizmoCanvas();
