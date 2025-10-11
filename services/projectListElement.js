@@ -268,7 +268,7 @@ class ProjectListElement {
                 .project-content-wrapper {
                     display: flex;
                     justify-content: space-between;
-                    align-items: center;
+                    align-items: flex-end;
                     gap: 1.5rem;
                     padding: 2rem;
                     height: 200px;
@@ -297,6 +297,7 @@ class ProjectListElement {
                     display: flex;
                     gap: 0.5rem;
                     flex-wrap: wrap;
+                    align-items: flex-end;
                 }
 
                 .project-tag {
@@ -318,39 +319,51 @@ class ProjectListElement {
                 .project-meta {
                     display: flex;
                     flex-direction: row;
-                    gap: 1rem;
+                    gap: 1.5rem;
                     align-items: flex-end;
                     text-align: right;
                     flex-shrink: 0;
-                    width: 180px;
+                    width: 200px;
+                    padding: 0;
+                    justify-content: space-between;
                 }
 
                 .meta-item {
                     display: flex;
                     flex-direction: column;
-                    gap: 0.3rem;
+                    gap: 0.4rem;
+                    align-items: flex-end;
+                    min-width: 80px;
+                    flex: 1;
                 }
 
                 .meta-label {
-                    font-size: 0.7rem;
+                    font-size: 0.65rem;
                     color: #b8cfc0;
                     text-transform: uppercase;
-                    letter-spacing: 1px;
+                    letter-spacing: 1.2px;
+                    font-weight: 600;
+                    margin-bottom: 0.1rem;
                 }
 
                 .meta-value {
-                    font-size: 0.9rem;
+                    font-size: 0.85rem;
                     color: #d0e8dc;
                     font-weight: 500;
+                    line-height: 1.3;
                 }
 
                 .status-badge {
-                    padding: 0.4rem 0.8rem;
+                    padding: 0.5rem 1rem;
                     border-radius: 6px;
-                    font-size: 0.75rem;
+                    font-size: 0.7rem;
                     font-weight: 600;
                     text-transform: uppercase;
-                    letter-spacing: 0.5px;
+                    letter-spacing: 0.8px;
+                    text-align: center;
+                    white-space: nowrap;
+                    min-width: 80px;
+                    box-sizing: border-box;
                 }
 
                 .status-active {

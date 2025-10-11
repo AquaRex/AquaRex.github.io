@@ -33,6 +33,7 @@ class ListManager {
         const item = {
             id: this.generateId(itemData.title || 'untitled'),
             frameType: itemData.frameType || this.templateEngine.getDefaultFrameType?.() || this.options.defaultFrameType,
+            frameOptions: itemData.frameOptions || {}, // Options for customizing the frame
             link: itemData.link || '#', // Default to # if no link provided
             ...itemData
         };
@@ -206,7 +207,10 @@ class ListManager {
                         rotationIntensity: options.rotationIntensity || 8,
                         cornerColor: options.cornerColor || '#f0d060',
                         alwaysVisible: options.alwaysVisible !== false,
-                        showGizmoOnHover: false, // Make gizmo always visible for projects
+                        showGizmoOnHover: false, 
+                        showSelectionHandles: options.showSelectionHandles || false,
+                        showCornerElements: options.showCornerElements !== false,
+                        showGizmo: options.showGizmo !== false,
                         ...options
                     });
                 }

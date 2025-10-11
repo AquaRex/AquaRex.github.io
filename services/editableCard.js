@@ -17,6 +17,8 @@ class EditableCard {
             alwaysVisible: options.alwaysVisible || false,
             showSelectionHandles: options.showSelectionHandles || false,
             showGizmoOnHover: options.showGizmoOnHover !== false,
+            showCornerElements: options.showCornerElements !== false, // Show dotted corner brackets
+            showGizmo: options.showGizmo !== false, // Show 3D gizmo
             onRotationChange: options.onRotationChange || null
         };
 
@@ -80,16 +82,19 @@ class EditableCard {
         this.createPseudoElements();
         
         // Create corner elements (dotted) - exact same as main page
-        this.createCornerElements();
+        if (this.options.showCornerElements) {
+            this.createCornerElements();
+        }
         
         // Create selection handles
-        if(this.options.showSelectionHandles)
-        {
+        if (this.options.showSelectionHandles) {
             this.createSelectionHandles();
         }
         
         // Create gizmo canvas
-        this.createGizmoCanvas();
+        if (this.options.showGizmo) {
+            this.createGizmoCanvas();
+        }
     }
 
     createPseudoElements() {
