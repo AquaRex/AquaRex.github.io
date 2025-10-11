@@ -1,0 +1,12 @@
+/* GLOBAL SELECTION COLOR - AQUAREX WEBSITE */
+/* Apply this to every fucking page on the site */
+
+::selection { 
+    background: #f0d060 !important; 
+    color: #000 !important; 
+}
+
+::-moz-selection { 
+    background: #f0d060 !important; 
+    color: #000 !important; 
+}

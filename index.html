@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/selection.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="services/GLTFLoader.js"></script>
     <script src="services/sceneManager.js"></script>
@@ -22,15 +23,7 @@
             padding: 0;
             box-sizing: border-box
         }
-        /* Custom text selection color */
-        ::selection {
-            background: #f0d060 !important;
-            color: #000000 !important;
-        }
-        ::-moz-selection {
-            background: #f0d060 !important;
-            color: #000000 !important;
-        }
+
         /* Body and Background */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -121,21 +114,21 @@
             font-weight: 300;
             letter-spacing: 4px;
             text-transform: uppercase;
-            opacity: .8;
+            opacity: 1;
             /* Subtly lighter green/white */
-            color: #d0e8dc;
+            color: rgba(208, 232, 220, 0.8);
             text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3)
         }
         /* Tagline/Description */
         .tagline {
             font-size: 1.4rem;
             margin-bottom: 3rem;
-            opacity: .75;
+            opacity: 1;
             max-width: 600px;
             line-height: 1.6;
             animation: fadeInUp 1s ease 0.3s backwards;
             /* Muted green/white */
-            color: #b8cfc0
+            color: rgba(184, 207, 192, 0.75);
         }
         /* Custom Squiggly Underline Style */
         .squiggly-error {
