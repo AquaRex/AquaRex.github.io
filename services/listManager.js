@@ -121,16 +121,16 @@ class ListManager {
                 }
             }
 
-            // Tag filter
-            if (this.currentFilters.tag) {
-                if (!item.tags || !item.tags.includes(this.currentFilters.tag)) {
+            // Tag filter (support multiple tags)
+            if (this.currentFilters.tags && this.currentFilters.tags.length > 0) {
+                if (!item.tags || !this.currentFilters.tags.some(tag => item.tags.includes(tag))) {
                     return false;
                 }
             }
 
-            // Status filter
-            if (this.currentFilters.status) {
-                if (item.status !== this.currentFilters.status) {
+            // Status filter (support multiple statuses)
+            if (this.currentFilters.statuses && this.currentFilters.statuses.length > 0) {
+                if (!this.currentFilters.statuses.includes(item.status)) {
                     return false;
                 }
             }

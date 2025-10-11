@@ -34,14 +34,14 @@
             background: #f0d060;
             color: #000000;
         }
-        /* Body and Background - EXACT SAME as home page */
+        /* Body and Background - ADAPTED for scrolling */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            margin: 0;
+            padding: 0;
             /* Original dark, deep forest green gradient */
-            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%)
+            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
+            background-attachment: fixed;
         }
         /* 3D Canvas Layer - EXACT SAME as home page */
         #canvas3d {
@@ -83,7 +83,7 @@
         .content {
             position: relative;
             z-index: 10;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -93,7 +93,6 @@
             padding: 2rem;
             pointer-events: none;
             perspective: 1500px;
-            overflow-y: auto; /* Allow scrolling in content area */
         }
         .content * {
             pointer-events: auto
@@ -188,6 +187,28 @@
             flex-direction: column;
             gap: 0.5rem;
             min-width: 160px;
+            position: relative;
+        }
+
+        .filter-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f0d060;
+            color: #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        .filter-count.active {
+            display: flex;
         }
 
         .filter-group label {
@@ -198,8 +219,13 @@
             font-weight: 500;
         }
 
-        .filter-group select {
-            padding: 0.75rem 1rem;
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-display {
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
             background: rgba(240, 208, 96, 0.1);
             border: 2px solid rgba(240, 208, 96, 0.3);
             border-radius: 6px;
@@ -207,17 +233,138 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .filter-group select:focus {
-            outline: none;
+        .dropdown-display:hover {
+            border-color: rgba(240, 208, 96, 0.5);
+            background: rgba(240, 208, 96, 0.12);
+        }
+
+        .dropdown-arrow {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #f0d060;
+            font-size: 0.8rem;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-dropdown.open .dropdown-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .custom-dropdown.open .dropdown-display {
             border-color: rgba(240, 208, 96, 0.6);
             background: rgba(240, 208, 96, 0.15);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
         }
 
-        .filter-group select option {
-            background: #1a2f2a;
+        .dropdown-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(240, 208, 96, 0.15);
+            border: 2px solid rgba(240, 208, 96, 0.6);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .custom-dropdown.open .dropdown-options {
+            display: block;
+        }
+
+        .dropdown-option {
+            padding: 0.5rem 1rem;
             color: #d0e8dc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(240, 208, 96, 0.1);
+            font-size: 0.85rem;
+        }
+
+        .dropdown-option:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-option:hover {
+            background: rgba(240, 208, 96, 0.2);
+            color: #f0d060;
+        }
+
+        .dropdown-option.selected {
+            background: rgba(240, 208, 96, 0.3);
+            color: #f0d060;
+            font-weight: bold;
+        }
+
+        .dropdown-option.selected:hover {
+            background: rgba(240, 208, 96, 0.4);
+        }
+
+        /* Custom Scrollbar Styling */
+        /* Main page scrollbar */
+        body::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: rgba(45, 79, 72, 0.3);
+            border-radius: 6px;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(240, 208, 96, 0.6) 0%, rgba(240, 208, 96, 0.4) 100%);
+            border-radius: 6px;
+            border: 2px solid rgba(45, 79, 72, 0.3);
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(240, 208, 96, 0.8) 0%, rgba(240, 208, 96, 0.6) 100%);
+        }
+
+        /* Dropdown scrollbar */
+        .dropdown-options::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-options::-webkit-scrollbar-track {
+            background: rgba(240, 208, 96, 0.1);
+            border-radius: 4px;
+        }
+
+        .dropdown-options::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(240, 208, 96, 0.5) 0%, rgba(240, 208, 96, 0.3) 100%);
+            border-radius: 4px;
+            border: 1px solid rgba(240, 208, 96, 0.2);
+        }
+
+        .dropdown-options::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(240, 208, 96, 0.7) 0%, rgba(240, 208, 96, 0.5) 100%);
+        }
+
+        /* Firefox scrollbar styling */
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(240, 208, 96, 0.5) rgba(45, 79, 72, 0.3);
+        }
+
+        .dropdown-options {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(240, 208, 96, 0.4) rgba(240, 208, 96, 0.1);
         }
 
         .clear-filters-btn {
@@ -363,18 +510,29 @@
             </div>
             <div class="filter-dropdowns">
                 <div class="filter-group">
-                    <select id="tag-filter">
-                        <option value="">All Tags</option>
-                    </select>
+                    <label for="tag-filter">Filter by Tags:</label>
+                    <div class="custom-dropdown" id="tag-dropdown">
+                        <div class="dropdown-display" id="tag-display">All Tags</div>
+                        <div class="dropdown-arrow">▼</div>
+                        <div class="dropdown-options" id="tag-options">
+                            <!-- Tags will be populated dynamically -->
+                        </div>
+                    </div>
+                    <span class="filter-count" id="tag-count">0</span>
                 </div>
                 <div class="filter-group">
-                    <select id="status-filter">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="completed">Completed</option>
-                        <option value="paused">Paused</option>
-                        <option value="archived">Archived</option>
-                    </select>
+                    <label for="status-filter">Filter by Status:</label>
+                    <div class="custom-dropdown" id="status-dropdown">
+                        <div class="dropdown-display" id="status-display">All Status</div>
+                        <div class="dropdown-arrow">▼</div>
+                        <div class="dropdown-options" id="status-options">
+                            <div class="dropdown-option" data-value="active">Active</div>
+                            <div class="dropdown-option" data-value="completed">Completed</div>
+                            <div class="dropdown-option" data-value="paused">Paused</div>
+                            <div class="dropdown-option" data-value="archived">Archived</div>
+                        </div>
+                    </div>
+                    <span class="filter-count" id="status-count">0</span>
                 </div>
                 <button id="clear-filters" class="clear-filters-btn">Clear Filters</button>
             </div>
@@ -389,33 +547,75 @@
         // Setup project filtering functionality
         function setupProjectFilters(projectManager) {
             const searchInput = document.getElementById('search-input');
-            const tagFilter = document.getElementById('tag-filter');
-            const statusFilter = document.getElementById('status-filter');
             const clearBtn = document.getElementById('clear-filters');
+            
+            // Custom dropdown state
+            const selectedTags = new Set();
+            const selectedStatuses = new Set();
+
+            // Get dropdown elements
+            const tagDropdown = document.getElementById('tag-dropdown');
+            const tagDisplay = document.getElementById('tag-display');
+            const tagOptions = document.getElementById('tag-options');
+            const tagCount = document.getElementById('tag-count');
+
+            const statusDropdown = document.getElementById('status-dropdown');
+            const statusDisplay = document.getElementById('status-display');
+            const statusOptions = document.getElementById('status-options');
+            const statusCount = document.getElementById('status-count');
 
             // Populate tag dropdown with available tags
             function populateTagFilter() {
                 const tags = projectManager.getAllTags();
-                tagFilter.innerHTML = '<option value="">All Tags</option>';
+                tagOptions.innerHTML = '';
                 tags.forEach(tag => {
-                    const option = document.createElement('option');
-                    option.value = tag;
+                    const option = document.createElement('div');
+                    option.className = 'dropdown-option';
+                    option.dataset.value = tag;
                     option.textContent = tag;
-                    tagFilter.appendChild(option);
+                    tagOptions.appendChild(option);
                 });
+            }
+
+            // Update dropdown display text
+            function updateDropdownDisplay(selectedSet, displayElement, defaultText) {
+                if (selectedSet.size === 0) {
+                    displayElement.textContent = defaultText;
+                } else {
+                    displayElement.textContent = Array.from(selectedSet).join(', ');
+                }
+            }
+
+            // Update filter counts
+            function updateFilterCounts() {
+                // Update tag count
+                if (selectedTags.size > 0) {
+                    tagCount.textContent = selectedTags.size;
+                    tagCount.classList.add('active');
+                } else {
+                    tagCount.classList.remove('active');
+                }
+                
+                // Update status count
+                if (selectedStatuses.size > 0) {
+                    statusCount.textContent = selectedStatuses.size;
+                    statusCount.classList.add('active');
+                } else {
+                    statusCount.classList.remove('active');
+                }
             }
 
             // Apply current filters
             function applyFilters() {
                 const filters = {
                     search: searchInput.value.trim(),
-                    tag: tagFilter.value,
-                    status: statusFilter.value
+                    tags: Array.from(selectedTags),
+                    statuses: Array.from(selectedStatuses)
                 };
 
                 // Remove empty filters
                 Object.keys(filters).forEach(key => {
-                    if (!filters[key]) {
+                    if (!filters[key] || (Array.isArray(filters[key]) && filters[key].length === 0)) {
                         delete filters[key];
                     }
                 });
@@ -423,21 +623,89 @@
                 projectManager.filterItems(filters);
             }
 
+            // Handle dropdown clicks
+            function setupDropdownHandlers() {
+                // Tag dropdown
+                tagDropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    if (e.target.classList.contains('dropdown-option')) {
+                        const value = e.target.dataset.value;
+                        
+                        if (selectedTags.has(value)) {
+                            selectedTags.delete(value);
+                            e.target.classList.remove('selected');
+                        } else {
+                            selectedTags.add(value);
+                            e.target.classList.add('selected');
+                        }
+                        
+                        updateDropdownDisplay(selectedTags, tagDisplay, 'All Tags');
+                        updateFilterCounts();
+                        applyFilters();
+                    } else if (e.target === tagDisplay || e.target === tagDropdown) {
+                        tagDropdown.classList.toggle('open');
+                        statusDropdown.classList.remove('open');
+                    }
+                });
+
+                // Status dropdown
+                statusDropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    if (e.target.classList.contains('dropdown-option')) {
+                        const value = e.target.dataset.value;
+                        
+                        if (selectedStatuses.has(value)) {
+                            selectedStatuses.delete(value);
+                            e.target.classList.remove('selected');
+                        } else {
+                            selectedStatuses.add(value);
+                            e.target.classList.add('selected');
+                        }
+                        
+                        updateDropdownDisplay(selectedStatuses, statusDisplay, 'All Status');
+                        updateFilterCounts();
+                        applyFilters();
+                    } else if (e.target === statusDisplay || e.target === statusDropdown) {
+                        statusDropdown.classList.toggle('open');
+                        tagDropdown.classList.remove('open');
+                    }
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', () => {
+                    tagDropdown.classList.remove('open');
+                    statusDropdown.classList.remove('open');
+                });
+            }
+
             // Event listeners
             searchInput.addEventListener('input', applyFilters);
-            tagFilter.addEventListener('change', applyFilters);
-            statusFilter.addEventListener('change', applyFilters);
 
             clearBtn.addEventListener('click', () => {
                 searchInput.value = '';
-                tagFilter.value = '';
-                statusFilter.value = '';
+                selectedTags.clear();
+                selectedStatuses.clear();
+                
+                // Reset UI
+                document.querySelectorAll('.dropdown-option.selected').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                updateDropdownDisplay(selectedTags, tagDisplay, 'All Tags');
+                updateDropdownDisplay(selectedStatuses, statusDisplay, 'All Status');
+                updateFilterCounts();
+                
                 projectManager.clearFilters();
             });
 
-            // Initial population of tag filter
+            // Initialize
             populateTagFilter();
+            setupDropdownHandlers();
         }
+
+
 
         // Initialize all systems when page loads
         window.addEventListener('load', () => {
