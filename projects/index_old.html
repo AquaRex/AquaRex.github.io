@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
+        }
+
+        /* 3D Canvas Background */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            filter: blur(2px);
+        }
+
+
+
+        /* Content Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            height: 100vh;
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeInContent 1s ease-in-out 0.3s forwards;
+            perspective: 1500px;
+        }
+
+        @keyframes fadeInContent {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        body::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 5px;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: rgba(240, 208, 96, 0.3);
+            border-radius: 5px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 208, 96, 0.5);
+        }
+
+        /* Company Logo */
+        .company-logo {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 999;
+            width: 150px;
+            height: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: fadeInDown 1s ease 0.3s backwards;
+            opacity: 0.9;
+        }
+        .company-logo:hover {
+            transform: scale(1.05);
+            opacity: 1;
+            filter: drop-shadow(0 0 15px rgba(240, 208, 96, 0.3));
+        }
+        .company-logo:hover .logo-text {
+            fill: #f0d060;
+        }
+        .company-logo svg {
+            width: 100%;
+            height: auto;
+        }
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .page-title {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #f0d060 0%, #e0c050 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: #c0c0c0;
+            opacity: 0.8;
+        }
+
+        /* Projects List */
+        .projects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+
+        .project-row {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px); /* Base blur for all projects */
+            border-radius: 20px;
+            border: 1px solid rgba(240, 208, 96, 0.15);
+            padding: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: visible; /* Changed from hidden to visible for EditableCard compatibility */
+            cursor: pointer;
+        }
+
+        /* When EditableCard is applied, reset conflicting styles but preserve space for EditableCard effects */
+        .project-row.editable-card {
+            /* Reset conflicting base styles */
+            background: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            
+            /* Apply minimal base styling like home page .brand */
+            margin-bottom: 2rem !important;
+            padding: 2rem 3rem !important;
+            
+            /* Don't override backdrop-filter - let EditableCard set it */
+            /* EditableCard will apply: backdrop-filter: blur(15px) !important */
+        }
+
+        .project-row:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border-color: rgba(240, 208, 96, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .project-image-container {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, rgba(240, 208, 96, 0.08) 0%, rgba(50, 50, 50, 0.3) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .project-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-image-placeholder {
+            font-size: 4rem;
+            color: rgba(240, 208, 96, 0.2);
+        }
+
+        .project-content-wrapper {
+            padding: 32px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .project-main {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .project-title {
+            font-size: 1.8rem;
+            color: #f0d060;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .project-description {
+            font-size: 0.95rem;
+            color: #c0c0c0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tech-tag {
+            background: rgba(240, 208, 96, 0.08);
+            color: #f0d060;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(240, 208, 96, 0.2);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-size: 0.8rem;
+            color: #999999;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .meta-value {
+            font-size: 1.1rem;
+            color: #d0d0d0;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(33, 150, 243, 0.15);
+            color: #2196f3;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .status-paused {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .status-archived {
+            background: rgba(158, 158, 158, 0.15);
+            color: #9e9e9e;
+            border: 1px solid rgba(158, 158, 158, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .project-content-wrapper {
+                padding: 28px 32px;
+            }
+
+            .project-meta {
+                gap: 30px;
+            }
+
+            .project-image-container {
+                height: 240px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 24px;
+            }
+
+            .page-title {
+                font-size: 2.5rem;
+            }
+
+            .project-content-wrapper {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 24px;
+                gap: 24px;
+            }
+
+            .project-image-container {
+                height: 200px;
+            }
+
+            .project-meta {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .meta-item {
+                min-width: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .project-title {
+                font-size: 1.5rem;
+            }
+
+            .project-image-container {
+                height: 180px;
+            }
+
+            .project-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <canvas id="canvas3d"></canvas>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Projects</h1>
+            <p class="page-subtitle">A collection of my development work</p>
+        </div>
+
+        <div class="projects-list">
+            <!-- Projects will be dynamically generated by ProjectListManager -->
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../services/GLTFLoader.js"></script>
+    <script src="../services/oceanBackground.js"></script>
+    <script src="../services/submarine.js"></script>
+    <script src="../services/kelp.js"></script>
+    <script src="../services/editableCard.js"></script>
+    <script src="../services/projectListElement.js"></script>
+    <script src="../services/projectListManager.js"></script>
+    <script src="../services/header.js"></script>
+    <script>
+        // Global variables for mouse tracking and scroll
+        let mouseX = 0;
+        let mouseY = 0;
+        let scrollProgress = 0;
+
+        // Camera position tracking
+        const baseCameraY = 0;
+        const maxCameraDepth = -8; // How far down the camera moves when fully scrolled
+
+        // Three.js setup
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setClearColor(0x1f3d38, 1);
+        camera.position.set(0, baseCameraY, 5);
+
+        // Initialize background systems
+        let oceanBackground, submarine, kelp, projectManager;
+
+        // Mouse interaction
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Scroll interaction for depth effect
+        function updateScrollProgress() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+            scrollProgress = Math.min(scrollTop / Math.max(documentHeight, 1), 1);
+            
+            // Update ocean background with scroll progress
+            if (oceanBackground) {
+                oceanBackground.updateScrollDepth(scrollProgress);
+            }
+            
+            // Update camera Y position based on scroll (diving deeper)
+            const targetCameraY = baseCameraY + (maxCameraDepth * scrollProgress);
+            camera.position.y += (targetCameraY - camera.position.y) * 0.1; // Smooth interpolation
+        }
+
+        window.addEventListener('scroll', updateScrollProgress);
+        window.addEventListener('resize', updateScrollProgress);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update background systems
+            if (oceanBackground) {
+                oceanBackground.updateMousePosition(mouseX, mouseY);
+                oceanBackground.update();
+            }
+
+            if (submarine) {
+                submarine.updateMousePosition(mouseX, mouseY);
+                submarine.update();
+            }
+
+            if (kelp) {
+                kelp.update();
+            }
+
+            // Camera parallax (mouse interaction) - but preserve scroll-based Y position
+            const targetMouseX = mouseX * 0.5;
+            const scrollBasedY = baseCameraY + (maxCameraDepth * scrollProgress);
+            const targetMouseY = scrollBasedY + (mouseY * 0.15); // Much reduced mouse influence
+            
+            camera.position.x += (targetMouseX - camera.position.x) * 0.05;
+            camera.position.y += (targetMouseY - camera.position.y) * 0.05;
+            
+            // Adjust look-at target to move down with camera, but look slightly upward
+            const lookAtY = scrollBasedY * 0.7; // Look at a point 70% of the way down
+            camera.lookAt(0, lookAtY, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            // Initialize modular background systems
+            oceanBackground = new OceanBackground(scene, camera);
+            submarine = new Submarine(scene, camera);
+            kelp = new Kelp(scene);
+
+            // Initialize project list manager
+            projectManager = new ProjectListManager('.projects-list');
+
+            // Initialize scroll progress
+            updateScrollProgress();
+
+            // Add projects with individual frame types - each project can have its own style!
+            projectManager.addProject({
+                title: 'Ocean Explorer VR',
+                description: 'Immersive underwater exploration with realistic marine life and dynamic weather systems.',
+                icon: 'fas fa-water',
+                tags: ['Unity', 'VR', 'C#'],
+                startDate: 'Jan 2024',
+                status: 'active',
+                frameType: 'editableCard', // Gets full EditableCard with borders, corners, gizmo
+                frameOptions: { rotationIntensity: 12 }
+            });
+
+            projectManager.addProject({
+                title: 'Survival Island',
+                description: 'Open-world survival with crafting systems and procedurally generated islands.',
+                icon: 'fas fa-skull-crossbones',
+                tags: ['Unreal Engine', 'Blueprints', 'Multiplayer'],
+                startDate: 'Aug 2023',
+                status: 'completed',
+                frameType: 'neonGlow', // Gets neon glow effect
+                frameOptions: { glowColor: '#00ff88' }
+            });
+
+            projectManager.addProject({
+                title: 'Mech Arena',
+                description: 'Fast-paced competitive multiplayer with customizable mechs and physics-based movement.',
+                icon: 'fas fa-robot',
+                tags: ['Unity', 'Photon', 'Shader Graph'],
+                startDate: 'Mar 2024',
+                status: 'active',
+                frameType: 'minimal', // Gets simple accent border
+                frameOptions: { accentColor: '#ff4444' }
+            });
+
+            projectManager.addProject({
+                title: 'Haunted Mansion',
+                description: 'Psychological horror with adaptive AI that learns from player behavior.',
+                icon: 'fas fa-ghost',
+                tags: ['Unreal Engine', 'Wwise', 'AI'],
+                startDate: 'Dec 2023',
+                status: 'paused',
+                frameType: 'none' // Clean original styling - no special frame
+            });
+
+            projectManager.addProject({
+                title: 'Mind Maze',
+                description: 'First-person puzzle game with reality-shifting mechanics and mind-bending environments.',
+                icon: 'fas fa-puzzle-piece',
+                tags: ['Unity', 'Custom Shaders', 'Level Design'],
+                startDate: 'May 2022',
+                status: 'completed',
+                frameType: 'editableCard', // Another EditableCard but with different options
+                frameOptions: { 
+                    cornerColor: '#9966ff',
+                    rotationIntensity: 6
+                }
+            });
+
+            projectManager.addProject({
+                title: 'Starship Commander',
+                description: 'Space simulation with realistic orbital mechanics and massive fleet battles.',
+                icon: 'fas fa-rocket',
+                tags: ['Unity', 'Networking', 'Physics'],
+                startDate: 'Feb 2021',
+                status: 'archived'
+            });
+
+            // Start animation loop
+            animate();
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

@@ -15,6 +15,7 @@ class EditableCard {
             cornerColor: options.cornerColor || '#f0d060',
             borderStyle: options.borderStyle || 'dotted',
             alwaysVisible: options.alwaysVisible || false,
+            showSelectionHandles: options.showSelectionHandles || false,
             showGizmoOnHover: options.showGizmoOnHover !== false,
             onRotationChange: options.onRotationChange || null
         };
@@ -58,17 +59,34 @@ class EditableCard {
         target.style.backfaceVisibility = 'hidden';
         
         // Apply the exact same styles as .brand with !important to override project CSS
-        target.style.setProperty('border', '2px solid rgba(240, 208, 96, 0.4)', 'important');
+        // Ensure proper stacking context for backdrop-filter
+        target.style.setProperty('isolation', 'isolate', 'important');
+        target.style.setProperty('position', 'relative', 'important');
+        target.style.setProperty('z-index', '10', 'important');
+        
+        target.style.setProperty('border', '2px solid rgba(240, 208, 96, 0.6)', 'important');
         target.style.setProperty('border-radius', '8px', 'important');
-        target.style.setProperty('background', 'rgba(255, 255, 255, 0.03)', 'important');
-        target.style.setProperty('backdrop-filter', 'blur(10px)', 'important');
-        target.style.setProperty('box-shadow', '0 8px 32px rgba(0, 0, 0, 0.3)', 'important');
+        target.style.setProperty('background', 'rgba(255, 255, 255, 0.05)', 'important');
+        target.style.setProperty('backdrop-filter', 'blur(15px)', 'important');
+        target.style.setProperty('-webkit-backdrop-filter', 'blur(15px)', 'important'); // Safari support
+        target.style.setProperty('box-shadow', '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(240, 208, 96, 0.1)', 'important');
+        
+        console.log('EditableCard: Applied styles to element:', target);
+        console.log('EditableCard: backdrop-filter should be:', target.style.backdropFilter);
+        console.log('EditableCard: -webkit-backdrop-filter should be:', target.style.webkitBackdropFilter);
+        console.log('EditableCard: isolation should be:', target.style.isolation);
         
         // Create the exact same pseudo-elements as main page
         this.createPseudoElements();
         
         // Create corner elements (dotted) - exact same as main page
         this.createCornerElements();
+        
+        // Create selection handles
+        if(this.options.showSelectionHandles)
+        {
+            this.createSelectionHandles();
+        }
         
         // Create gizmo canvas
         this.createGizmoCanvas();
@@ -156,6 +174,51 @@ class EditableCard {
         });
     }
 
+    createSelectionHandles() {
+        const target = this.options.targetElement;
+        this.selectionHandles = [];
+        
+        // Create 8 selection handles: 4 corners + 4 edges
+        const handlePositions = [
+            { class: 'handle-nw', cursor: 'nw-resize', top: '-6px', left: '-6px' },
+            { class: 'handle-n', cursor: 'n-resize', top: '-6px', left: '50%', transform: 'translateX(-50%)' },
+            { class: 'handle-ne', cursor: 'ne-resize', top: '-6px', right: '-6px' },
+            { class: 'handle-e', cursor: 'e-resize', top: '50%', right: '-6px', transform: 'translateY(-50%)' },
+            { class: 'handle-se', cursor: 'se-resize', bottom: '-6px', right: '-6px' },
+            { class: 'handle-s', cursor: 's-resize', bottom: '-6px', left: '50%', transform: 'translateX(-50%)' },
+            { class: 'handle-sw', cursor: 'sw-resize', bottom: '-6px', left: '-6px' },
+            { class: 'handle-w', cursor: 'w-resize', top: '50%', left: '-6px', transform: 'translateY(-50%)' }
+        ];
+        
+        handlePositions.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `selection-handle ${pos.class}`;
+            
+            // Base handle styling
+            handle.style.position = 'absolute';
+            handle.style.width = '12px';
+            handle.style.height = '12px';
+            handle.style.backgroundColor = '#f0d060';
+            handle.style.border = '2px solid #000';
+            handle.style.borderRadius = '2px';
+            handle.style.cursor = pos.cursor;
+            handle.style.zIndex = '1000';
+            handle.style.opacity = '0';
+            handle.style.transition = 'opacity 0.2s ease';
+            handle.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+            
+            // Position the handle
+            if (pos.top) handle.style.top = pos.top;
+            if (pos.bottom) handle.style.bottom = pos.bottom;
+            if (pos.left) handle.style.left = pos.left;
+            if (pos.right) handle.style.right = pos.right;
+            if (pos.transform) handle.style.transform = pos.transform;
+            
+            target.appendChild(handle);
+            this.selectionHandles.push(handle);
+        });
+    }
+
     createGizmoCanvas() {
         const target = this.options.targetElement;
         
@@ -172,6 +235,8 @@ class EditableCard {
         this.gizmoCanvas.style.pointerEvents = 'none';
         this.gizmoCanvas.style.zIndex = '9999';
         this.gizmoCanvas.style.display = 'block';
+        this.gizmoCanvas.style.opacity = this.options.showGizmoOnHover ? '0' : '1';
+        this.gizmoCanvas.style.transition = 'opacity 0.2s ease';
         
         target.appendChild(this.gizmoCanvas);
         
@@ -288,11 +353,29 @@ class EditableCard {
 
         // Mouse enter handler
         this.handleEnter = () => {
-            // Frame is always visible, no need to show/hide
+            // Show selection handles on hover
+            this.selectionHandles?.forEach(handle => {
+                handle.style.opacity = '1';
+            });
+            
+            // Show gizmo if enabled
+            if (this.options.showGizmoOnHover && this.gizmoCanvas) {
+                this.gizmoCanvas.style.opacity = '1';
+            }
         };
 
         // Mouse leave handler - reset rotation only
         this.handleLeave = () => {
+            // Hide selection handles
+            this.selectionHandles?.forEach(handle => {
+                handle.style.opacity = '0';
+            });
+            
+            // Hide gizmo if enabled
+            if (this.options.showGizmoOnHover && this.gizmoCanvas) {
+                this.gizmoCanvas.style.opacity = '0';
+            }
+            
             if (this.options.enableRotation && window.innerWidth > 768) {
                 target.style.transform = 
                     'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
@@ -364,6 +447,13 @@ class EditableCard {
                 }
             });
 
+            // Remove selection handles
+            this.selectionHandles?.forEach(handle => {
+                if (handle.parentNode) {
+                    handle.parentNode.removeChild(handle);
+                }
+            });
+
             // Remove gizmo canvas
             if (this.gizmoCanvas && this.gizmoCanvas.parentNode) {
                 this.gizmoCanvas.parentNode.removeChild(this.gizmoCanvas);
@@ -375,6 +465,7 @@ class EditableCard {
         }
 
         this.cornerElements = [];
+        this.selectionHandles = [];
         this.gizmoCanvas = null;
         this.isInitialized = false;
     }

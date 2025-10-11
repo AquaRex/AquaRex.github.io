@@ -1,6 +1,7 @@
 /**
  * Project List Element Template
  * Defines the visual design and structure for project entries
+ * Uses editableCard frames by default
  */
 
 class ProjectListElement {
@@ -9,10 +10,16 @@ class ProjectListElement {
         this.template = this.createTemplate();
     }
 
+    // Get the default frame type for this element type
+    // Removed to allow ProjectListManager to control the default frame type
+    // getDefaultFrameType() {
+    //     return 'neonGlow';
+    // }
+
     // Create the HTML template for a project entry
     createTemplate() {
         return `
-            <div class="project-row" data-project-id="{{id}}">
+            <div class="project-row" data-item-id="{{id}}">
                 <div class="project-image-container">
                     {{imageContent}}
                 </div>

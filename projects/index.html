@@ -3,25 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects</title>
+    <title>Projects - Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../services/GLTFLoader.js"></script>
+    <script src="../services/sceneManager.js"></script>
+    <script src="../services/cameraMovement.js"></script>
+    <script src="../services/oceanBackground.js"></script>
+    <script src="../services/submarine.js"></script>
+    <script src="../services/kelp.js"></script>
+    <script src="../services/editableCard.js"></script>
+    <script src="../services/rotatableCard.js"></script>
+    <script src="../services/header.js"></script>
+    <script src="../services/listManager.js"></script>
+    <script src="../services/projectListElement.js"></script>
+    <script src="../services/projectListManager.js"></script>
     <style>
+        /* Base Reset */
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: border-box
         }
-
+        /* Custom text selection color */
+        ::selection {
+            background: #f0d060;
+            color: #000000;
+        }
+        ::-moz-selection {
+            background: #f0d060;
+            color: #000000;
+        }
+        /* Body and Background - EXACT SAME as home page */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
-            overflow-y: auto;
-            min-height: 100vh;
+            overflow: hidden;
+            height: 100vh;
             width: 100vw;
-            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
+            /* Original dark, deep forest green gradient */
+            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%)
         }
-
-        /* 3D Canvas Background */
+        /* 3D Canvas Layer - EXACT SAME as home page */
         #canvas3d {
             position: fixed;
             top: 0;
@@ -29,339 +51,309 @@
             width: 100%;
             height: 100%;
             z-index: 0;
-            filter: blur(4px);
+            filter: blur(2px); /* Same as home page */
         }
-
-
-
-        /* Content Container */
-        .container {
+        /* Card Gizmo Canvas Layer - EXACT SAME as home page */
+        #canvasCardGizmo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 11;
+            pointer-events: none;
+        }
+        /* Cursor Light - EXACT SAME as home page */
+        .cursor-light {
+            position: fixed;
+            width: 2400px;
+            height: 2400px;
+            border-radius: 50%;
+            /* Soft yellow/gold radial gradient */
+            background: radial-gradient(circle, rgba(240, 208, 96, 0.015) 0%, rgba(240, 208, 96, 0.008) 35%, rgba(240, 208, 96, 0.004) 60%, rgba(240, 208, 96, 0.001) 80%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            filter: blur(80px)
+        }
+        /* Main Content Overlay - ADAPTED from home page */
+        .content {
             position: relative;
             z-index: 10;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 60px 40px;
-            min-height: 100vh;
-            opacity: 0;
-            animation: fadeInContent 1s ease-in-out 0.3s forwards;
-        }
-
-        @keyframes fadeInContent {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        body::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        body::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 5px;
-        }
-
-        body::-webkit-scrollbar-thumb {
-            background: rgba(240, 208, 96, 0.3);
-            border-radius: 5px;
-        }
-
-        body::-webkit-scrollbar-thumb:hover {
-            background: rgba(240, 208, 96, 0.5);
-        }
-
-        /* Company Logo */
-        .company-logo {
-            position: fixed;
-            top: 2rem;
-            left: 2rem;
-            z-index: 999;
-            width: 150px;
-            height: auto;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            animation: fadeInDown 1s ease 0.3s backwards;
-            opacity: 0.9;
-        }
-        .company-logo:hover {
-            transform: scale(1.05);
-            opacity: 1;
-            filter: drop-shadow(0 0 15px rgba(240, 208, 96, 0.3));
-        }
-        .company-logo:hover .logo-text {
-            fill: #f0d060;
-        }
-        .company-logo svg {
-            width: 100%;
-            height: auto;
-        }
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Page Header */
-        .page-header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            color: #fff;
             text-align: center;
-            margin-bottom: 60px;
+            padding: 2rem;
+            pointer-events: none;
+            perspective: 1500px;
+            overflow-y: auto; /* Allow scrolling in content area */
+        }
+        .content * {
+            pointer-events: auto
         }
 
+        /* Projects Page Header */
+        .page-header {
+            margin: 4rem 0 3rem 0;
+            animation: fadeInDown 1s ease;
+        }
+        
         .page-title {
-            font-size: 3.5rem;
-            background: linear-gradient(135deg, #f0d060 0%, #e0c050 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 12px;
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: .5rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: #f0d060;
+            color: #000000;
+            padding: 0.1rem 0.8rem;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
-
+        
         .page-subtitle {
-            font-size: 1.1rem;
-            color: #c0c0c0;
-            opacity: 0.8;
+            font-size: 1.4rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: .8;
+            color: #d0e8dc;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
-        /* Projects List */
+        /* Projects List Container */
         .projects-list {
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-            margin-bottom: 60px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease 0.3s backwards;
         }
 
+        /* Project Row Styling */
         .project-row {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(240, 208, 96, 0.15);
-            padding: 0;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            /* Will get backdrop-filter from EditableCard */
+            border-radius: 8px;
+            transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .project-row:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            border-color: rgba(240, 208, 96, 0.3);
-            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(240, 208, 96, 0.15);
         }
 
         .project-image-container {
-            width: 100%;
-            height: 280px;
-            background: linear-gradient(135deg, rgba(240, 208, 96, 0.08) 0%, rgba(50, 50, 50, 0.3) 100%);
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            position: relative;
+            border-radius: 8px;
+            background: rgba(240, 208, 96, 0.1);
         }
 
         .project-image-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 8px;
         }
 
         .project-image-placeholder {
-            font-size: 4rem;
-            color: rgba(240, 208, 96, 0.2);
+            font-size: 2rem;
+            color: #f0d060;
         }
 
         .project-content-wrapper {
-            padding: 32px 40px;
+            flex: 1;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 40px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 2rem;
         }
 
         .project-main {
             flex: 1;
-            min-width: 300px;
+            text-align: left;
         }
 
         .project-title {
-            font-size: 1.8rem;
-            color: #f0d060;
-            margin-bottom: 12px;
+            font-size: 1.5rem;
             font-weight: 600;
-            letter-spacing: -0.3px;
+            margin-bottom: 0.5rem;
+            color: #f0d060;
         }
 
         .project-description {
-            font-size: 0.95rem;
-            color: #c0c0c0;
-            margin-bottom: 16px;
-            line-height: 1.6;
-            opacity: 0.9;
+            font-size: 1rem;
+            color: #d0e8dc;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
         }
 
         .project-tags {
             display: flex;
+            gap: 0.5rem;
             flex-wrap: wrap;
-            gap: 10px;
         }
 
-        .tech-tag {
-            background: rgba(240, 208, 96, 0.08);
+        .project-tag {
+            background: rgba(240, 208, 96, 0.15);
             color: #f0d060;
-            padding: 6px 14px;
+            padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.85rem;
-            border: 1px solid rgba(240, 208, 96, 0.2);
-            font-weight: 500;
-            letter-spacing: 0.3px;
+            border: 1px solid rgba(240, 208, 96, 0.3);
         }
 
         .project-meta {
             display: flex;
-            gap: 40px;
-            align-items: center;
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: right;
+            min-width: 120px;
         }
 
         .meta-item {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 0.25rem;
         }
 
         .meta-label {
-            font-size: 0.8rem;
-            color: #999999;
+            font-size: 0.75rem;
+            color: #b8cfc0;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 600;
+            letter-spacing: 1px;
         }
 
         .meta-value {
-            font-size: 1.1rem;
-            color: #d0d0d0;
+            font-size: 0.9rem;
+            color: #d0e8dc;
             font-weight: 500;
         }
 
         .status-badge {
-            padding: 8px 18px;
+            padding: 0.25rem 0.75rem;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-active {
-            background: rgba(76, 175, 80, 0.15);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.3);
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.4);
         }
 
         .status-completed {
-            background: rgba(33, 150, 243, 0.15);
-            color: #2196f3;
-            border: 1px solid rgba(33, 150, 243, 0.3);
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
+            border: 1px solid rgba(33, 150, 243, 0.4);
         }
 
         .status-paused {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-            border: 1px solid rgba(255, 193, 7, 0.3);
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+            border: 1px solid rgba(255, 152, 0, 0.4);
         }
 
         .status-archived {
-            background: rgba(158, 158, 158, 0.15);
-            color: #9e9e9e;
-            border: 1px solid rgba(158, 158, 158, 0.3);
+            background: rgba(158, 158, 158, 0.2);
+            color: #9E9E9E;
+            border: 1px solid rgba(158, 158, 158, 0.4);
         }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .project-content-wrapper {
-                padding: 28px 32px;
-            }
+        /* Visual Overlays - EXACT SAME as home page */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 20, 18, 0.3) 80%, rgba(10, 20, 18, 0.6) 100%)
+        }
+        .fog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(ellipse at 30% 40%, rgba(45, 79, 72, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(31, 61, 56, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(21, 45, 40, 0.1) 0%, transparent 50%);
+            opacity: .6
+        }
 
-            .project-meta {
-                gap: 30px;
+        /* Animations - EXACT SAME as home page */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px)
             }
-
-            .project-image-container {
-                height: 240px;
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px)
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0)
             }
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 40px 24px;
-            }
-
+        /* Responsive Adjustments */
+        @media (max-width:768px) {
             .page-title {
                 font-size: 2.5rem;
+                letter-spacing: 3px;
             }
-
             .project-content-wrapper {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: 24px;
-                gap: 24px;
+                gap: 1rem;
             }
-
-            .project-image-container {
-                height: 200px;
-            }
-
             .project-meta {
-                width: 100%;
-                flex-wrap: wrap;
-                gap: 20px;
+                text-align: left;
+                min-width: auto;
             }
-
-            .meta-item {
-                min-width: 120px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .page-title {
-                font-size: 2rem;
-            }
-
-            .project-title {
-                font-size: 1.5rem;
-            }
-
-            .project-image-container {
-                height: 180px;
-            }
-
-            .project-meta {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
+            #canvasCardGizmo {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
+    <!-- EXACT SAME structure as home page -->
     <canvas id="canvas3d"></canvas>
+    <canvas id="canvasCardGizmo"></canvas>
+    <div class="fog-overlay"></div>
+    <div class="cursor-light" id="cursorLight"></div>
+    <div class="vignette"></div>
     
-    <div class="container">
+    <div class="content">
         <div class="page-header">
             <h1 class="page-title">Projects</h1>
             <p class="page-subtitle">A collection of my development work</p>
@@ -372,177 +364,80 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="../services/GLTFLoader.js"></script>
-    <script src="../services/oceanBackground.js"></script>
-    <script src="../services/submarine.js"></script>
-    <script src="../services/kelp.js"></script>
-    <script src="../services/editableCard.js"></script>
-    <script src="../services/projectListElement.js"></script>
-    <script src="../services/projectListManager.js"></script>
-    <script src="../services/header.js"></script>
     <script>
-        // Global variables for mouse tracking and scroll
-        let mouseX = 0;
-        let mouseY = 0;
-        let scrollProgress = 0;
-
-        // Camera position tracking
-        const baseCameraY = 0;
-        const maxCameraDepth = -8; // How far down the camera moves when fully scrolled
-
-        // Three.js setup
-        const canvas = document.getElementById('canvas3d');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-        
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x1f3d38, 1);
-        camera.position.set(0, baseCameraY, 5);
-
-        // Initialize background systems
-        let oceanBackground, submarine, kelp, projectManager;
-
-        // Mouse interaction
-        document.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-
-        // Scroll interaction for depth effect
-        function updateScrollProgress() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
-            scrollProgress = Math.min(scrollTop / Math.max(documentHeight, 1), 1);
-            
-            // Update ocean background with scroll progress
-            if (oceanBackground) {
-                oceanBackground.updateScrollDepth(scrollProgress);
-            }
-            
-            // Update camera Y position based on scroll (diving deeper)
-            const targetCameraY = baseCameraY + (maxCameraDepth * scrollProgress);
-            camera.position.y += (targetCameraY - camera.position.y) * 0.1; // Smooth interpolation
-        }
-
-        window.addEventListener('scroll', updateScrollProgress);
-        window.addEventListener('resize', updateScrollProgress);
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Update background systems
-            if (oceanBackground) {
-                oceanBackground.updateMousePosition(mouseX, mouseY);
-                oceanBackground.update();
-            }
-
-            if (submarine) {
-                submarine.updateMousePosition(mouseX, mouseY);
-                submarine.update();
-            }
-
-            if (kelp) {
-                kelp.update();
-            }
-
-            // Camera parallax (mouse interaction) - but preserve scroll-based Y position
-            const targetMouseX = mouseX * 0.5;
-            const scrollBasedY = baseCameraY + (maxCameraDepth * scrollProgress);
-            const targetMouseY = scrollBasedY + (mouseY * 0.15); // Much reduced mouse influence
-            
-            camera.position.x += (targetMouseX - camera.position.x) * 0.05;
-            camera.position.y += (targetMouseY - camera.position.y) * 0.05;
-            
-            // Adjust look-at target to move down with camera, but look slightly upward
-            const lookAtY = scrollBasedY * 0.7; // Look at a point 70% of the way down
-            camera.lookAt(0, lookAtY, 0);
-
-            renderer.render(scene, camera);
-        }
-
-        // Initialize when page loads
+        // Initialize all systems when page loads
         window.addEventListener('load', () => {
-            // Initialize modular background systems
-            oceanBackground = new OceanBackground(scene, camera);
-            submarine = new Submarine(scene, camera);
-            kelp = new Kelp(scene);
-
-            // Initialize project list manager
-            projectManager = new ProjectListManager('.projects-list');
-
-            // Initialize scroll progress
-            updateScrollProgress();
-
-            // Add projects using the simple addProject method
+            // Initialize core systems
+            const sceneManager = new SceneManager();
+            const cameraMovement = new CameraMovement();
+            
+            // Get scene references
+            const scene = sceneManager.getScene();
+            const camera = sceneManager.getCamera();
+            
+            // Initialize background systems
+            const oceanBackground = new OceanBackground(scene, camera);
+            const submarine = new Submarine(scene, camera);
+            const kelp = new Kelp(scene);
+            
+            // Initialize project manager (page-specific functionality)
+            const projectManager = new ProjectListManager('.projects-list');
+            
+            // Add some sample projects with EditableCard frames
             projectManager.addProject({
-                title: 'Ocean Explorer VR',
-                description: 'Immersive underwater exploration with realistic marine life and dynamic weather systems.',
-                icon: 'fas fa-water',
-                tags: ['Unity', 'VR', 'C#'],
-                startDate: 'Jan 2024',
-                status: 'active'
+                title: 'AquaRex Website',
+                description: 'Personal portfolio website with Three.js ocean effects and interactive cards.',
+                tags: ['JavaScript', 'Three.js', 'CSS', 'HTML'],
+                startDate: '2024-10-01',
+                status: 'active',
+                icon: 'fas fa-globe',
+                link: 'https://github.com/AquaRex/AquaRex.github.io'
             });
 
             projectManager.addProject({
-                title: 'Survival Island',
-                description: 'Open-world survival with crafting systems and procedurally generated islands.',
-                icon: 'fas fa-skull-crossbones',
-                tags: ['Unreal Engine', 'Blueprints', 'Multiplayer'],
-                startDate: 'Aug 2023',
-                status: 'completed'
+                title: 'Project Management Tool',
+                description: 'A web-based project management system with real-time collaboration.',
+                tags: ['React', 'Node.js', 'Socket.io', 'MongoDB'],
+                startDate: '2024-09-15',
+                status: 'completed',
+                icon: 'fas fa-tasks',
+                link: 'https://github.com/example/project-manager'
             });
 
             projectManager.addProject({
-                title: 'Mech Arena',
-                description: 'Fast-paced competitive multiplayer with customizable mechs and physics-based movement.',
-                icon: 'fas fa-robot',
-                tags: ['Unity', 'Photon', 'Shader Graph'],
-                startDate: 'Mar 2024',
-                status: 'active'
+                title: 'Data Visualization Dashboard',
+                description: 'Interactive dashboard for displaying complex datasets with charts and graphs.',
+                tags: ['D3.js', 'Python', 'Flask', 'PostgreSQL'],
+                startDate: '2024-08-20',
+                status: 'paused',
+                icon: 'fas fa-chart-line',
+                link: 'javascript:alert("Demo coming soon!")'
             });
-
-            projectManager.addProject({
-                title: 'Haunted Mansion',
-                description: 'Psychological horror with adaptive AI that learns from player behavior.',
-                icon: 'fas fa-ghost',
-                tags: ['Unreal Engine', 'Wwise', 'AI'],
-                startDate: 'Dec 2023',
-                status: 'paused'
+            
+            // Register camera for parallax movement (main camera only)
+            cameraMovement.addCamera(camera, 0.5);
+            
+            // Add systems to scene manager for animation loop
+            sceneManager.addSystem({
+                update: () => {
+                    const mousePos = cameraMovement.getMousePosition();
+                    
+                    // Update background systems with mouse position
+                    oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
+                    oceanBackground.update();
+                    
+                    submarine.updateMousePosition(mousePos.x, mousePos.y);
+                    submarine.update();
+                    
+                    kelp.update();
+                    
+                    // Update camera movement
+                    cameraMovement.update();
+                }
             });
-
-            projectManager.addProject({
-                title: 'Mind Maze',
-                description: 'First-person puzzle game with reality-shifting mechanics and mind-bending environments.',
-                icon: 'fas fa-puzzle-piece',
-                tags: ['Unity', 'Custom Shaders', 'Level Design'],
-                startDate: 'May 2022',
-                status: 'completed'
-            });
-
-            projectManager.addProject({
-                title: 'Starship Commander',
-                description: 'Space simulation with realistic orbital mechanics and massive fleet battles.',
-                icon: 'fas fa-rocket',
-                tags: ['Unity', 'Networking', 'Physics'],
-                startDate: 'Feb 2021',
-                status: 'archived'
-            });
-
-            // Projects are now using original styling without EditableCard borders
-
-            // Start animation loop
-            animate();
-        });
-
-        // Resize handler
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Start the main animation loop
+            sceneManager.start();
         });
     </script>
 </body>

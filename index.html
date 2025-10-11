@@ -6,13 +6,15 @@
     <title>Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="../services/GLTFLoader.js"></script>
-    <script src="../services/oceanBackground.js"></script>
-    <script src="../services/submarine.js"></script>
-    <script src="../services/kelp.js"></script>
-    <script src="../services/editableCard.js"></script>
-    <script src="../services/rotatableCard.js"></script>
-    <script src="../services/header.js"></script>
+    <script src="services/GLTFLoader.js"></script>
+    <script src="services/sceneManager.js"></script>
+    <script src="services/cameraMovement.js"></script>
+    <script src="services/oceanBackground.js"></script>
+    <script src="services/submarine.js"></script>
+    <script src="services/kelp.js"></script>
+    <script src="services/editableCard.js"></script>
+    <script src="services/rotatableCard.js"></script>
+    <script src="services/header.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -370,100 +372,43 @@
     </div>
     
     <script>
-        // Global variables for mouse tracking and UI interaction
-        let mouseX = 0,
-            mouseY = 0,
-            cursorX = 0,
-            cursorY = 0,
-            isMoving = false;
-
-        // Three.js setup
-        const canvas = document.getElementById('canvas3d');
-        const canvasCardGizmo = document.getElementById('canvasCardGizmo');
-
-        // Background scene
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-        // Foreground scene for card gizmo
-        const cardScene = new THREE.Scene();
-        const cardCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-        const renderer = new THREE.WebGLRenderer({
-            canvas: canvas,
-            alpha: true,
-            antialias: true
-        });
-
-        const cardRenderer = new THREE.WebGLRenderer({
-            canvas: canvasCardGizmo,
-            alpha: true,
-            antialias: true
-        });
-
-        // Initialize background systems
-        let oceanBackground, submarine, kelp, rotatableCard;
-
-        // --- Initial Setup and Animation Loop ---
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x1f3d38, 1);
-
-        cardRenderer.setSize(window.innerWidth, window.innerHeight);
-        cardRenderer.setPixelRatio(window.devicePixelRatio);
-        cardRenderer.setClearColor(0x000000, 0);
-
-        camera.position.z = 5;
-        cardCamera.position.z = 4;
-
-
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Update background systems
-            if (oceanBackground) {
-                oceanBackground.updateMousePosition(mouseX, mouseY);
-                oceanBackground.update();
-            }
-
-            if (submarine) {
-                submarine.updateMousePosition(mouseX, mouseY);
-                submarine.update();
-            }
-
-            if (kelp) {
-                kelp.update();
-            }
-
-            if (rotatableCard) {
-                rotatableCard.update();
-            }
-
-            const easingFactorCamera = 0.05;
-
-            // Camera Parallax: moves subtly with the mouse
-            camera.position.x += (mouseX * 0.5 - camera.position.x) * easingFactorCamera;
-            camera.position.y += (mouseY * 0.5 - camera.position.y) * easingFactorCamera;
-            camera.lookAt(scene.position);
-
-            // Card camera stays fixed (no parallax)
-            cardCamera.lookAt(cardScene.position);
-
-            // Render background scene
-            renderer.render(scene, camera);
-
-            // Render card gizmo scene to separate canvas
-            cardRenderer.render(cardScene, cardCamera);
-        }
-
-        // --- Event Listeners ---
+        // Initialize all systems when page loads
         window.addEventListener('load', () => {
+            // Initialize core systems
+            const sceneManager = new SceneManager();
+            const cameraMovement = new CameraMovement();
+            
+            // Get scene references
+            const scene = sceneManager.getScene();
+            const camera = sceneManager.getCamera();
+            
             // Initialize background systems
-            oceanBackground = new OceanBackground(scene, camera);
-            submarine = new Submarine(scene, camera);
-            kelp = new Kelp(scene);
-
+            const oceanBackground = new OceanBackground(scene, camera);
+            const submarine = new Submarine(scene, camera);
+            const kelp = new Kelp(scene);
+            
+            // Register camera for parallax movement (main camera only)
+            cameraMovement.addCamera(camera, 0.5);
+            
+            // Add systems to scene manager for animation loop
+            sceneManager.addSystem({
+                update: () => {
+                    const mousePos = cameraMovement.getMousePosition();
+                    
+                    // Update background systems with mouse position
+                    oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
+                    oceanBackground.update();
+                    
+                    submarine.updateMousePosition(mousePos.x, mousePos.y);
+                    submarine.update();
+                    
+                    kelp.update();
+                    
+                    // Update camera movement
+                    cameraMovement.update();
+                }
+            });
+            
             // Initialize editable card system for main brand
             const brandElement = document.querySelector('.brand');
             const mainBrandCard = new EditableCard({
@@ -472,61 +417,15 @@
                 rotationIntensity: 25,
                 fadeInDuration: 1000,
                 alwaysVisible: true,
-                showGizmoOnHover: false,
+                showSelectionHandles: false,
+                showGizmoOnHover: false, // Enable gizmo to make it more visible
                 onRotationChange: (rotationData) => {
                     // Optional: Handle rotation changes if needed
-                    // console.log('Card rotated:', rotationData);
                 }
             });
-
-            const cursorLight = document.getElementById('cursorLight');
-
-            const handleMove = e => {
-                // Handle both mouse and touch events
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                cursorX = clientX;
-                cursorY = clientY;
-
-                // Normalised mouse coordinates for Three.js (-1 to 1)
-                mouseX = (clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(clientY / window.innerHeight) * 2 + 1;
-
-                // DOM Cursor Light update
-                cursorLight.style.left = cursorX + 'px';
-                cursorLight.style.top = cursorY + 'px';
-                cursorLight.style.opacity = '1';
-                isMoving = true;
-
-                // Debounce to fade out the light when movement stops
-                clearTimeout(window.cursorTimeout);
-                window.cursorTimeout = setTimeout(() => {
-                    isMoving = false
-                }, 100)
-            };
-
-            const handleLeave = () => {
-                cursorLight.style.opacity = '0';
-            };
-
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('touchmove', handleMove);
-            document.addEventListener('mouseleave', handleLeave);
-            document.addEventListener('touchend', handleLeave);
-
-            // Start the main animation loop after all initial setup is complete
-            animate();
-        });
-
-        // Resize handler for responsiveness
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            cardCamera.aspect = window.innerWidth / window.innerHeight;
-            cardCamera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            cardRenderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Start the main animation loop
+            sceneManager.start();
         });
     </script>
 </body>
