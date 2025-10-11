@@ -1296,6 +1296,30 @@
                             window.innerWidth <= 768;
             const isLowEndDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
             
+            // Performance monitoring
+            let frameCount = 0;
+            let lastFPSCheck = performance.now();
+            let averageFPS = 60;
+            
+            const monitorPerformance = () => {
+                frameCount++;
+                const now = performance.now();
+                
+                if (now - lastFPSCheck >= 1000) { // Check every second
+                    const currentFPS = frameCount;
+                    frameCount = 0;
+                    lastFPSCheck = now;
+                    
+                    averageFPS = averageFPS * 0.9 + currentFPS * 0.1; // Rolling average
+                    
+                    // If FPS drops significantly, reduce quality
+                    if (averageFPS < 30 && !animationPaused) {
+                        console.warn('Low FPS detected:', averageFPS.toFixed(1));
+                        // Could implement dynamic quality reduction here
+                    }
+                }
+            };
+            
             // Initialize core systems with mobile optimizations
             const sceneManager = new SceneManager();
             const cameraMovement = new CameraMovement();
@@ -1469,52 +1493,139 @@
                 }, { passive: true });
             }
             
-            // Add systems to scene manager for animation loop
+            // Add systems to scene manager for animation loop with error handling
             sceneManager.addSystem({
                 update: () => {
-                    // Skip heavy updates during scroll on mobile
-                    if (isMobile && animationPaused) {
-                        return;
+                    try {
+                        // Skip heavy updates during scroll on mobile
+                        if (isMobile && animationPaused) {
+                            return;
+                        }
+                        
+                        // Check if systems are still valid
+                        if (!cameraMovement || !oceanBackground || !submarine || !kelp) {
+                            console.warn('Some systems are null/undefined, skipping update');
+                            return;
+                        }
+                        
+                        const mousePos = cameraMovement.getMousePosition();
+                        
+                        // Validate mouse position to prevent infinite loops
+                        if (!mousePos || typeof mousePos.x !== 'number' || typeof mousePos.y !== 'number') {
+                            return;
+                        }
+                        
+                        // Update background systems with error handling
+                        if (oceanBackground.updateMousePosition) {
+                            oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (oceanBackground.update) {
+                            oceanBackground.update();
+                        }
+                        
+                        if (submarine.updateMousePosition) {
+                            submarine.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (submarine.update) {
+                            submarine.update();
+                        }
+                        
+                        if (kelp.update) {
+                            kelp.update();
+                        }
+                        
+                        // Update camera movement
+                        if (cameraMovement.update) {
+                            cameraMovement.update();
+                        }
+                    } catch (error) {
+                        console.error('Error in animation loop:', error);
+                        // Don't break the entire loop, just skip this frame
                     }
-                    
-                    const mousePos = cameraMovement.getMousePosition();
-                    
-                    // Update background systems with mouse/touch position
-                    oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
-                    oceanBackground.update();
-                    
-                    submarine.updateMousePosition(mousePos.x, mousePos.y);
-                    submarine.update();
-                    
-                    kelp.update();
-                    
-                    // Update camera movement
-                    cameraMovement.update();
                 }
             });
             
-            // Optimize animation frame rate on mobile
+            // Start the main animation loop with throttling if needed
             if (isMobile || isLowEndDevice) {
-                // Throttle to 30fps on low-end devices
+                // Throttle to 30fps on low-end devices by modifying the update frequency
                 let lastFrame = 0;
                 const targetFPS = 30;
                 const frameDelay = 1000 / targetFPS;
                 
-                const originalStart = sceneManager.start.bind(sceneManager);
-                sceneManager.start = function() {
-                    function throttledRender(time) {
-                        if (time - lastFrame >= frameDelay) {
-                            originalStart();
-                            lastFrame = time;
+                // Override the scene manager's animation loop to prevent double loops
+                let animationId;
+                const throttledUpdate = (time) => {
+                    monitorPerformance(); // Monitor FPS
+                    
+                    if (time - lastFrame >= frameDelay) {
+                        // Call the scene manager's render method directly instead of start()
+                        if (sceneManager.render) {
+                            sceneManager.render();
+                        } else if (sceneManager.update) {
+                            sceneManager.update();
                         }
-                        requestAnimationFrame(throttledRender);
+                        lastFrame = time;
                     }
-                    requestAnimationFrame(throttledRender);
+                    
+                    // Only continue animation if page is visible and not paused
+                    if (!document.hidden && !animationPaused) {
+                        animationId = requestAnimationFrame(throttledUpdate);
+                    }
                 };
+                
+                // Start throttled animation
+                animationId = requestAnimationFrame(throttledUpdate);
+                
+                // Store reference for cleanup
+                window.animationId = animationId;
+            } else {
+                // Start normal animation loop on desktop
+                sceneManager.start();
             }
             
-            // Start the main animation loop
-            sceneManager.start();
+            // Cleanup function to prevent memory leaks
+            const cleanup = () => {
+                // Cancel animation frames
+                if (window.animationId) {
+                    cancelAnimationFrame(window.animationId);
+                }
+                
+                // Stop scene manager
+                if (sceneManager && sceneManager.stop) {
+                    sceneManager.stop();
+                }
+                
+                // Clear timeouts
+                if (scrollTimeout) {
+                    clearTimeout(scrollTimeout);
+                }
+                
+                // Remove event listeners
+                window.removeEventListener('scroll', arguments.callee);
+                document.removeEventListener('click', arguments.callee);
+                document.removeEventListener('touchstart', arguments.callee);
+            };
+            
+            // Add cleanup event listeners
+            window.addEventListener('beforeunload', cleanup);
+            window.addEventListener('unload', cleanup);
+            
+            // Add visibility change listener to pause animations when tab is hidden
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // Pause animations when tab is hidden
+                    animationPaused = true;
+                    if (window.animationId) {
+                        cancelAnimationFrame(window.animationId);
+                    }
+                } else {
+                    // Resume animations when tab is visible
+                    animationPaused = false;
+                    if (isMobile || isLowEndDevice) {
+                        window.animationId = requestAnimationFrame(throttledUpdate);
+                    }
+                }
+            });
         });
     </script>
 </body>
