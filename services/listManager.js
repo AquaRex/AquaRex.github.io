@@ -112,12 +112,13 @@ class ListManager {
         }
 
         return this.items.filter(item => {
-            // Search filter (title and description)
+            // Search filter (title, description, and tags)
             if (this.currentFilters.search) {
                 const searchTerm = this.currentFilters.search.toLowerCase();
                 const titleMatch = item.title.toLowerCase().includes(searchTerm);
                 const descMatch = item.description && item.description.toLowerCase().includes(searchTerm);
-                if (!titleMatch && !descMatch) {
+                const tagMatch = item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                if (!titleMatch && !descMatch && !tagMatch) {
                     return false;
                 }
             }
@@ -325,12 +326,13 @@ class ListManager {
         }, null, 2);
     }
 
-    // Search items by title or description
+    // Search items by title, description, or tags
     searchListElements(query) {
         const lowerQuery = query.toLowerCase();
         return this.items.filter(item => 
             (item.title && item.title.toLowerCase().includes(lowerQuery)) ||
-            (item.description && item.description.toLowerCase().includes(lowerQuery))
+            (item.description && item.description.toLowerCase().includes(lowerQuery)) ||
+            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
         );
     }
 

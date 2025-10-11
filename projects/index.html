@@ -162,6 +162,8 @@
             font-size: 0.9rem;
             transition: all 0.3s ease;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            height: 49px;
+            box-sizing: border-box;
         }
 
         #search-input:focus {
@@ -244,7 +246,7 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-height: 45px;
+            height: 49px;
             display: flex;
             align-items: center;
             white-space: nowrap;
@@ -254,6 +256,7 @@
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
+            box-sizing: border-box;
         }
 
         .dropdown-display:hover {
@@ -401,7 +404,10 @@
             letter-spacing: 0.5px;
             cursor: pointer;
             transition: all 0.3s ease;
-            height: fit-content;
+            height: 49px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
         }
 
         .clear-filters-btn:hover {
@@ -527,7 +533,7 @@
 
         <div class="filters-container">
             <div class="search-bar">
-                <input type="text" id="search-input" placeholder="Search projects by title or description...">
+                <input type="text" id="search-input" placeholder="Search projects by title, description, or tags...">
                 <i class="fas fa-search search-icon"></i>
             </div>
             <div class="filter-dropdowns">

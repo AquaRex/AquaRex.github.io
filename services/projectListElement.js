@@ -319,13 +319,13 @@ class ProjectListElement {
                 .project-meta {
                     display: flex;
                     flex-direction: row;
-                    gap: 1.5rem;
+                    gap: 2rem;
                     align-items: flex-end;
                     text-align: right;
                     flex-shrink: 0;
-                    width: 200px;
+                    width: 220px;
                     padding: 0;
-                    justify-content: space-between;
+                    justify-content: flex-end;
                 }
 
                 .meta-item {
@@ -333,8 +333,7 @@ class ProjectListElement {
                     flex-direction: column;
                     gap: 0.4rem;
                     align-items: flex-end;
-                    min-width: 80px;
-                    flex: 1;
+                    min-width: 90px;
                 }
 
                 .meta-label {
@@ -362,7 +361,7 @@ class ProjectListElement {
                     letter-spacing: 0.8px;
                     text-align: center;
                     white-space: nowrap;
-                    min-width: 80px;
+                    min-width: 95px;
                     box-sizing: border-box;
                 }
 
