@@ -243,7 +243,7 @@ class ProjectListElement {
 
                 .project-header-image {
                     width: 100%;
-                    height: 400px;
+                    height: 440px;
                     background: linear-gradient(135deg, rgba(240, 208, 96, 0.1) 0%, rgba(240, 208, 96, 0.05) 100%);
                     display: flex;
                     align-items: center;
@@ -271,7 +271,7 @@ class ProjectListElement {
                     align-items: flex-end;
                     gap: 1.5rem;
                     padding: 2rem;
-                    height: 200px;
+                    height: 160px;
                 }
 
                 .project-main {

@@ -27,12 +27,12 @@
         }
         /* Custom text selection color */
         ::selection {
-            background: #f0d060;
-            color: #000000;
+            background: #f0d060 !important;
+            color: #000000 !important;
         }
         ::-moz-selection {
-            background: #f0d060;
-            color: #000000;
+            background: #f0d060 !important;
+            color: #000000 !important;
         }
         /* Body and Background - ADAPTED for scrolling */
         body {
@@ -333,7 +333,7 @@
         }
 
         body::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, rgba(240, 208, 96, 0.8) 0%, rgba(240, 208, 96, 0.6) 100%);
+            background: linear-gradient(180deg, hwb(47 38% 6% / 0.8) 0%, rgba(240, 208, 96, 0.6) 100%);
         }
 
         /* Dropdown scrollbar */
@@ -372,7 +372,7 @@
             background: rgba(255, 152, 0, 0.2);
             border: 2px solid rgba(255, 152, 0, 0.4);
             border-radius: 6px;
-            color: #FF9800;
+            color: #f0d060;
             font-size: 0.9rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -510,7 +510,6 @@
             </div>
             <div class="filter-dropdowns">
                 <div class="filter-group">
-                    <label for="tag-filter">Filter by Tags:</label>
                     <div class="custom-dropdown" id="tag-dropdown">
                         <div class="dropdown-display" id="tag-display">All Tags</div>
                         <div class="dropdown-arrow">▼</div>
@@ -521,7 +520,6 @@
                     <span class="filter-count" id="tag-count">0</span>
                 </div>
                 <div class="filter-group">
-                    <label for="status-filter">Filter by Status:</label>
                     <div class="custom-dropdown" id="status-dropdown">
                         <div class="dropdown-display" id="status-display">All Status</div>
                         <div class="dropdown-arrow">▼</div>
@@ -534,7 +532,7 @@
                     </div>
                     <span class="filter-count" id="status-count">0</span>
                 </div>
-                <button id="clear-filters" class="clear-filters-btn">Clear Filters</button>
+                <button id="clear-filters" class="clear-filters-btn">Clear</button>
             </div>
         </div>
 
