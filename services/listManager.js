@@ -98,11 +98,70 @@ class ListManager {
         return this.templateEngine.render(item);
     }
 
+    // Filtering functionality
+    filterItems(filters = {}) {
+        this.currentFilters = filters;
+        this.render();
+    }
+
+    // Get filtered items based on current filters
+    getFilteredItems() {
+        if (!this.currentFilters) {
+            return this.items;
+        }
+
+        return this.items.filter(item => {
+            // Search filter (title and description)
+            if (this.currentFilters.search) {
+                const searchTerm = this.currentFilters.search.toLowerCase();
+                const titleMatch = item.title.toLowerCase().includes(searchTerm);
+                const descMatch = item.description && item.description.toLowerCase().includes(searchTerm);
+                if (!titleMatch && !descMatch) {
+                    return false;
+                }
+            }
+
+            // Tag filter
+            if (this.currentFilters.tag) {
+                if (!item.tags || !item.tags.includes(this.currentFilters.tag)) {
+                    return false;
+                }
+            }
+
+            // Status filter
+            if (this.currentFilters.status) {
+                if (item.status !== this.currentFilters.status) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    // Get all unique tags from items
+    getAllTags() {
+        const tags = new Set();
+        this.items.forEach(item => {
+            if (item.tags && Array.isArray(item.tags)) {
+                item.tags.forEach(tag => tags.add(tag));
+            }
+        });
+        return Array.from(tags).sort();
+    }
+
+    // Clear all filters
+    clearFilters() {
+        this.currentFilters = {};
+        this.render();
+    }
+
     // Render all items using template engine
     render() {
         if (!this.container) return;
 
-        const itemsHtml = this.items.map(item => 
+        const filteredItems = this.getFilteredItems();
+        const itemsHtml = filteredItems.map(item => 
             this.renderItem(item)
         ).join('');
 
@@ -163,7 +222,7 @@ class ListManager {
         // Use !important to override existing styles
         element.style.setProperty('box-shadow', `0 0 20px ${glowColor}60, 0 0 40px ${glowColor}30`, 'important');
         element.style.setProperty('border', `3px solid ${glowColor}`, 'important');
-        element.style.setProperty('border-radius', '8px', 'important');
+        element.style.setProperty('border-radius', '12px', 'important');
     }
 
     // Simple minimal frame

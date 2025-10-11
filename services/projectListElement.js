@@ -8,6 +8,8 @@ class ProjectListElement {
     constructor() {
         // Define the base template structure
         this.template = this.createTemplate();
+        // Inject CSS styles for this element type
+        this.injectStyles();
     }
 
     // Get the default frame type for this element type
@@ -20,8 +22,8 @@ class ProjectListElement {
     createTemplate() {
         return `
             <div class="project-row" data-item-id="{{id}}">
-                <div class="project-image-container">
-                    {{imageContent}}
+                <div class="project-header-image">
+                    {{headerImageContent}}
                 </div>
                 <div class="project-content-wrapper">
                     <div class="project-main">
@@ -46,7 +48,17 @@ class ProjectListElement {
         `;
     }
 
-    // Generate image content (icon or actual image)
+    // Generate header image content for the top of the card
+    generateHeaderImageContent(project) {
+        if (project.headerImage && project.headerImage.trim() !== '') {
+            return `<img src="${project.headerImage}" alt="${project.title}">`;
+        } else {
+            // Default placeholder for header image area
+            return `<div class="project-header-placeholder">📸</div>`;
+        }
+    }
+
+    // Generate image content (icon or actual image) for bottom area
     generateImageContent(project) {
         if (project.image && project.image.trim() !== '') {
             return `<img src="${project.image}" alt="${project.title}">`;
@@ -61,7 +73,7 @@ class ProjectListElement {
         if (!Array.isArray(tags) || tags.length === 0) {
             return '';
         }
-        return tags.map(tag => `<span class="tech-tag">${tag}</span>`).join('');
+        return tags.map(tag => `<span class="project-tag">${tag}</span>`).join('');
     }
 
     // Generate status badge
@@ -105,6 +117,7 @@ class ProjectListElement {
         };
 
         // Generate dynamic content
+        const headerImageContent = this.generateHeaderImageContent(project);
         const imageContent = this.generateImageContent(project);
         const tagsHtml = this.generateTags(project.tags);
         const statusBadge = this.generateStatusBadge(project.status);
@@ -115,6 +128,7 @@ class ProjectListElement {
             .replace(/\{\{title\}\}/g, project.title)
             .replace(/\{\{description\}\}/g, project.description)
             .replace(/\{\{startDate\}\}/g, project.startDate)
+            .replace(/\{\{headerImageContent\}\}/g, headerImageContent)
             .replace(/\{\{imageContent\}\}/g, imageContent)
             .replace(/\{\{tags\}\}/g, tagsHtml)
             .replace(/\{\{statusBadge\}\}/g, statusBadge);
@@ -200,6 +214,173 @@ class ProjectListElement {
         }
     }
 
+    // Inject CSS styles for project list elements
+    injectStyles() {
+        // Check if styles are already injected
+        if (document.querySelector('#project-list-element-styles')) {
+            return;
+        }
+
+        const styles = `
+            <style id="project-list-element-styles">
+                .project-row {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0;
+                    margin-bottom: 3rem;
+                    padding: 0;
+                    min-height: 600px;
+                    border-radius: 12px;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    overflow: hidden;
+                }
+
+                .project-row:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(240, 208, 96, 0.15);
+                }
+
+                .project-header-image {
+                    width: 100%;
+                    height: 400px;
+                    background: linear-gradient(135deg, rgba(240, 208, 96, 0.1) 0%, rgba(240, 208, 96, 0.05) 100%);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 12px 12px 0 0;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .project-header-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .project-header-placeholder {
+                    font-size: 3rem;
+                    color: rgba(240, 208, 96, 0.6);
+                    text-align: center;
+                }
+
+                .project-content-wrapper {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 1.5rem;
+                    padding: 2rem;
+                    height: 200px;
+                }
+
+                .project-main {
+                    flex: 1;
+                    text-align: left;
+                }
+
+                .project-title {
+                    font-size: 1.6rem;
+                    font-weight: 600;
+                    margin-bottom: 0.5rem;
+                    color: #f0d060;
+                }
+
+                .project-description {
+                    font-size: 1rem;
+                    color: #d0e8dc;
+                    margin-bottom: 0.75rem;
+                    line-height: 1.4;
+                }
+
+                .project-tags {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                }
+
+                .project-tag {
+                    background: rgba(240, 208, 96, 0.15);
+                    color: #f0d060;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    border: 2px solid rgba(240, 208, 96, 0.6);
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                }
+
+                .project-tag:hover {
+                    background: rgba(240, 208, 96, 0.25);
+                    border-color: rgba(240, 208, 96, 0.8);
+                }
+
+                .project-meta {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 1rem;
+                    align-items: flex-end;
+                    text-align: right;
+                    flex-shrink: 0;
+                    width: 180px;
+                }
+
+                .meta-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.3rem;
+                }
+
+                .meta-label {
+                    font-size: 0.7rem;
+                    color: #b8cfc0;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .meta-value {
+                    font-size: 0.9rem;
+                    color: #d0e8dc;
+                    font-weight: 500;
+                }
+
+                .status-badge {
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 6px;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .status-active {
+                    background: rgba(76, 175, 80, 0.2);
+                    color: #4CAF50;
+                    border: 1px solid rgba(76, 175, 80, 0.4);
+                }
+
+                .status-completed {
+                    background: rgba(33, 150, 243, 0.2);
+                    color: #2196F3;
+                    border: 1px solid rgba(33, 150, 243, 0.4);
+                }
+
+                .status-paused {
+                    background: rgba(255, 152, 0, 0.2);
+                    color: #FF9800;
+                    border: 1px solid rgba(255, 152, 0, 0.4);
+                }
+
+                .status-archived {
+                    background: rgba(158, 158, 158, 0.2);
+                    color: #9E9E9E;
+                    border: 1px solid rgba(158, 158, 158, 0.4);
+                }
+            </style>
+        `;
+
+        document.head.insertAdjacentHTML('beforeend', styles);
+    }
 
 }
 
