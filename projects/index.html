@@ -45,6 +45,14 @@
             z-index: 0;
             filter: blur(2px); /* Same as home page */
         }
+        
+        /* Immediately disable blur on mobile devices */
+        @media (max-width: 768px) {
+            #canvas3d {
+                filter: none !important;
+                opacity: 0.6;
+            }
+        }
         /* Card Gizmo Canvas Layer - EXACT SAME as home page */
         #canvasCardGizmo {
             position: fixed;
@@ -887,6 +895,111 @@
             }
         }
 
+        /* Mobile Performance Optimizations */
+        @media (max-width: 768px) {
+            /* COMPLETELY REMOVE blur effects on mobile for performance */
+            #search-input {
+                backdrop-filter: none !important;
+                background: rgba(240, 208, 96, 0.25) !important; /* More opaque background instead */
+            }
+            
+            .dropdown-display {
+                backdrop-filter: none !important;
+                background: rgba(240, 208, 96, 0.25) !important;
+            }
+            
+            .dropdown-options {
+                backdrop-filter: none !important;
+                background: rgba(240, 208, 96, 0.3) !important;
+            }
+            
+            /* Optimize 3D canvas for mobile */
+            #canvas3d {
+                filter: none !important; /* Remove ALL blur effects */
+                opacity: 0.6 !important; /* Use opacity instead of blur */
+                will-change: auto; /* Remove will-change to reduce GPU usage */
+            }
+            
+            /* Reduce box shadows for better performance */
+            #search-input,
+            .dropdown-display,
+            .clear-filters-btn {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+            }
+            
+            #search-input:focus {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+                background: rgba(240, 208, 96, 0.35) !important; /* No blur, just background change */
+                backdrop-filter: none !important;
+            }
+            
+            .dropdown-display:hover {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+                background: rgba(240, 208, 96, 0.35) !important; /* No blur, just background change */
+                backdrop-filter: none !important;
+            }
+            
+            /* Optimize scrolling performance */
+            body {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: auto; /* Disable smooth scrolling on mobile */
+            }
+            
+            /* Optimize list rendering during scroll */
+            .projects-list {
+                contain: layout style paint;
+                transform: translateZ(0); /* Force GPU acceleration */
+            }
+            
+            .project-row {
+                contain: layout style paint;
+                transform: translateZ(0); /* Force GPU layer */
+            }
+            
+            /* Disable ALL transitions on mobile for performance */
+            #search-input,
+            .dropdown-display,
+            .dropdown-options,
+            .clear-filters-btn {
+                transition: none !important; /* Remove all transitions */
+            }
+            
+            .project-row {
+                transition: none !important; /* Remove all transitions */
+            }
+            
+            .project-row:hover {
+                transform: none !important; /* Disable hover transform on mobile */
+            }
+        }
+
+        /* Very small screens - minimal effects */
+        @media (max-width: 480px) {
+            /* Further reduce effects on small screens */
+            #canvas3d {
+                opacity: 0.5 !important; /* Even more transparent */
+            }
+            
+            /* Minimal shadows */
+            #search-input,
+            .dropdown-display,
+            .clear-filters-btn {
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+            }
+            
+            /* Ensure no blur and solid backgrounds */
+            #search-input,
+            .dropdown-display,
+            .dropdown-options {
+                background: rgba(240, 208, 96, 0.35) !important; /* More solid background */
+            }
+            
+            #search-input:focus,
+            .dropdown-display:hover {
+                background: rgba(240, 208, 96, 0.45) !important;
+            }
+        }
+
         /* High DPI displays */
         @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
             .cursor-light {
@@ -1198,10 +1311,21 @@
                 sceneManager: sceneManager
             };
             
-            // Reduce quality on mobile for performance
+            // Aggressive mobile performance optimizations
             if (isMobile || isLowEndDevice) {
                 oceanOptions.quality = 'low';
-                oceanOptions.particleCount = Math.floor(oceanOptions.particleCount * 0.5);
+                oceanOptions.particleCount = Math.floor((oceanOptions.particleCount || 100) * 0.3); // Reduce to 30%
+                oceanOptions.enableReflections = false;
+                oceanOptions.enableFoam = false;
+                oceanOptions.waveComplexity = 'simple';
+                
+                // Reduce render resolution on mobile
+                const canvas = document.getElementById('canvas3d');
+                if (canvas) {
+                    canvas.style.imageRendering = 'pixelated';
+                    canvas.style.imageRendering = '-moz-crisp-edges';
+                    canvas.style.imageRendering = 'crisp-edges';
+                }
             }
             
             const oceanBackground = new OceanBackground(scene, camera, oceanOptions);
@@ -1312,9 +1436,47 @@
                 });
             }
             
+            // Mobile scroll performance optimization
+            let isScrolling = false;
+            let scrollTimeout;
+            let animationPaused = false;
+            
+            if (isMobile) {
+                // Pause 3D animations during scroll on mobile
+                window.addEventListener('scroll', () => {
+                    if (!isScrolling) {
+                        isScrolling = true;
+                        animationPaused = true;
+                        
+                        // Reduce canvas quality during scroll
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.3';
+                        }
+                    }
+                    
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        isScrolling = false;
+                        animationPaused = false;
+                        
+                        // Restore canvas quality after scroll
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.7';
+                        }
+                    }, 150);
+                }, { passive: true });
+            }
+            
             // Add systems to scene manager for animation loop
             sceneManager.addSystem({
                 update: () => {
+                    // Skip heavy updates during scroll on mobile
+                    if (isMobile && animationPaused) {
+                        return;
+                    }
+                    
                     const mousePos = cameraMovement.getMousePosition();
                     
                     // Update background systems with mouse/touch position
