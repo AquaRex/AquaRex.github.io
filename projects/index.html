@@ -272,6 +272,8 @@
             -moz-user-select: none;
             box-sizing: border-box;
             width: 100%;
+            touch-action: manipulation; /* Prevent double-tap zoom */
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
         }
 
         .dropdown-display:hover {
@@ -334,6 +336,11 @@
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
+            touch-action: manipulation; /* Prevent double-tap zoom */
+            -webkit-tap-highlight-color: rgba(240, 208, 96, 0.2); /* Subtle tap highlight */
+            min-height: 44px; /* Ensure touch target size */
+            display: flex;
+            align-items: center;
         }
 
         .dropdown-option:last-child {
@@ -1069,19 +1076,37 @@
                     }
                 }
 
-                // Tag dropdown with enhanced mobile support
-                tagDropdown.addEventListener('click', (e) => {
-                    handleDropdownInteraction(tagDropdown, tagDisplay, selectedTags, 'All Tags', e);
-                });
+                // Enhanced event handling for both mouse and touch
+                function addDropdownEventListeners(dropdown, display, selectedSet, displayDefault) {
+                    // Handle both click and touch events
+                    const handleInteraction = (e) => {
+                        handleDropdownInteraction(dropdown, display, selectedSet, displayDefault, e);
+                    };
 
-                // Status dropdown with enhanced mobile support
-                statusDropdown.addEventListener('click', (e) => {
-                    handleDropdownInteraction(statusDropdown, statusDisplay, selectedStatuses, 'All Status', e);
-                });
+                    // Add click listener for desktop
+                    dropdown.addEventListener('click', handleInteraction);
+                    
+                    // Add touch listeners for mobile
+                    if (isMobile) {
+                        dropdown.addEventListener('touchstart', (e) => {
+                            // Prevent default to avoid triggering click events
+                            e.preventDefault();
+                        });
+                        
+                        dropdown.addEventListener('touchend', (e) => {
+                            e.preventDefault();
+                            handleInteraction(e);
+                        });
+                    }
+                }
+
+                // Setup both dropdowns with enhanced event handling
+                addDropdownEventListeners(tagDropdown, tagDisplay, selectedTags, 'All Tags');
+                addDropdownEventListeners(statusDropdown, statusDisplay, selectedStatuses, 'All Status');
 
                 // Enhanced outside click handling with touch support
                 function closeDropdowns(e) {
-                    // Don't close if clicking inside a dropdown
+                    // Don't close if touching/clicking inside a dropdown
                     if (e.target.closest('.custom-dropdown')) {
                         return;
                     }
@@ -1090,19 +1115,28 @@
                     statusDropdown.classList.remove('open');
                 }
 
+                // Add both click and touch listeners for closing dropdowns
                 document.addEventListener('click', closeDropdowns);
+                document.addEventListener('touchstart', closeDropdowns);
                 
-                // Add touch event handling for better mobile experience
+                // Enhanced mobile-specific handling
                 if (isMobile) {
-                    document.addEventListener('touchstart', closeDropdowns);
-                    
                     // Prevent zoom on double tap for form elements
                     const formElements = document.querySelectorAll('#search-input, .dropdown-display');
                     formElements.forEach(element => {
-                        element.addEventListener('touchend', (e) => {
-                            e.preventDefault();
-                            element.focus();
+                        // Remove the problematic touchend handler that was preventing interactions
+                        element.style.touchAction = 'manipulation'; // Prevent double-tap zoom
+                        element.addEventListener('touchstart', (e) => {
+                            // Allow the touch to proceed normally
+                            e.stopPropagation();
                         });
+                    });
+                    
+                    // Ensure dropdown options are properly touchable
+                    document.addEventListener('touchend', (e) => {
+                        if (e.target.classList.contains('dropdown-option')) {
+                            e.preventDefault(); // Prevent ghost clicks
+                        }
                     });
                 }
 
