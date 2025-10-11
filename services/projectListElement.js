@@ -101,6 +101,26 @@ class ProjectListElement {
         return `<span class="status-badge ${config.class}">${config.label}</span>`;
     }
 
+    // Format date to "Jan 2024" style
+    formatDate(dateString) {
+        if (!dateString || dateString === 'Unknown') return 'Unknown';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                // If it's not a valid date, return as is
+                return dateString;
+            }
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            return `${months[date.getMonth()]} ${date.getFullYear()}`;
+        } catch (error) {
+            return dateString;
+        }
+    }
+
     // Render a single project using the template
     render(projectData) {
         // Ensure required fields have defaults
@@ -121,13 +141,14 @@ class ProjectListElement {
         const imageContent = this.generateImageContent(project);
         const tagsHtml = this.generateTags(project.tags);
         const statusBadge = this.generateStatusBadge(project.status);
+        const formattedDate = this.formatDate(project.startDate);
 
         // Replace template placeholders
         let html = this.template
             .replace(/\{\{id\}\}/g, project.id)
             .replace(/\{\{title\}\}/g, project.title)
             .replace(/\{\{description\}\}/g, project.description)
-            .replace(/\{\{startDate\}\}/g, project.startDate)
+            .replace(/\{\{startDate\}\}/g, formattedDate)
             .replace(/\{\{headerImageContent\}\}/g, headerImageContent)
             .replace(/\{\{imageContent\}\}/g, imageContent)
             .replace(/\{\{tags\}\}/g, tagsHtml)
@@ -268,7 +289,7 @@ class ProjectListElement {
                 .project-content-wrapper {
                     display: flex;
                     justify-content: space-between;
-                    align-items: flex-end;
+                    align-items: center;
                     gap: 1.5rem;
                     padding: 2rem;
                     height: 160px;
@@ -304,7 +325,7 @@ class ProjectListElement {
                     background: rgba(240, 208, 96, 0.15);
                     color: #f0d060;
                     padding: 0.4rem 0.8rem;
-                    border-radius: 6px;
+                    border-radius: 16px;
                     font-size: 0.8rem;
                     border: 2px solid rgba(240, 208, 96, 0.6);
                     font-weight: 500;
@@ -317,32 +338,43 @@ class ProjectListElement {
                 }
 
                 .project-meta {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 2rem;
-                    align-items: flex-end;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 3rem;
                     text-align: right;
                     flex-shrink: 0;
-                    width: 220px;
+                    width: 260px;
                     padding: 0;
-                    justify-content: flex-end;
+                    justify-content: end;
+                    align-items: start;
                 }
 
                 .meta-item {
                     display: flex;
                     flex-direction: column;
-                    gap: 0.4rem;
-                    align-items: flex-end;
+                    text-align: right;
                     min-width: 90px;
                 }
 
+                .meta-item:first-child {
+                    align-items: flex-start;
+                    text-align: left;
+                }
+
+                .meta-item:last-child {
+                    align-items: flex-end;
+                    text-align: right;
+                }
+
                 .meta-label {
-                    font-size: 0.65rem;
+                    font-size: 1rem;
                     color: #b8cfc0;
                     text-transform: uppercase;
                     letter-spacing: 1.2px;
                     font-weight: 600;
-                    margin-bottom: 0.1rem;
+                    margin-bottom: 0.8rem;
+                    line-height: 1.2;
+                    height: 1.2rem;
                 }
 
                 .meta-value {
@@ -350,11 +382,16 @@ class ProjectListElement {
                     color: #d0e8dc;
                     font-weight: 500;
                     line-height: 1.3;
+                    height: auto;
+                }
+
+                .meta-item:first-child .meta-value {
+                    margin-top: 0.4rem;
                 }
 
                 .status-badge {
                     padding: 0.5rem 1rem;
-                    border-radius: 6px;
+                    border-radius: 16px;
                     font-size: 0.7rem;
                     font-weight: 600;
                     text-transform: uppercase;
