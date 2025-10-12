@@ -958,10 +958,7 @@
                             <div class="dropdown-display" id="status-display">All Status</div>
                             <div class="dropdown-arrow">▼</div>
                             <div class="dropdown-options" id="status-options">
-                                <div class="dropdown-option" data-value="active">Active</div>
-                                <div class="dropdown-option" data-value="completed">Completed</div>
-                                <div class="dropdown-option" data-value="paused">Paused</div>
-                                <div class="dropdown-option" data-value="archived">Archived</div>
+                                <!-- Status options will be populated dynamically -->
                             </div>
                         </div>
                         <span class="filter-count" id="status-count">0</span>
@@ -1007,6 +1004,19 @@
                     option.dataset.value = tag;
                     option.textContent = tag;
                     tagOptions.appendChild(option);
+                });
+            }
+
+            // Populate status dropdown with available statuses
+            function populateStatusFilter() {
+                const statuses = projectManager.getAllStatuses();
+                statusOptions.innerHTML = '';
+                statuses.forEach(status => {
+                    const option = document.createElement('div');
+                    option.className = 'dropdown-option';
+                    option.dataset.value = status;
+                    option.textContent = status;
+                    statusOptions.appendChild(option);
                 });
             }
 
@@ -1198,6 +1208,7 @@
 
             // Initialize
             populateTagFilter();
+            populateStatusFilter();
             setupDropdownHandlers();
         }
 

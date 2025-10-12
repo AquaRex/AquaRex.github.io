@@ -143,7 +143,14 @@ class ListManager {
 
             // Status filter (support multiple statuses)
             if (this.currentFilters.statuses && this.currentFilters.statuses.length > 0) {
-                if (!this.currentFilters.statuses.includes(item.status)) {
+                // Handle both string status and object status, with case-insensitive comparison
+                const itemStatus = typeof item.status === 'object' 
+                    ? (item.status.text || item.status.label || 'Active')
+                    : item.status;
+                const statusMatches = this.currentFilters.statuses.some(filterStatus => 
+                    filterStatus.toLowerCase() === itemStatus.toLowerCase()
+                );
+                if (!statusMatches) {
                     return false;
                 }
             }
