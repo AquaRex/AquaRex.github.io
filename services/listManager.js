@@ -88,10 +88,21 @@ class ListManager {
 
     // Generate a unique ID from title
     generateId(title) {
-        return title.toLowerCase()
+        let baseId = title.toLowerCase()
             .replace(/[^a-z0-9\s]/g, '')
             .replace(/\s+/g, '-')
             .substring(0, 50);
+        
+        // Ensure uniqueness by checking existing items
+        let uniqueId = baseId;
+        let counter = 1;
+        
+        while (this.items.some(item => item.id === uniqueId)) {
+            uniqueId = `${baseId}-${counter}`;
+            counter++;
+        }
+        
+        return uniqueId;
     }
 
     // Use template engine to render a single item

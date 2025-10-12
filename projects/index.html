@@ -1260,29 +1260,13 @@
             
             // Add some sample projects with EditableCard frames
             projectManager.addProject({
-                title: 'AquaRex Website',
-                description: 'Personal portfolio website with Three.js ocean effects and interactive cards.',
-                tags: ['JavaScript', 'Three.js', 'CSS', 'HTML', 'Unreal Engine'],
-                startDate: '2024-10-01',
-                status: 'active',
-                icon: 'fas fa-globe',
-                link: 'https://github.com/AquaRex/AquaRex.github.io',
-                frameOptions: {
-                    enableRotation: false,
-                    showCornerElements: false,
-                    showGizmo: false,
-                    showSelectionHandles: false
-                }
-            });
-
-            projectManager.addProject({
-                title: 'Project Management Tool',
-                description: 'A web-based project management system with real-time collaboration.',
-                tags: ['React', 'Node.js', 'Socket.io', 'MongoDB'],
-                startDate: '2024-09-15',
-                status: 'completed',
+                title: 'Unity Asset: NoFolderInspection',
+                description: 'No Folder Inspection, prevents the Inspector from showing folders when they are selected by locking<br> the inspector before it is updated, unlocking again if you select anything other than a folder.',
+                tags: ['Engine Tools', 'Unity', 'C#'],
+                startDate: '2025-10-02',
+                status: 'Review',
                 icon: 'fas fa-tasks',
-                link: 'https://github.com/example/project-manager',
+                link: 'https://assetstore.unity.com/preview/305876/1135974',
                 frameOptions: {
                     enableRotation: false,
                     showCornerElements: false,
@@ -1292,11 +1276,28 @@
             });
 
             projectManager.addProject({
-                title: 'Data Visualization Dashboard',
-                description: 'Interactive dashboard for displaying complex datasets with charts and graphs.',
-                tags: ['D3.js', 'Python', 'Flask', 'PostgreSQL'],
+                title: 'TBD',
+                description: '-',
+                tags: ['Engine Tools', 'Unity', 'C#'],
+                startDate: '2025-03-12',
+                status: 'Development',
+                icon: 'fas fa-tasks',
+                link: 'javascript:alert("Coming soon!")',
+                frameOptions: {
+                    enableRotation: false,
+                    showCornerElements: false,
+                    showGizmo: false,
+                    showSelectionHandles: false
+                }
+            });
+
+            projectManager.addProject({
+                title: 'Game Prototype Alpha',
+                description: 'Just a sample project for the website',
+                tags: ['Unreal', 'Blueprint', 'Games'],
                 startDate: '2024-08-20',
-                status: 'paused',
+                status: 'Cancelled',
+                statusColor: '#FF6B35', // Custom orange-red
                 icon: 'fas fa-chart-line',
                 link: 'javascript:alert("Demo coming soon!")',
                 frameOptions: {
@@ -1306,6 +1307,51 @@
                     showSelectionHandles: false
                 }
             });
+
+            projectManager.addProject({
+                title: 'VR Simulator',
+                description: 'Just a sample project for the website',
+                tags: ['Unity', 'C#', 'VR'],
+                startDate: '2024-08-20',
+                status: 'Beta Testing', // Example Custom Status
+                statusColor: '#FFEB3B', // Setup Custom Color for Custom Status
+                icon: 'fas fa-chart-line',
+                link: 'javascript:alert("Demo coming soon!")',
+                frameOptions: {
+                    enableRotation: false,
+                    showCornerElements: false,
+                    showGizmo: false,
+                    showSelectionHandles: false
+                }
+            });
+
+            projectManager.addProject({
+                title: 'AI Assistant Bot',
+                description: 'Just a sample project for the website',
+                tags: ['Python', 'AI', 'Machine Learning'],
+                startDate: '2024-08-20',
+                status: 'Archived',
+                icon: 'fas fa-chart-line',
+                link: 'javascript:alert("Demo coming soon!")',
+                frameOptions: {
+                    enableRotation: false,
+                    showCornerElements: false,
+                    showGizmo: false,
+                    showSelectionHandles: false
+                }
+            });
+
+/*  Default Status Colors
+            'development': '#f39121ff',     // Orange  
+            'completed': '#48e055ff',       // Light Green
+            'published': '#00BCD4',       // Cyan / Blue
+            'paused': '#f39121ff',          // Orange
+            'review': '#e2e2e2ff',          // White
+            'archived': '#516488ff',        // Blue-Gray
+            'cancelled': '#F44336',       // Red
+            'testing': '#fdd629ff',         // Yellow
+            'abandoned': '#747474ff'           // Gray
+*/
 
             // Setup filter functionality
             setupProjectFilters(projectManager);

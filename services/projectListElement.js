@@ -76,29 +76,42 @@ class ProjectListElement {
         return tags.map(tag => `<span class="project-tag">${tag}</span>`).join('');
     }
 
-    // Generate status badge
-    generateStatusBadge(status) {
-        const statusConfig = {
-            active: {
-                class: 'status-active',
-                label: 'Active'
-            },
-            completed: {
-                class: 'status-completed',
-                label: 'Completed'
-            },
-            paused: {
-                class: 'status-paused',
-                label: 'Paused'
-            },
-            archived: {
-                class: 'status-archived',
-                label: 'Archived'
-            }
+    // Generate status badge with flexible text and optional color
+    generateStatusBadge(status, statusColor = null) {
+        if (!status) status = 'Active';
+        
+        // If status is an object with text and color properties
+        let statusText = status;
+        let color = statusColor;
+        
+        if (typeof status === 'object') {
+            statusText = status.text || status.label || 'Active';
+            color = status.color || statusColor;
+        }
+        
+        // Default colors for common status types (case-insensitive)
+        const defaultColors = {
+            'development': '#f39121',     // Orange  
+            'completed': '#48e055',       // Light Green
+            'published': '#00BCD4',       // Cyan / Blue
+            'paused': '#f39121',          // Orange
+            'review': '#e2e2e2',          // White
+            'archived': '#516488',        // Blue-Gray
+            'cancelled': '#F44336',       // Red
+            'testing': '#fdd629',         // Yellow
+            'abandoned': '#747474'        // Gray
         };
-
-        const config = statusConfig[status] || statusConfig.active;
-        return `<span class="status-badge ${config.class}">${config.label}</span>`;
+        
+        // Use provided color, or try to match default color, or use default blue
+        if (!color) {
+            const normalizedStatus = statusText.toLowerCase();
+            color = defaultColors[normalizedStatus] || '#f0d060'; // Default to site's gold color
+        }
+        
+        // Generate unique class name from status text for custom styling
+        const statusClass = `status-${statusText.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+        
+        return `<span class="status-badge ${statusClass}" style="background-color: ${color}20; border: 1px solid ${color}60; color: ${color};">${statusText}</span>`;
     }
 
     // Format date to "Jan 2024" style
@@ -140,7 +153,7 @@ class ProjectListElement {
         const headerImageContent = this.generateHeaderImageContent(project);
         const imageContent = this.generateImageContent(project);
         const tagsHtml = this.generateTags(project.tags);
-        const statusBadge = this.generateStatusBadge(project.status);
+        const statusBadge = this.generateStatusBadge(project.status, project.statusColor);
         const formattedDate = this.formatDate(project.startDate);
 
         // Replace template placeholders
@@ -289,10 +302,10 @@ class ProjectListElement {
                 .project-content-wrapper {
                     display: flex;
                     justify-content: space-between;
-                    align-items: center;
+                    align-items: flex-start;
                     gap: 1.5rem;
                     padding: 2rem;
-                    height: 160px;
+                    min-height: 160px;
                 }
 
                 .project-main {
@@ -400,30 +413,13 @@ class ProjectListElement {
                     white-space: nowrap;
                     min-width: 95px;
                     box-sizing: border-box;
+                    transition: all 0.3s ease;
+                    backdrop-filter: blur(5px);
                 }
 
-                .status-active {
-                    background: rgba(76, 175, 80, 0.2);
-                    color: #4CAF50;
-                    border: 1px solid rgba(76, 175, 80, 0.4);
-                }
-
-                .status-completed {
-                    background: rgba(33, 150, 243, 0.2);
-                    color: #2196F3;
-                    border: 1px solid rgba(33, 150, 243, 0.4);
-                }
-
-                .status-paused {
-                    background: rgba(255, 152, 0, 0.2);
-                    color: #FF9800;
-                    border: 1px solid rgba(255, 152, 0, 0.4);
-                }
-
-                .status-archived {
-                    background: rgba(158, 158, 158, 0.2);
-                    color: #9E9E9E;
-                    border: 1px solid rgba(158, 158, 158, 0.4);
+                .status-badge:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
                 }
             </style>
         `;
