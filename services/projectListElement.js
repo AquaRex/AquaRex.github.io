@@ -50,8 +50,10 @@ class ProjectListElement {
 
     // Generate header image content for the top of the card
     generateHeaderImageContent(project) {
-        if (project.headerImage && project.headerImage.trim() !== '') {
-            return `<img src="${project.headerImage}" alt="${project.title}">`;
+        // Check for headerImage first, then fallback to image for backward compatibility
+        const imageSource = project.headerImage || project.image;
+        if (imageSource && imageSource.trim() !== '') {
+            return `<img src="${imageSource}" alt="${project.title}">`;
         } else {
             // Default placeholder for header image area
             return `<div class="project-header-placeholder">📸</div>`;
@@ -265,15 +267,11 @@ class ProjectListElement {
                     padding: 0;
                     min-height: 600px;
                     border-radius: 12px;
-                    transition: all 0.3s ease;
                     cursor: pointer;
                     overflow: visible; /* Allow corner elements and gizmo to show */
                 }
 
-                .project-row:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(240, 208, 96, 0.15);
-                }
+                /* Hover effects are now handled by EditableCard frame */
 
                 .project-header-image {
                     width: 100%;

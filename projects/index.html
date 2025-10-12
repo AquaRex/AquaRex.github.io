@@ -449,7 +449,6 @@
         }
 
 
-
         /* Visual Overlays - EXACT SAME as home page */
         .vignette {
             position: fixed;
@@ -1148,6 +1147,11 @@
                         return;
                     }
                     
+                    // Don't interfere with EditableCard interactions (project cards)
+                    if (e.target.closest('.project-row')) {
+                        return;
+                    }
+                    
                     tagDropdown.classList.remove('open');
                     statusDropdown.classList.remove('open');
                 }
@@ -1278,11 +1282,13 @@
                 status: 'Review',
                 icon: 'fas fa-tasks',
                 link: 'https://assetstore.unity.com/preview/305876/1135974',
+                image: '../assets/images/projects/unityasset_nofolderinspection.webp', // Local path example
                 frameOptions: {
                     enableRotation: false,
                     showCornerElements: false,
                     showGizmo: false,
-                    showSelectionHandles: false
+                    showSelectionHandles: false,
+                    enableHoverGlow: true
                 }
             });
 
@@ -1294,11 +1300,13 @@
                 status: 'Development',
                 icon: 'fas fa-tasks',
                 link: 'javascript:alert("Coming soon!")',
+                image: 'https://via.placeholder.com/400x300/2d4f48/f0d060?text=Coming+Soon', // URL example
                 frameOptions: {
                     enableRotation: false,
                     showCornerElements: false,
                     showGizmo: false,
-                    showSelectionHandles: false
+                    showSelectionHandles: false,
+                    enableHoverGlow: true
                 }
             });
 
@@ -1311,11 +1319,13 @@
                 statusColor: '#FF6B35', // Custom orange-red
                 icon: 'fas fa-chart-line',
                 link: 'javascript:alert("Demo coming soon!")',
+                image: '../assets/images/projects/game-prototype.jpg', // Local path example
                 frameOptions: {
                     enableRotation: false,
                     showCornerElements: false,
                     showGizmo: false,
-                    showSelectionHandles: false
+                    showSelectionHandles: false,
+                    enableHoverGlow: true
                 }
             });
 
@@ -1328,11 +1338,13 @@
                 statusColor: '#FFEB3B', // Setup Custom Color for Custom Status
                 icon: 'fas fa-chart-line',
                 link: 'javascript:alert("Demo coming soon!")',
+                image: 'https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=400&h=300&fit=crop', // External URL example
                 frameOptions: {
                     enableRotation: false,
                     showCornerElements: false,
                     showGizmo: false,
-                    showSelectionHandles: false
+                    showSelectionHandles: false,
+                    enableHoverGlow: true
                 }
             });
 
@@ -1344,11 +1356,13 @@
                 status: 'Archived',
                 icon: 'fas fa-chart-line',
                 link: 'javascript:alert("Demo coming soon!")',
+                image: '/assets/images/projects/ai-bot.webp', // Absolute local path example
                 frameOptions: {
                     enableRotation: false,
                     showCornerElements: false,
                     showGizmo: false,
-                    showSelectionHandles: false
+                    showSelectionHandles: false,
+                    enableHoverGlow: true
                 }
             });
 

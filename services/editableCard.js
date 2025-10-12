@@ -19,6 +19,7 @@ class EditableCard {
             showGizmoOnHover: options.showGizmoOnHover !== false,
             showCornerElements: options.showCornerElements !== false, // Show dotted corner brackets
             showGizmo: options.showGizmo !== false, // Show 3D gizmo
+            enableHoverGlow: options.enableHoverGlow || false, // Enable yellow glow on hover
             onRotationChange: options.onRotationChange || null
         };
 
@@ -31,6 +32,10 @@ class EditableCard {
         // DOM elements
         this.cornerElements = [];
         this.gizmo = null;
+        
+        // Store original styles for hover effects
+        this.originalBoxShadow = null;
+        this.originalBorder = null;
 
         this.init();
     }
@@ -71,7 +76,15 @@ class EditableCard {
         target.style.setProperty('background', 'rgba(255, 255, 255, 0.05)', 'important');
         target.style.setProperty('backdrop-filter', 'blur(15px)', 'important');
         target.style.setProperty('-webkit-backdrop-filter', 'blur(15px)', 'important'); // Safari support
-        target.style.setProperty('box-shadow', '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(240, 208, 96, 0.1)', 'important');
+        // Only add transition for hover glow elements, not rotation
+        if (this.options.enableHoverGlow) {
+            target.style.setProperty('transition', 'box-shadow 0.3s ease, filter 0.3s ease', 'important');
+        }
+        const originalBoxShadow = '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(240, 208, 96, 0.1)';
+        target.style.setProperty('box-shadow', originalBoxShadow, 'important');
+        
+        // Store original styles for hover effects
+        this.originalBoxShadow = originalBoxShadow;
         
         console.log('EditableCard: Applied styles to element:', target);
         console.log('EditableCard: backdrop-filter should be:', target.style.backdropFilter);
@@ -341,15 +354,33 @@ class EditableCard {
             this.mouseX = (clientX / window.innerWidth) * 2 - 1;
             this.mouseY = -(clientY / window.innerHeight) * 2 + 1;
 
-            // Apply rotation if enabled and on desktop
-            if (this.options.enableRotation && window.innerWidth > 768 && this.allowRotation) {
+            // Apply rotation if enabled and rotation is allowed
+            if (this.options.enableRotation && this.allowRotation) {
                 const rect = target.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
                 const centerY = rect.top + rect.height / 2;
                 const deltaX = clientX - centerX;
                 const deltaY = clientY - centerY;
-                const rotateX = (deltaY / window.innerHeight) * this.options.rotationIntensity;
-                const rotateY = (deltaX / window.innerWidth) * this.options.rotationIntensity;
+                
+                // Calculate aspect ratio compensation for consistent rotation feel
+                const aspectRatio = window.innerWidth / window.innerHeight;
+                
+                // More robust aspect ratio compensation that works better on extreme aspect ratios
+                const baseIntensity = this.options.rotationIntensity;
+                let rotationIntensityX, rotationIntensityY;
+                
+                if (aspectRatio > 1) {
+                    // Landscape: reduce horizontal sensitivity, increase vertical
+                    rotationIntensityX = baseIntensity * Math.min(1 + (aspectRatio - 1) * 0.5, 1.5);
+                    rotationIntensityY = baseIntensity;
+                } else {
+                    // Portrait: reduce vertical sensitivity, increase horizontal  
+                    rotationIntensityX = baseIntensity;
+                    rotationIntensityY = baseIntensity * Math.min(1 + (1/aspectRatio - 1) * 0.5, 1.5);
+                }
+                
+                const rotateX = (deltaY / window.innerHeight) * rotationIntensityY;
+                const rotateY = (deltaX / window.innerWidth) * rotationIntensityX;
 
                 // Apply transform
                 target.style.transform = 
@@ -378,6 +409,21 @@ class EditableCard {
             if (this.options.showGizmoOnHover && this.gizmoCanvas) {
                 this.gizmoCanvas.style.opacity = '1';
             }
+            
+            // Add hover glow effect if enabled
+            if (this.options.enableHoverGlow) {
+                const target = this.options.targetElement;
+                const glowBoxShadow = `
+                    0 12px 40px rgba(0, 0, 0, 0.4), 
+                    0 0 25px rgba(240, 208, 96, 0.4),
+                    0 0 50px rgba(240, 208, 96, 0.2),
+                    0 0 100px rgba(240, 208, 96, 0.1)
+                `;
+                target.style.setProperty('box-shadow', glowBoxShadow, 'important');
+                // Only add border glow, don't change existing border
+                target.style.setProperty('filter', 'drop-shadow(0 0 10px rgba(240, 208, 96, 0.3))', 'important');
+                target.style.setProperty('transform', target.style.transform + ' translateY(-2px)', 'important');
+            }
         };
 
         // Mouse leave handler - reset rotation only
@@ -392,7 +438,17 @@ class EditableCard {
                 this.gizmoCanvas.style.opacity = '0';
             }
             
-            if (this.options.enableRotation && window.innerWidth > 768) {
+            // Remove hover glow effect if enabled
+            if (this.options.enableHoverGlow) {
+                const target = this.options.targetElement;
+                target.style.setProperty('box-shadow', this.originalBoxShadow, 'important');
+                target.style.removeProperty('filter');
+                // Remove the translateY offset by resetting the transform
+                const currentTransform = target.style.transform.replace(' translateY(-2px)', '');
+                target.style.setProperty('transform', currentTransform, 'important');
+            }
+            
+            if (this.options.enableRotation) {
                 target.style.transform = 
                     'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
 
@@ -409,9 +465,10 @@ class EditableCard {
 
         // Add global event listeners for mouse tracking
         document.addEventListener('mousemove', this.handleMove);
-        document.addEventListener('touchmove', this.handleMove);
+        document.addEventListener('touchmove', this.handleMove, { passive: false });
         target.addEventListener('mouseenter', this.handleEnter);
         target.addEventListener('mouseleave', this.handleLeave);
+        target.addEventListener('touchstart', this.handleEnter);
         document.addEventListener('touchend', this.handleLeave);
     }
 
@@ -454,6 +511,7 @@ class EditableCard {
             document.removeEventListener('touchmove', this.handleMove);
             target.removeEventListener('mouseenter', this.handleEnter);
             target.removeEventListener('mouseleave', this.handleLeave);
+            target.removeEventListener('touchstart', this.handleEnter);
             document.removeEventListener('touchend', this.handleLeave);
 
             // Remove corner elements
