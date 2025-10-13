@@ -1,12 +1,13 @@
 /* GLOBAL SELECTION COLOR - AQUAREX WEBSITE */
-/* Apply this to every fucking page on the site */
+/* Apply this to every page on the site */
+/* Using more saturated yellow to resist Samsung dark mode color filtering */
 
 ::selection { 
-    background: #f0d060 !important; 
+    background: #ffd700 !important; 
     color: #000 !important; 
 }
 
 ::-moz-selection { 
-    background: #f0d060 !important; 
+    background: #ffd700 !important; 
     color: #000 !important; 
 }
