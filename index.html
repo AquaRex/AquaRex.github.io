@@ -18,6 +18,7 @@
     <script src="services/editableCard.js"></script>
     <script src="services/rotatableCard.js"></script>
     <script src="services/header.js"></script>
+    <script src="services/colorConfigPanel.js"></script>
     <style>
         /* Base Reset */
         * {
@@ -377,6 +378,7 @@
             
             // Initialize background systems
             const oceanBackground = new OceanBackground(scene, camera);
+            window.oceanBackground = oceanBackground; // Make globally accessible for color config
             const submarine = new Submarine(scene, camera);
             const kelp = new Kelp(scene);
             

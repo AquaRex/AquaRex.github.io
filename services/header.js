@@ -39,7 +39,7 @@ class Header {
         const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
         style.textContent = `
             .logo-text {
-                fill: #d0e8dc;
+                fill: var(--text-light);
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 font-weight: 900;
                 font-size: 28px;
@@ -93,10 +93,10 @@ class Header {
             .company-logo:hover {
                 transform: scale(1.05);
                 opacity: 1;
-                filter: drop-shadow(0 0 15px rgba(240, 208, 96, 0.3));
+                filter: drop-shadow(0 0 15px var(--primary-glow));
             }
             .company-logo:hover .logo-text {
-                fill: #f0d060;
+                fill: var(--primary-color);
             }
             .company-logo svg {
                 width: 100%;

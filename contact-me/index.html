@@ -17,6 +17,7 @@
     <script src="../services/editableCard.js"></script>
     <script src="../services/rotatableCard.js"></script>
     <script src="../services/header.js"></script>
+    <script src="../services/colorConfigPanel.js"></script>
     <!-- EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
@@ -604,6 +605,7 @@
             // Keep full quality on all devices - the website is meant to be impressive!
             
             const oceanBackground = new OceanBackground(scene, camera, oceanOptions);
+            window.oceanBackground = oceanBackground; // Make globally accessible for color config
             const submarine = new Submarine(scene, camera);
             const kelp = new Kelp(scene);
             

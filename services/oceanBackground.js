@@ -64,8 +64,10 @@ class OceanBackground {
     }
 
     setupFog() {
-        this.scene.fog = new THREE.FogExp2(this.originalFogColor, this.originalFogDensity);
-        this.scene.background = new THREE.Color(this.originalFogColor);
+        // Read surface fog color dynamically from CSS
+        const surfaceFogColor = OceanBackground.getCSSColorAsHex('--ocean-fog-surface');
+        this.scene.fog = new THREE.FogExp2(surfaceFogColor, this.originalFogDensity);
+        this.scene.background = new THREE.Color(surfaceFogColor);
     }
 
     setupLighting() {
@@ -233,9 +235,13 @@ class OceanBackground {
     updateScrollDepth(scrollProgress) {
         this.scrollDepth = scrollProgress;
         
+        // Read CSS variables dynamically to support runtime color changes
+        const originalFogColor = OceanBackground.getCSSColorAsHex('--ocean-fog-surface');
+        const targetFogColor = OceanBackground.getCSSColorAsHex('--ocean-fog-deep');
+        
         // Interpolate fog color from original to target based on scroll
-        const originalColor = new THREE.Color(this.originalFogColor);
-        const targetColor = new THREE.Color(this.targetFogColor);
+        const originalColor = new THREE.Color(originalFogColor);
+        const targetColor = new THREE.Color(targetFogColor);
         const currentColor = originalColor.clone().lerp(targetColor, scrollProgress);
         
         // Update fog
@@ -404,6 +410,38 @@ class OceanBackground {
             if (Math.abs(positions3[i]) > 20) positions3[i] = positions3[i] * -1;
         }
         this.particleSystem3.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // Method to update colors dynamically when CSS variables change
+    updateColors() {
+        // Update lighting colors
+        if (this.ambientLight) {
+            this.ambientLight.color.setHex(OceanBackground.getCSSColorAsHex('--ocean-ambient-light'));
+        }
+        
+        if (this.directionalLight) {
+            this.directionalLight.color.setHex(OceanBackground.getCSSColorAsHex('--ocean-directional-light'));
+        }
+        
+        if (this.cursorPointLight) {
+            this.cursorPointLight.color.setHex(OceanBackground.getCSSColorAsHex('--ocean-cursor-light'));
+        }
+        
+        if (this.cursorAmbientLight) {
+            this.cursorAmbientLight.color.setHex(OceanBackground.getCSSColorAsHex('--ocean-cursor-ambient'));
+        }
+        
+        // Update particle colors
+        if (this.particleSystem2 && this.particleSystem2.material) {
+            this.particleSystem2.material.color.setHex(OceanBackground.getCSSColorAsHex('--ocean-particle-layer-2'));
+        }
+        
+        if (this.particleSystem3 && this.particleSystem3.material) {
+            this.particleSystem3.material.color.setHex(OceanBackground.getCSSColorAsHex('--ocean-particle-layer-3'));
+        }
+        
+        // Update fog colors (this will trigger on next scroll update anyway)
+        this.updateScrollDepth(this.scrollDepth);
     }
 
     dispose() {
