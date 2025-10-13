@@ -4,6 +4,28 @@
  */
 
 class OceanBackground {
+    // Helper function to get CSS variable color and convert to Three.js hex
+    static getCSSColorAsHex(cssVarName) {
+        const root = document.documentElement;
+        const cssColor = getComputedStyle(root).getPropertyValue(cssVarName).trim();
+        
+        // Convert CSS hex color to Three.js hex number
+        if (cssColor.startsWith('#')) {
+            return parseInt(cssColor.substring(1), 16);
+        }
+        
+        // Fallback for rgb() colors - basic conversion
+        const rgbMatch = cssColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+            const r = parseInt(rgbMatch[1]);
+            const g = parseInt(rgbMatch[2]);
+            const b = parseInt(rgbMatch[3]);
+            return (r << 16) | (g << 8) | b;
+        }
+        
+        // Fallback to a default ocean color if parsing fails
+        return 0x1f3d38;
+    }
     constructor(scene, camera, options = {}) {
         this.scene = scene;
         this.camera = camera;
@@ -21,10 +43,10 @@ class OceanBackground {
         this.sceneManager = options.sceneManager || null;
         this.initialCameraY = camera.position.y;
         
-        // Store original fog and lighting values
-        this.originalFogColor = 0x1f3d38;
+        // Store original fog and lighting values using CSS variables
+        this.originalFogColor = OceanBackground.getCSSColorAsHex('--ocean-fog-surface');
         this.originalFogDensity = 0.08;
-        this.targetFogColor = 0x050e0c; // Much darker for deep ocean (nearly black with slight green tint)
+        this.targetFogColor = OceanBackground.getCSSColorAsHex('--ocean-fog-deep');
         this.targetFogDensity = 0.20;   // Even denser fog for abyss effect
         
         this.init();
@@ -48,20 +70,20 @@ class OceanBackground {
 
     setupLighting() {
         // Subtle ambient light to illuminate dark areas with a hint of green
-        this.ambientLight = new THREE.AmbientLight(0x3a6855, 0.15);
+        this.ambientLight = new THREE.AmbientLight(OceanBackground.getCSSColorAsHex('--ocean-ambient-light'), 0.15);
         this.scene.add(this.ambientLight);
 
         // Directional light for subtle shadows/depth
-        this.directionalLight = new THREE.DirectionalLight(0x5a8870, 0.15);
+        this.directionalLight = new THREE.DirectionalLight(OceanBackground.getCSSColorAsHex('--ocean-directional-light'), 0.15);
         this.directionalLight.position.set(-5, 8, 3);
         this.scene.add(this.directionalLight);
 
-        // Mouse-following point light (gold/yellow color)
-        this.cursorPointLight = new THREE.PointLight(0xf0d060, 2.5, 30);
+        // Mouse-following point light (uses primary color)
+        this.cursorPointLight = new THREE.PointLight(OceanBackground.getCSSColorAsHex('--ocean-cursor-light'), 2.5, 30);
         this.cursorPointLight.position.set(0, 0, 5);
         this.scene.add(this.cursorPointLight);
 
-        this.cursorAmbientLight = new THREE.PointLight(0xe0c850, 1.2, 25);
+        this.cursorAmbientLight = new THREE.PointLight(OceanBackground.getCSSColorAsHex('--ocean-cursor-ambient'), 1.2, 25);
         this.cursorAmbientLight.position.set(0, 0, 4);
         this.scene.add(this.cursorAmbientLight);
     }
@@ -159,7 +181,7 @@ class OceanBackground {
 
         const particleMaterial2 = new THREE.PointsMaterial({
             size: 0.022,
-            color: 0xc5d5b0,
+            color: OceanBackground.getCSSColorAsHex('--ocean-particle-layer-2'),
             transparent: true,
             opacity: 0.22,
             sizeAttenuation: true,
@@ -189,7 +211,7 @@ class OceanBackground {
 
         const particleMaterial3 = new THREE.PointsMaterial({
             size: 0.018,
-            color: 0xb5d5c5,
+            color: OceanBackground.getCSSColorAsHex('--ocean-particle-layer-3'),
             transparent: true,
             opacity: 0.16,
             sizeAttenuation: true,

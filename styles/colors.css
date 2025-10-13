@@ -62,6 +62,17 @@
     --fog-1: color-mix(in srgb, var(--bg-top) 15%, transparent);
     --fog-2: color-mix(in srgb, var(--bg-middle) 12%, transparent);
     --fog-3: color-mix(in srgb, var(--bg-bottom) 10%, transparent);
+    
+    /* OCEAN BACKGROUND COLORS */
+    --ocean-fog-surface: #1f3d38;        /* Original fog color at surface */
+    --ocean-fog-deep: #050e0c;           /* Deep ocean fog color (abyss) */
+    --ocean-ambient-light: #3a6855;      /* Ambient lighting with green tint */
+    --ocean-directional-light: #5a8870;  /* Directional light color */
+    --ocean-cursor-light: var(--primary-color); /* Mouse cursor point light (matches primary) */
+    --ocean-cursor-ambient: color-mix(in srgb, var(--primary-color) 90%, #c0a040); /* Secondary cursor ambient light */
+    --ocean-particle-layer-1: #ffffff;   /* Foreground particles (white for lighting) */
+    --ocean-particle-layer-2: #c5d5b0;   /* Mid-ground particles (light green) */
+    --ocean-particle-layer-3: #b5d5c5;   /* Background particles (blue-green) */
 }
 
 /* SAMSUNG DARK MODE RESISTANCE */
