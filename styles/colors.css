@@ -1,0 +1,80 @@
+/* GLOBAL COLORS - AQUAREX WEBSITE */
+/* Simplified color system with essential colors only */
+
+:root {
+    /* Force color scheme to prevent system modifications */
+    color-scheme: dark only;
+    
+    /* ESSENTIAL COLORS */
+    --primary-color: #f0d060;            /* Main brand color */
+    --background-dark: #152d28;          /* Main dark background */
+    --text-white: #ffffff;               /* Primary white text */
+    --text-contrast: #000000;            /* Text on colored backgrounds */
+    --text-light: #d0e8dc;               /* Light text for labels/headers */
+    --text-secondary: color-mix(in srgb, #d0e8dc 80%, transparent);  /* Secondary text */
+    --text-placeholder: color-mix(in srgb, #b8cfc0 60%, transparent); /* Placeholder text */
+    --accent-error: #ff5d5b;             /* Error/warning color */
+    --accent-success: #2ecc71;           /* Success/confirmation color */
+    --accent-warning: #ff9800;           /* Warning/in-progress color */
+    
+    /* COMMON TRANSPARENCY LEVELS - using color-mix for future-proof transparency */
+    --primary-transparent-light: color-mix(in srgb, var(--primary-color) 12%, transparent);
+    --primary-transparent-medium: color-mix(in srgb, var(--primary-color) 18%, transparent);
+    --primary-transparent-heavy: color-mix(in srgb, var(--primary-color) 20%, transparent);
+    --primary-border-light: color-mix(in srgb, var(--primary-color) 30%, transparent);
+    --primary-border: color-mix(in srgb, var(--primary-color) 50%, transparent);
+    --primary-border-strong: color-mix(in srgb, var(--primary-color) 70%, transparent);
+    --primary-border-intense: color-mix(in srgb, var(--primary-color) 80%, transparent);
+    --primary-glow: color-mix(in srgb, var(--primary-color) 40%, transparent);
+    
+    /* COMMON SHADOW COLORS */
+    --shadow-light: rgba(0, 0, 0, 0.2);
+    --shadow-standard: rgba(0, 0, 0, 0.3);
+    --shadow-strong: rgba(0, 0, 0, 0.4);
+    --shadow-heavy: rgba(0, 0, 0, 0.4);
+    
+    /* SUCCESS COLORS */
+    --success-background: color-mix(in srgb, var(--accent-success) 10%, transparent);
+    --success-border: color-mix(in srgb, var(--accent-success) 60%, transparent);
+    
+    /* ERROR COLORS */
+    --error-background: color-mix(in srgb, var(--accent-error) 10%, transparent);
+    --error-border: color-mix(in srgb, var(--accent-error) 60%, transparent);
+    
+    /* WARNING COLORS */
+    --warning-background: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+    --warning-border: color-mix(in srgb, var(--accent-warning) 40%, transparent);
+    --warning-border-hover: color-mix(in srgb, var(--accent-warning) 60%, transparent);
+    
+    /* GLASS EFFECTS */
+    --glass-background: rgba(255, 255, 255, 0.05);
+    --glass-accent: rgba(255, 255, 255, 0.1);
+    --glass-shine: rgba(255, 255, 255, 0.2);
+    
+    /* BACKGROUND GRADIENT COLORS */
+    --bg-top: #2d4f48;                   /* Background gradient top */
+    --bg-middle: #1f3d38;                /* Background gradient middle */
+    --bg-bottom: #152d28;                /* Background gradient bottom */
+    
+    /* AMBIENT OVERLAY COLORS */
+    --vignette-dark: rgba(10, 20, 18, 0.3);
+    --vignette-darker: rgba(10, 20, 18, 0.6);
+    --fog-1: color-mix(in srgb, var(--bg-top) 15%, transparent);
+    --fog-2: color-mix(in srgb, var(--bg-middle) 12%, transparent);
+    --fog-3: color-mix(in srgb, var(--bg-bottom) 10%, transparent);
+}
+
+/* SAMSUNG DARK MODE RESISTANCE */
+/* Additional properties to resist Samsung's color filtering */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force hardware acceleration for color accuracy */
+.brand h1,
+.cta-button,
+.social-link {
+    transform: translateZ(0);
+    will-change: transform;
+}

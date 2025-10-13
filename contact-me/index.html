@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Me - Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../styles/colors.css">
     <link rel="stylesheet" href="../styles/selection.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="../services/GLTFLoader.js"></script>
@@ -32,7 +33,7 @@
             margin: 0;
             padding: 0;
             /* Original dark, deep forest green gradient */
-            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%);
+            background: linear-gradient(to bottom, var(--bg-top) 0%, var(--bg-middle) 50%, var(--bg-bottom) 100%);
             background-attachment: fixed;
         }
 
@@ -64,7 +65,12 @@
             width: 2400px;
             height: 2400px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(240, 208, 96, 0.015) 0%, rgba(240, 208, 96, 0.008) 35%, rgba(240, 208, 96, 0.004) 60%, rgba(240, 208, 96, 0.001) 80%, transparent 100%);
+            background: radial-gradient(circle, 
+                color-mix(in srgb, var(--primary-color) 1.5%, transparent) 0%, 
+                color-mix(in srgb, var(--primary-color) 0.8%, transparent) 35%, 
+                color-mix(in srgb, var(--primary-color) 0.4%, transparent) 60%, 
+                color-mix(in srgb, var(--primary-color) 0.1%, transparent) 80%, 
+                transparent 100%);
             pointer-events: none;
             z-index: 1;
             transform: translate(-50%, -50%);
@@ -83,7 +89,7 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            color: #fff;
+            color: var(--text-white);
             text-align: center;
             padding: 2rem;
             pointer-events: none;
@@ -108,11 +114,11 @@
             margin-bottom: .5rem;
             text-transform: uppercase;
             letter-spacing: 6px;
-            background: #f0d060;
-            color: #000000;
+            background: var(--primary-color);
+            color: var(--text-contrast);
             padding: 0.1rem 0.8rem;
             border-radius: 2px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px var(--shadow-standard);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -125,8 +131,8 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             opacity: 1;
-            color: rgba(208, 232, 220, 0.8);
-            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            color: var(--text-secondary);
+            text-shadow: 0 5px 15px var(--shadow-standard);
         }
 
         /* Contact Form Container */
@@ -138,18 +144,18 @@
         }
 
         .contact-form {
-            background: rgba(240, 208, 96, 0.1);
+            background: var(--primary-transparent-light);
             backdrop-filter: blur(15px);
-            border: 2px solid rgba(240, 208, 96, 0.6);
+            border: 2px solid var(--primary-border);
             border-radius: 12px;
             padding: 3rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 32px var(--shadow-standard);
             transition: all 0.3s ease;
         }
 
         .contact-form:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(240, 208, 96, 0.15);
+            box-shadow: 0 12px 40px var(--shadow-strong), 0 0 25px var(--primary-transparent-light);
         }
 
         .form-group {
@@ -161,7 +167,7 @@
             display: block;
             margin-bottom: 0.5rem;
             font-size: 1rem;
-            color: #d0e8dc;
+            color: var(--text-light);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -171,28 +177,28 @@
         .form-textarea {
             width: 100%;
             padding: 1rem;
-            background: rgba(240, 208, 96, 0.1);
+            background: var(--primary-transparent-light);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(240, 208, 96, 0.4);
+            border: 2px solid var(--primary-glow);
             border-radius: 8px;
-            color: #d0e8dc;
+            color: var(--text-light);
             font-size: 1rem;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 16px var(--shadow-light);
         }
 
         .form-input:focus,
         .form-textarea:focus {
             outline: none;
-            border-color: rgba(240, 208, 96, 0.8);
-            background: rgba(240, 208, 96, 0.15);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(240, 208, 96, 0.2);
+            border-color: var(--primary-border-intense);
+            background: var(--primary-transparent-light);
+            box-shadow: 0 8px 25px var(--shadow-standard), 0 0 20px var(--primary-transparent-heavy);
         }
 
         .form-input::placeholder,
         .form-textarea::placeholder {
-            color: rgba(184, 207, 192, 0.6);
+            color: var(--text-placeholder);
         }
 
         .form-textarea {
@@ -204,17 +210,17 @@
             width: 100%;
             padding: 1.2rem 2rem;
             font-size: 1.1rem;
-            background: rgba(240, 208, 96, 0.12);
+            background: var(--primary-transparent-light);
             backdrop-filter: blur(15px);
-            border: 2px solid rgba(240, 208, 96, 0.5);
+            border: 2px solid var(--primary-border);
             border-radius: 8px;
-            color: #f0d060;
+            color: var(--primary-color);
             cursor: pointer;
             transition: all 0.4s ease;
             font-weight: 600;
             letter-spacing: 1px;
             text-transform: uppercase;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 32px var(--shadow-standard);
             position: relative;
             overflow: hidden;
         }
@@ -226,7 +232,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            background: linear-gradient(90deg, transparent, var(--glass-shine), transparent);
             transition: left 0.6s ease;
         }
 
@@ -236,9 +242,9 @@
 
         .submit-button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 0 40px rgba(240, 208, 96, 0.4), 0 10px 40px rgba(0, 0, 0, 0.4);
-            border-color: rgba(240, 208, 96, 0.8);
-            background: rgba(240, 208, 96, 0.18);
+            box-shadow: 0 0 40px var(--primary-glow), 0 10px 40px var(--shadow-heavy);
+            border-color: var(--primary-border-strong);
+            background: var(--primary-transparent-light);
         }
 
         .submit-button:active {
@@ -253,9 +259,9 @@
 
         .submit-button:disabled:hover {
             transform: none;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border-color: rgba(240, 208, 96, 0.5);
-            background: rgba(240, 208, 96, 0.12);
+            box-shadow: 0 8px 32px var(--shadow-standard);
+            border-color: var(--primary-border);
+            background: var(--primary-transparent-light);
         }
 
         /* Status Messages */
@@ -277,17 +283,17 @@
         }
 
         .status-message.success {
-            background: rgba(46, 204, 113, 0.1);
+            background: var(--success-background);
             backdrop-filter: blur(15px);
-            border: 2px solid rgba(46, 204, 113, 0.6);
-            color: #2ecc71;
+            border: 2px solid var(--success-border);
+            color: var(--accent-success);
         }
 
         .status-message.error {
-            background: rgba(231, 76, 60, 0.1);
+            background: var(--error-background);
             backdrop-filter: blur(15px);
-            border: 2px solid rgba(231, 76, 60, 0.6);
-            color: #e74c3c;
+            border: 2px solid var(--error-border);
+            color: var(--accent-error);
         }
 
         /* Visual Overlays */
@@ -299,7 +305,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 2;
-            background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 20, 18, 0.3) 80%, rgba(10, 20, 18, 0.6) 100%);
+            background: radial-gradient(ellipse at center, transparent 30%, var(--vignette-dark) 80%, var(--vignette-darker) 100%);
         }
 
         .fog-overlay {
@@ -310,7 +316,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
-            background: radial-gradient(ellipse at 30% 40%, rgba(45, 79, 72, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(31, 61, 56, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(21, 45, 40, 0.1) 0%, transparent 50%);
+            background: radial-gradient(ellipse at 30% 40%, var(--fog-1) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, var(--fog-2) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, var(--fog-3) 0%, transparent 50%);
             opacity: .6;
         }
 

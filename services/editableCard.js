@@ -12,7 +12,7 @@ class EditableCard {
             enableRotation: options.enableRotation !== false,
             rotationIntensity: options.rotationIntensity || 12,
             fadeInDuration: options.fadeInDuration || 800,
-            cornerColor: options.cornerColor || '#f0d060',
+            cornerColor: options.cornerColor || 'var(--primary-color)',
             borderStyle: options.borderStyle || 'dotted',
             alwaysVisible: options.alwaysVisible || false,
             showSelectionHandles: options.showSelectionHandles || false,
@@ -71,16 +71,16 @@ class EditableCard {
         target.style.setProperty('position', 'relative', 'important');
         target.style.setProperty('z-index', '10', 'important');
         
-        target.style.setProperty('border', '2px solid rgba(240, 208, 96, 0.6)', 'important');
+        target.style.setProperty('border', '2px solid var(--primary-border)', 'important');
         target.style.setProperty('border-radius', '8px', 'important');
-        target.style.setProperty('background', 'rgba(255, 255, 255, 0.05)', 'important');
+        target.style.setProperty('background', 'var(--glass-background)', 'important');
         target.style.setProperty('backdrop-filter', 'blur(15px)', 'important');
         target.style.setProperty('-webkit-backdrop-filter', 'blur(15px)', 'important'); // Safari support
         // Only add transition for hover glow elements, not rotation
         if (this.options.enableHoverGlow) {
             target.style.setProperty('transition', 'box-shadow 0.3s ease, filter 0.3s ease', 'important');
         }
-        const originalBoxShadow = '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(240, 208, 96, 0.1)';
+        const originalBoxShadow = '0 8px 32px var(--shadow-strong), 0 0 20px var(--primary-transparent-light)';
         target.style.setProperty('box-shadow', originalBoxShadow, 'important');
         
         // Store original styles for hover effects
@@ -123,7 +123,7 @@ class EditableCard {
                     position: absolute !important;
                     width: 20px !important;
                     height: 20px !important;
-                    border: 3px solid #f0d060 !important;
+                    border: 3px solid var(--primary-color) !important;
                     z-index: 999 !important;
                 }
                 .editable-card::before {
@@ -159,7 +159,7 @@ class EditableCard {
             corner.style.position = 'absolute';
             corner.style.width = '15px';
             corner.style.height = '15px';
-            corner.style.border = '2px dotted #f0d060';
+            corner.style.border = '2px dotted var(--primary-color)';
             corner.style.zIndex = '9999'; // Make sure corners are visible
 
             // Position corners - EXACT same as main page
@@ -222,7 +222,7 @@ class EditableCard {
             handle.style.position = 'absolute';
             handle.style.width = '12px';
             handle.style.height = '12px';
-            handle.style.backgroundColor = '#f0d060';
+            handle.style.backgroundColor = 'var(--primary-color)';
             handle.style.border = '2px solid #000';
             handle.style.borderRadius = '2px';
             handle.style.cursor = pos.cursor;
@@ -415,13 +415,13 @@ class EditableCard {
                 const target = this.options.targetElement;
                 const glowBoxShadow = `
                     0 12px 40px rgba(0, 0, 0, 0.4), 
-                    0 0 25px rgba(240, 208, 96, 0.4),
-                    0 0 50px rgba(240, 208, 96, 0.2),
-                    0 0 100px rgba(240, 208, 96, 0.1)
+                    0 0 25px var(--primary-glow),
+                    0 0 50px var(--primary-transparent-heavy),
+                    0 0 100px var(--primary-transparent-light)
                 `;
                 target.style.setProperty('box-shadow', glowBoxShadow, 'important');
                 // Only add border glow, don't change existing border
-                target.style.setProperty('filter', 'drop-shadow(0 0 10px rgba(240, 208, 96, 0.3))', 'important');
+                target.style.setProperty('filter', 'drop-shadow(0 0 10px var(--primary-glow))', 'important');
                 target.style.setProperty('transform', target.style.transform + ' translateY(-2px)', 'important');
             }
         };

@@ -276,7 +276,7 @@ class ProjectListElement {
                 .project-header-image {
                     width: 100%;
                     height: 440px;
-                    background: linear-gradient(135deg, rgba(240, 208, 96, 0.1) 0%, rgba(240, 208, 96, 0.05) 100%);
+                    background: linear-gradient(135deg, var(--primary-transparent-light) 0%, var(--primary-transparent-medium) 100%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -293,7 +293,7 @@ class ProjectListElement {
 
                 .project-header-placeholder {
                     font-size: 3rem;
-                    color: rgba(240, 208, 96, 0.6);
+                    color: var(--primary-glow);
                     text-align: center;
                 }
 
@@ -315,7 +315,7 @@ class ProjectListElement {
                     font-size: 1.6rem;
                     font-weight: 600;
                     margin-bottom: 0.5rem;
-                    color: #f0d060;
+                    color: var(--primary-color);
                 }
 
                 .project-description {
@@ -333,19 +333,19 @@ class ProjectListElement {
                 }
 
                 .project-tag {
-                    background: rgba(240, 208, 96, 0.15);
-                    color: #f0d060;
+                    background: var(--primary-transparent-light);
+                    color: var(--primary-color);
                     padding: 0.4rem 0.8rem;
                     border-radius: 16px;
                     font-size: 0.8rem;
-                    border: 2px solid rgba(240, 208, 96, 0.6);
+                    border: 2px solid var(--primary-glow);
                     font-weight: 500;
                     transition: all 0.2s ease;
                 }
 
                 .project-tag:hover {
-                    background: rgba(240, 208, 96, 0.25);
-                    border-color: rgba(240, 208, 96, 0.8);
+                    background: var(--primary-transparent-medium);
+                    border-color: var(--primary-border-strong);
                 }
 
                 .project-meta {
@@ -417,7 +417,7 @@ class ProjectListElement {
 
                 .status-badge:hover {
                     transform: translateY(-1px);
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    box-shadow: 0 4px 8px var(--shadow-light);
                 }
             </style>
         `;

@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="dark">
     <title>Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/colors.css">
     <link rel="stylesheet" href="styles/selection.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="services/GLTFLoader.js"></script>
@@ -25,25 +26,14 @@
             box-sizing: border-box
         }
 
-        /* Force color scheme to prevent system modifications */
-        :root {
-            color-scheme: dark only;
-            /* Define more saturated yellow colors that resist Samsung's color filtering */
-            --primary-yellow: #ffd700;
-            --primary-yellow-bright: #ffed4e;
-            --primary-yellow-transparent: rgba(255, 215, 0, 0.12);
-            --primary-yellow-border: rgba(255, 215, 0, 0.5);
-            --primary-yellow-hover: rgba(255, 215, 0, 0.18);
-        }
-
         /* Body and Background */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             height: 100vh;
             width: 100vw;
-            /* Original dark, deep forest green gradient */
-            background: linear-gradient(to bottom, #2d4f48 0%, #1f3d38 50%, #152d28 100%)
+            /* Dark, deep forest green gradient using simplified variables */
+            background: linear-gradient(to bottom, var(--bg-top) 0%, var(--bg-middle) 50%, var(--bg-bottom) 100%)
         }
         /* 3D Canvas Layer */
         #canvas3d {
@@ -71,8 +61,13 @@
             width: 2400px;
             height: 2400px;
             border-radius: 50%;
-            /* Soft yellow/gold radial gradient - using more saturated yellow */
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.015) 0%, rgba(255, 215, 0, 0.008) 35%, rgba(255, 215, 0, 0.004) 60%, rgba(255, 215, 0, 0.001) 80%, transparent 100%);
+            /* Soft radial gradient using CSS variables */
+            background: radial-gradient(circle, 
+                color-mix(in srgb, var(--primary-color) 1.5%, transparent) 0%, 
+                color-mix(in srgb, var(--primary-color) 0.8%, transparent) 35%, 
+                color-mix(in srgb, var(--primary-color) 0.4%, transparent) 60%, 
+                color-mix(in srgb, var(--primary-color) 0.1%, transparent) 80%, 
+                transparent 100%);
             pointer-events: none;
             z-index: 1;
             transform: translate(-50%, -50%);
@@ -90,7 +85,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #fff;
+            color: var(--text-white);
             text-align: center;
             padding: 2rem;
             pointer-events: none;
@@ -113,16 +108,13 @@
             margin-bottom: .5rem;
             text-transform: uppercase;
             letter-spacing: 8px;
-            /* Yellow selection highlight effect - using more saturated yellow */
-            background: var(--primary-yellow);
-            color: #000000;
+            /* Primary color highlight effect using CSS variables */
+            background: var(--primary-color);
+            color: var(--text-contrast);
             padding: 0.1rem 0.8rem;
             border-radius: 2px;
             /* Subtle shadow for depth */
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            /* Force color rendering on Samsung devices */
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            box-shadow: 0 2px 8px var(--shadow-standard);
         }
         .brand h2 {
             font-size: 1.8rem;
@@ -130,9 +122,9 @@
             letter-spacing: 4px;
             text-transform: uppercase;
             opacity: 1;
-            /* Subtly lighter green/white */
-            color: rgba(208, 232, 220, 0.8);
-            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3)
+            /* Subtly lighter green/white using CSS variables */
+            color: var(--text-secondary);
+            text-shadow: 0 5px 15px var(--shadow-standard)
         }
         /* Tagline/Description */
         .tagline {
@@ -142,13 +134,13 @@
             max-width: 600px;
             line-height: 1.6;
             animation: fadeInUp 1s ease 0.3s backwards;
-            /* Muted green/white */
-            color: rgba(184, 207, 192, 0.75);
+            /* Muted green/white using simplified colors */
+            color: var(--text-placeholder);
         }
         /* Custom Squiggly Underline Style */
         .squiggly-error {
-            /* Creates the squiggly line */
-            text-decoration: underline wavy #ff5d5b;
+            /* Creates the squiggly line using CSS variables */
+            text-decoration: underline wavy var(--accent-error);
             /* Moves the line slightly down to avoid touching the text */
             text-underline-offset: 4px;
         }
@@ -156,13 +148,13 @@
         .cta-button {
             padding: 1.2rem 3rem;
             font-size: 1rem;
-            /* Semi-transparent background with blur - using CSS variables */
-            background: var(--primary-yellow-transparent);
+            /* Semi-transparent background with blur using CSS variables */
+            background: var(--primary-transparent-light);
             backdrop-filter: blur(15px);
-            /* Gold border and text color */
-            border: 2px solid var(--primary-yellow-border);
+            /* Primary border and text color */
+            border: 2px solid var(--primary-border);
             border-radius: 50px;
-            color: var(--primary-yellow);
+            color: var(--primary-color);
             cursor: pointer;
             transition: all 0.4s ease;
             text-decoration: none;
@@ -173,7 +165,7 @@
             overflow: hidden;
             font-weight: 600;
             letter-spacing: 1px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)
+            box-shadow: 0 8px 32px var(--shadow-standard), inset 0 1px 0 var(--glass-accent)
         }
         .cta-button::before {
             content: '';
@@ -182,7 +174,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            background: linear-gradient(90deg, transparent, var(--glass-shine), transparent);
             transition: left 0.6s ease
         }
         .cta-button:hover::before {
@@ -190,10 +182,10 @@
         }
         .cta-button:hover {
             transform: translateY(-3px);
-            /* Stronger gold glow on hover */
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4), 0 10px 40px rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 215, 0, 0.8);
-            background: var(--primary-yellow-hover)
+            /* Stronger glow on hover using CSS variables */
+            box-shadow: 0 0 40px var(--primary-glow), 0 10px 40px var(--shadow-strong);
+            border-color: var(--primary-border-intense);
+            background: var(--primary-transparent-medium)
         }
         /* Company Logo styles will be handled by Header class */
         /* Social Links */
@@ -215,21 +207,21 @@
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            /* Semi-transparent background with blur */
-            background: rgba(255, 255, 255, 0.05);
+            /* Semi-transparent background with blur using CSS variables */
+            background: var(--glass-background);
             backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
             /* Link color */
-            color: #d0e8dc;
+            color: var(--text-light);
             text-decoration: none;
-            /* Gold border */
-            border: 2px solid var(--primary-yellow-border);
+            /* Primary border */
+            border: 2px solid var(--primary-border-light);
             transition: all 0.4s ease;
             position: relative;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08)
+            box-shadow: 0 4px 16px var(--shadow-light), inset 0 1px 0 var(--glass-accent)
         }
         .social-link::before {
             content: '';
@@ -238,8 +230,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* Gold hover effect */
-            background: rgba(255, 215, 0, 0.2);
+            /* Primary hover effect using CSS variables */
+            background: var(--primary-transparent-heavy);
             border-radius: 50%;
             opacity: 0;
             transform: scale(0.8);
@@ -251,10 +243,10 @@
         }
         .social-link:hover {
             transform: translateY(-8px) scale(1.05);
-            /* Stronger gold glow on hover */
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 215, 0, 0.7);
-            color: var(--primary-yellow)
+            /* Stronger glow on hover using CSS variables */
+            box-shadow: 0 0 30px var(--primary-glow), 0 8px 24px var(--shadow-standard);
+            border-color: var(--primary-border-strong);
+            color: var(--primary-color)
         }
         /* Visual Overlays */
         .vignette {
@@ -265,8 +257,8 @@
             height: 100%;
             pointer-events: none;
             z-index: 2;
-            /* Darken edges for focus */
-            background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 20, 18, 0.3) 80%, rgba(10, 20, 18, 0.6) 100%)
+            /* Darken edges for focus using CSS variables */
+            background: radial-gradient(ellipse at center, transparent 30%, var(--vignette-dark) 80%, var(--vignette-darker) 100%)
         }
         .fog-overlay {
             position: fixed;
@@ -276,8 +268,8 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
-            /* Subtle layered gradient fog effect */
-            background: radial-gradient(ellipse at 30% 40%, rgba(45, 79, 72, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(31, 61, 56, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(21, 45, 40, 0.1) 0%, transparent 50%);
+            /* Subtle layered gradient fog effect using simplified colors */
+            background: radial-gradient(ellipse at 30% 40%, var(--fog-1) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, var(--fog-2) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, var(--fog-3) 0%, transparent 50%);
             opacity: .6
         }
         /* Animations */

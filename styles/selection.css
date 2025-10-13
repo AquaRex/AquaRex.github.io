@@ -3,11 +3,11 @@
 /* Using more saturated yellow to resist Samsung dark mode color filtering */
 
 ::selection { 
-    background: #ffd700 !important; 
-    color: #000 !important; 
+    background: var(--primary-color) !important; 
+    color: var(--text-contrast) !important; 
 }
 
 ::-moz-selection { 
-    background: #ffd700 !important; 
-    color: #000 !important; 
+    background: var(--primary-color) !important; 
+    color: var(--text-contrast) !important; 
 }
