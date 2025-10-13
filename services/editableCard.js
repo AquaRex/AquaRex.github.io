@@ -336,7 +336,7 @@ class EditableCard {
         ctx.strokeStyle = '#0080ff';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
+        ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
     }

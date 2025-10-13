@@ -71,8 +71,9 @@
     --ocean-cursor-light: var(--primary-color); /* Mouse cursor point light (matches primary) */
     --ocean-cursor-ambient: color-mix(in srgb, var(--primary-color) 90%, #c0a040); /* Secondary cursor ambient light */
     --ocean-particle-layer-1: #ffffff;   /* Foreground particles (white for lighting) */
-    --ocean-particle-layer-2: #c5d5b0;   /* Mid-ground particles (light green) */
-    --ocean-particle-layer-3: #b5d5c5;   /* Background particles (blue-green) */
+    --ocean-particle-layer-2: #c5d5b0;   /* Mid-ground particles (main particle color) */
+    --ocean-particle-layer-3: var(--ocean-particle-layer-2); /* Background particles (same as main) */
+    --ocean-directional-light: var(--ocean-ambient-light); /* Directional light (same as ambient) */
 }
 
 /* SAMSUNG DARK MODE RESISTANCE */

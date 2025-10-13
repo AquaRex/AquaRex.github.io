@@ -282,9 +282,11 @@ class ColorConfigPanel {
             <h2>Live Color Editor</h2>
             
             <div class="color-section">
-                <h3>Primary Colors</h3>
+                <h3>Colors</h3>
                 ${this.createColorInput('--primary-color', 'Primary Color')}
-                ${this.createColorInput('--background-dark', 'Background Dark')}
+                ${this.createColorInput('--accent-error', 'Error Color')}
+                ${this.createColorInput('--accent-success', 'Success Color')}
+                ${this.createColorInput('--accent-warning', 'Warning Color')}
             </div>
 
             <div class="color-section">
@@ -295,27 +297,23 @@ class ColorConfigPanel {
             </div>
 
             <div class="color-section">
-                <h3>Accent Colors</h3>
-                ${this.createColorInput('--accent-error', 'Error/Warning')}
-                ${this.createColorInput('--accent-success', 'Success')}
-                ${this.createColorInput('--accent-warning', 'Warning')}
-            </div>
-
-            <div class="color-section">
-                <h3>Background Gradient</h3>
+                <h3>Background</h3>
+                ${this.createColorInput('--background-dark', 'Background Dark')}
                 ${this.createColorInput('--bg-top', 'Gradient Top')}
                 ${this.createColorInput('--bg-middle', 'Gradient Middle')}
                 ${this.createColorInput('--bg-bottom', 'Gradient Bottom')}
+                ${this.createColorInput('--ocean-fog-surface', 'Ocean Surface')}
+                ${this.createColorInput('--ocean-fog-deep', 'Ocean Deep')}
             </div>
 
             <div class="color-section">
-                <h3>Ocean Colors</h3>
-                ${this.createColorInput('--ocean-fog-surface', 'Surface Fog')}
-                ${this.createColorInput('--ocean-fog-deep', 'Deep Ocean')}
-                ${this.createColorInput('--ocean-ambient-light', 'Ambient Light')}
-                ${this.createColorInput('--ocean-directional-light', 'Directional Light')}
-                ${this.createColorInput('--ocean-particle-layer-2', 'Particles Mid')}
-                ${this.createColorInput('--ocean-particle-layer-3', 'Particles Far')}
+                <h3>Particles</h3>
+                ${this.createColorInput('--ocean-particle-layer-2', 'Particle Color')}
+            </div>
+
+            <div class="color-section">
+                <h3>Lighting</h3>
+                ${this.createColorInput('--ocean-ambient-light', 'Light Color')}
             </div>
 
             <div class="panel-controls">
