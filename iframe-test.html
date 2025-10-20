@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Iframe Test</title>
+</head>
+<body>
+    <h1>Testing iframe embedding</h1>
+    <p>Testing if tinyvoters.app allows iframe embedding:</p>
+    
+    <div style="border: 2px solid red; padding: 10px; margin: 10px 0;">
+        <h3>HTTP Version:</h3>
+        <iframe src="http://tinyvoters.app" width="400" height="600" style="border: 1px solid black;"></iframe>
+    </div>
+    
+    <div style="border: 2px solid blue; padding: 10px; margin: 10px 0;">
+        <h3>HTTPS Version:</h3>
+        <iframe src="https://tinyvoters.app" width="400" height="600" style="border: 1px solid black;"></iframe>
+    </div>
+    
+    <script>
+        setTimeout(() => {
+            console.log('Checking iframe content after 5 seconds...');
+        }, 5000);
+    </script>
+</body>
+</html>

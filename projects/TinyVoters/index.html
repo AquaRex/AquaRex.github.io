@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiny Voters - Hetland</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../styles/colors.css">
+    <link rel="stylesheet" href="../../styles/selection.css">
+    <link rel="stylesheet" href="../../services/websitePreview.css">
+    <link rel="stylesheet" href="../../services/projectPageTemplate.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../../services/GLTFLoader.js"></script>
+    <script src="../../services/sceneManager.js"></script>
+    <script src="../../services/cameraMovement.js"></script>
+    <script src="../../services/oceanBackground.js"></script>
+    <script src="../../services/submarine.js"></script>
+    <script src="../../services/kelp.js"></script>
+    <script src="../../services/header.js"></script>
+    <script src="../../services/colorConfigPanel.js"></script>
+    <script src="../../services/websitePreview.js"></script>
+    <script src="../../services/projectPageTemplate.js"></script>
+</head>
+<body>
+    <!-- 3D Background Elements -->
+    <canvas id="canvas3d"></canvas>
+    <div class="fog-overlay"></div>
+    <div class="cursor-light" id="cursorLight"></div>
+    <div class="vignette"></div>
+    
+    <!-- Main Content Container for ProjectPageTemplate -->
+    <div class="content"></div>
+
+    <script>
+        // Initialize page when loaded
+        window.addEventListener('load', () => {
+            // Check if WebsitePreview is available
+            console.log('WebsitePreview available:', typeof WebsitePreview !== 'undefined');
+            console.log('ProjectPageTemplate available:', typeof ProjectPageTemplate !== 'undefined');
+            
+            // Initialize 3D background systems first
+            initializeBackground();
+            
+            // Initialize the project page template
+            const tinyVotersProject = new ProjectPageTemplate({
+                container: document.querySelector('.content'),
+                project: {
+                    title: 'Tiny Voters',
+                    subtitle: 'Ever had problems making up your mind? Tiny Voters will help you decide. Get answers at once whether it\'s yes, no, a number you\'re thinking of, or anything else.',
+                    image: '../../assets/images/projects/TinyVoters_FLogo_PNG_Light.webp',
+                    liveUrl: 'http://tinyvoters.app',
+                    status: 'Published',
+                    date: 'Released November 2025',
+                    technologies: ['Unity', 'C#', 'WebGL'],
+                    tags: ['WebApp', 'Unity', 'C#', 'Mobile'],
+                    
+                    links: [
+                        {
+                            url: 'http://tinyvoters.app',
+                            text: 'Try It Live',
+                            icon: 'fas fa-external-link-alt',
+                            type: ''
+                        },
+                        {
+                            url: 'http://tinyvoters.app',
+                            text: 'View Website',
+                            icon: 'fas fa-info-circle',
+                            type: 'secondary'
+                        }
+                    ],
+                    
+                    description: `
+                        <p>Tiny Voters is an interactive decision-making web application designed to help users overcome choice paralysis and make decisions quickly and efficiently. Whether you're trying to decide between yes or no, pick a random number, or choose from a list of options, Tiny Voters provides an engaging and visually appealing solution.</p>
+                        
+                        <p>Built with Unity and deployed as a WebGL application, Tiny Voters combines the power of game engine technology with web accessibility, creating a smooth and responsive user experience across all devices and platforms.</p>
+                        
+                        <p>The application features cute animated characters called "Tiny Voters" who cast their votes to help you make decisions. Each decision type has its own unique voting mechanism, making the process both functional and entertaining.</p>
+                    `,
+                    
+                    features: [
+                        {
+                            icon: 'fas fa-vote-yea',
+                            title: 'Yes/No Decisions',
+                            description: 'Simple binary choices made easy with animated voter characters casting their ballots to help you decide.'
+                        },
+                        {
+                            icon: 'fas fa-dice',
+                            title: 'Random Number Generation',
+                            description: 'Need a random number within a specific range? Let the tiny voters pick one for you with visual flair.'
+                        },
+                        {
+                            icon: 'fas fa-list-ul',
+                            title: 'Custom Option Lists',
+                            description: 'Create your own list of choices and let the voters help you pick the best option from your custom selections.'
+                        },
+                        {
+                            icon: 'fas fa-mobile-alt',
+                            title: 'Cross-Platform',
+                            description: 'Works seamlessly on desktop, tablet, and mobile devices through modern web browsers.'
+                        },
+                        {
+                            icon: 'fas fa-magic',
+                            title: 'Animated Characters',
+                            description: 'Charming animated voter characters bring personality and engagement to the decision-making process.'
+                        },
+                        {
+                            icon: 'fas fa-rocket',
+                            title: 'Instant Results',
+                            description: 'Get immediate feedback and results without any waiting time or complex processes.'
+                        }
+                    ],
+                    
+                    media: [
+                        {
+                            src: '../../assets/images/projects/tinyvoters-main-screen.jpg',
+                            caption: 'Main decision selection interface'
+                        },
+                        {
+                            src: '../../assets/images/projects/tinyvoters-voting.jpg',
+                            caption: 'Animated voters casting their ballots'
+                        },
+                        {
+                            src: '../../assets/images/projects/tinyvoters-results.jpg',
+                            caption: 'Decision results with visual feedback'
+                        }
+                    ],
+                    
+                    technicalDetails: [
+                        { label: 'Engine', value: 'Unity 2022.3 LTS' },
+                        { label: 'Platform', value: 'WebGL' },
+                        { label: 'Language', value: 'C#' },
+                        { label: 'Deployment', value: 'Web Hosting' },
+                        { label: 'Compatibility', value: 'All Modern Browsers' },
+                        { label: 'Responsive', value: 'Mobile & Desktop' }
+                    ],
+                    
+                    challenges: [
+                        {
+                            title: 'WebGL Optimization',
+                            description: 'Ensuring smooth performance across different devices and browsers while maintaining visual quality. Solution: Implemented efficient rendering pipelines, optimized asset sizes, and used Unity\'s WebGL-specific optimization features.'
+                        },
+                        {
+                            title: 'Mobile Responsiveness',
+                            description: 'Adapting the Unity-based interface to work seamlessly on touch devices with varying screen sizes. Solution: Developed a responsive UI system that scales appropriately and implemented touch-friendly interaction methods.'
+                        },
+                        {
+                            title: 'User Experience Design',
+                            description: 'Creating an interface that is both functional and entertaining while remaining intuitive for users of all ages. Solution: Focused on clear visual hierarchy, engaging animations, and straightforward interaction patterns.'
+                        },
+                        {
+                            title: 'Cross-Browser Compatibility',
+                            description: 'Ensuring consistent behavior across different web browsers and their varying WebGL implementations. Solution: Extensive testing and implementation of fallback mechanisms for different browser capabilities.'
+                        }
+                    ],
+                    
+                    homeUrl: '../../index.html',
+                    projectsUrl: '../index.html'
+                }
+            });
+            
+            // Store reference globally for potential manipulation
+            window.tinyVotersProject = tinyVotersProject;
+            
+
+        });
+        
+        function initializeBackground() {
+            // Mobile detection
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            window.innerWidth <= 768;
+            const isLowEndDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+            
+            // Initialize core systems
+            const sceneManager = new SceneManager();
+            const cameraMovement = new CameraMovement();
+            
+            // Get scene references
+            const scene = sceneManager.getScene();
+            const camera = sceneManager.getCamera();
+            
+            // Initialize background systems
+            const oceanOptions = {
+                enableScrollCameraMovement: true,
+                cameraMovement: cameraMovement,
+                sceneManager: sceneManager
+            };
+            
+            const oceanBackground = new OceanBackground(scene, camera, oceanOptions);
+            const submarine = new Submarine(scene, camera);
+            const kelp = new Kelp(scene);
+            
+            // Register camera for parallax movement
+            cameraMovement.addCamera(camera, 0.5);
+            
+            // Cursor light handling
+            const cursorLight = document.getElementById('cursorLight');
+            let touchActive = false;
+            
+            if (isMobile) {
+                cursorLight.style.opacity = '0';
+                
+                document.addEventListener('touchstart', (e) => {
+                    touchActive = true;
+                    cursorLight.style.opacity = '0.8';
+                    const touch = e.touches[0];
+                    cursorLight.style.left = touch.clientX + 'px';
+                    cursorLight.style.top = touch.clientY + 'px';
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (touchActive) {
+                        const touch = e.touches[0];
+                        cursorLight.style.left = touch.clientX + 'px';
+                        cursorLight.style.top = touch.clientY + 'px';
+                    }
+                });
+                
+                document.addEventListener('touchend', () => {
+                    touchActive = false;
+                    setTimeout(() => {
+                        if (!touchActive) {
+                            cursorLight.style.opacity = '0';
+                        }
+                    }, 500);
+                });
+            } else {
+                document.addEventListener('mousemove', (e) => {
+                    cursorLight.style.left = e.clientX + 'px';
+                    cursorLight.style.top = e.clientY + 'px';
+                    cursorLight.style.opacity = '1';
+                });
+                
+                document.addEventListener('mouseleave', () => {
+                    cursorLight.style.opacity = '0';
+                });
+            }
+            
+            // Mobile scroll optimization
+            let isScrolling = false;
+            let scrollTimeout;
+            let animationPaused = false;
+            
+            if (isMobile) {
+                window.addEventListener('scroll', () => {
+                    if (!isScrolling) {
+                        isScrolling = true;
+                        animationPaused = true;
+                        
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.3';
+                        }
+                    }
+                    
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        isScrolling = false;
+                        animationPaused = false;
+                        
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.7';
+                        }
+                    }, 150);
+                }, { passive: true });
+            }
+            
+            // Add systems to scene manager
+            sceneManager.addSystem({
+                update: () => {
+                    try {
+                        if (isMobile && animationPaused) {
+                            return;
+                        }
+                        
+                        if (!cameraMovement || !oceanBackground || !submarine || !kelp) {
+                            return;
+                        }
+                        
+                        const mousePos = cameraMovement.getMousePosition();
+                        
+                        if (!mousePos || typeof mousePos.x !== 'number' || typeof mousePos.y !== 'number') {
+                            return;
+                        }
+                        
+                        if (oceanBackground.updateMousePosition) {
+                            oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (oceanBackground.update) {
+                            oceanBackground.update();
+                        }
+                        
+                        if (submarine.updateMousePosition) {
+                            submarine.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (submarine.update) {
+                            submarine.update();
+                        }
+                        
+                        if (kelp.update) {
+                            kelp.update();
+                        }
+                        
+                        if (cameraMovement.update) {
+                            cameraMovement.update();
+                        }
+                    } catch (error) {
+                        console.error('Error in animation loop:', error);
+                    }
+                }
+            });
+            
+            // Start animation loop
+            if (isLowEndDevice && navigator.hardwareConcurrency <= 2) {
+                let lastFrame = 0;
+                const targetFPS = 30;
+                const frameDelay = 1000 / targetFPS;
+                
+                let animationId;
+                const throttledUpdate = (time) => {
+                    if (time - lastFrame >= frameDelay) {
+                        if (sceneManager.render) {
+                            sceneManager.render();
+                        } else if (sceneManager.update) {
+                            sceneManager.update();
+                        }
+                        lastFrame = time;
+                    }
+                    
+                    if (!document.hidden && !animationPaused) {
+                        animationId = requestAnimationFrame(throttledUpdate);
+                    }
+                };
+                
+                animationId = requestAnimationFrame(throttledUpdate);
+                window.animationId = animationId;
+            } else {
+                sceneManager.start();
+            }
+        }
+    </script>
+</body>
+</html>

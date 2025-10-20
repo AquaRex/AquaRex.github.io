@@ -91,11 +91,11 @@ class ProjectListElement {
             color = status.color || statusColor;
         }
         
-        // Default colors for common status types (case-insensitive)
+        // Default colors for common status types (case-insensitive) - matching ProjectPageTemplate
         const defaultColors = {
             'development': '#f39121',     // Orange  
-            'completed': '#48e055',       // Light Green
-            'published': '#00BCD4',       // Cyan / Blue
+            'completed': '#2ecc71',       // Success Green (matching --accent-success)
+            'published': '#2ecc71',       // Success Green (matching --accent-success) 
             'paused': '#f39121',          // Orange
             'review': '#e2e2e2',          // White
             'archived': '#516488',        // Blue-Gray
@@ -113,7 +113,7 @@ class ProjectListElement {
         // Generate unique class name from status text for custom styling
         const statusClass = `status-${statusText.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
         
-        return `<span class="status-badge ${statusClass}" style="background-color: ${color}20; border: 1px solid ${color}60; color: ${color};">${statusText}</span>`;
+        return `<span class="status-badge ${statusClass}" style="background-color: ${color}; color: var(--text-contrast); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">${statusText}</span>`;
     }
 
     // Format date to "Jan 2024" style
