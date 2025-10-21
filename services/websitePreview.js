@@ -178,7 +178,7 @@ class WebsitePreview {
         loadingDiv.style.zIndex = '5';
         
         loadingDiv.innerHTML = `
-            <div style="text-align: center; color: #666;">
+            <div style="text-align: center; color: var(--text);">
                 <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
                 <div>${this.options.loadingText}</div>
             </div>
@@ -289,7 +289,7 @@ class WebsitePreview {
         if (this.loadingElement) {
             this.loadingElement.style.display = 'flex';
             this.loadingElement.innerHTML = `
-                <div style="text-align: center; color: #666;">
+                <div style="text-align: center; color: var(--text);">
                     <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
                     <div>${this.options.loadingText}</div>
                 </div>

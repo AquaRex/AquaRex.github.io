@@ -320,7 +320,7 @@ class ProjectListElement {
 
                 .project-description {
                     font-size: 1rem;
-                    color: #d0e8dc;
+                    color: var(--text);
                     margin-bottom: 0.75rem;
                     line-height: 1.4;
                 }
@@ -379,7 +379,7 @@ class ProjectListElement {
 
                 .meta-label {
                     font-size: 1rem;
-                    color: #b8cfc0;
+                    color: var(--text-header);
                     text-transform: uppercase;
                     letter-spacing: 1.2px;
                     font-weight: 600;
@@ -390,7 +390,7 @@ class ProjectListElement {
 
                 .meta-value {
                     font-size: 0.85rem;
-                    color: #d0e8dc;
+                    color: var(--text);
                     font-weight: 500;
                     line-height: 1.3;
                     height: auto;

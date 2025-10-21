@@ -39,7 +39,7 @@ class Header {
         const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
         style.textContent = `
             .logo-text {
-                fill: var(--text-light);
+                fill: var(--primary-color);
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 font-weight: 900;
                 font-size: 28px;

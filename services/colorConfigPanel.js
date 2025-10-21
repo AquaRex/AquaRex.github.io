@@ -8,7 +8,26 @@ class ColorConfigPanel {
         this.panel = null;
         this.isVisible = false;
         this.originalColors = {};
+        this.currentColorFile = this.detectColorFile();
         this.init();
+    }
+
+    detectColorFile() {
+        // Find which colors.css file is being used
+        const links = document.querySelectorAll('link[rel="stylesheet"]');
+        for (let link of links) {
+            const href = link.getAttribute('href');
+            if (href.includes('colors.css')) {
+                return href;
+            }
+        }
+        return '../../styles/colors.css'; // Default fallback
+    }
+
+    getStorageKey() {
+        // Create a unique storage key based on the colors.css file path
+        const normalizedPath = this.currentColorFile.replace(/[\/\\]/g, '-').replace(/\./g, '_');
+        return `aquarex-custom-colors-${normalizedPath}`;
     }
 
     init() {
@@ -19,7 +38,7 @@ class ColorConfigPanel {
         this.restoreSavedColors();
         
         // Add global function to window for easy console access
-        window.showColorConfig = () => this.show();
+        window.showColorConfig = async () => await this.show();
         window.hideColorConfig = () => this.hide();
         window.resetColors = () => this.resetColors();
         window.clearSavedColors = () => this.clearSavedColors();
@@ -33,14 +52,16 @@ class ColorConfigPanel {
         });
 
         console.log('%cColor Config Panel Loaded!', 'color: #f0d060; font-size: 16px; font-weight: bold;');
+        console.log(`%cUsing colors file: ${this.currentColorFile}`, 'color: #2ecc71; font-weight: bold;');
         console.log('%cUsage:', 'color: #f0d060; font-weight: bold;');
         console.log('  showColorConfig()   - Show the color panel');
         console.log('  hideColorConfig()   - Hide the color panel');
         console.log('  resetColors()       - Reset all colors to defaults');
-        console.log('  clearSavedColors()  - Clear saved colors from session');
+        console.log('  clearSavedColors()  - Clear saved colors for this page');
         console.log('  Ctrl+Shift+C        - Toggle panel visibility');
         console.log('%cPersistence:', 'color: #2ecc71; font-weight: bold;');
-        console.log('  Colors persist across page navigation automatically!');
+        console.log('  Colors are saved per-page (based on colors.css file)!');
+        console.log('  Colors persist across page reloads but not across different projects.');
         console.log('  Colors are cleared when you close the browser.');
     }
 
@@ -52,11 +73,9 @@ class ColorConfigPanel {
         const cssVars = [
             '--primary-color',
             '--background-dark',
-            '--text-white',
+            '--text-header',
+            '--text',
             '--text-contrast',
-            '--text-light',
-            '--text-secondary',
-            '--text-placeholder',
             '--accent-error',
             '--accent-success',
             '--accent-warning',
@@ -78,7 +97,7 @@ class ColorConfigPanel {
         });
     }
 
-    // Save current colors to session storage
+    // Save current colors to session storage (page-specific)
     saveColors() {
         const currentColors = {};
         Object.keys(this.originalColors).forEach(cssVar => {
@@ -90,15 +109,17 @@ class ColorConfigPanel {
         });
         
         if (Object.keys(currentColors).length > 0) {
-            sessionStorage.setItem('aquarex-custom-colors', JSON.stringify(currentColors));
-            console.log('%c💾 Colors saved for session!', 'color: #2ecc71; font-weight: bold;');
+            const storageKey = this.getStorageKey();
+            sessionStorage.setItem(storageKey, JSON.stringify(currentColors));
+            console.log(`%c💾 Colors saved for ${this.currentColorFile}!`, 'color: #2ecc71; font-weight: bold;');
         }
     }
 
-    // Restore saved colors from session storage
+    // Restore saved colors from session storage (page-specific)
     restoreSavedColors() {
         try {
-            const savedColors = sessionStorage.getItem('aquarex-custom-colors');
+            const storageKey = this.getStorageKey();
+            const savedColors = sessionStorage.getItem(storageKey);
             if (savedColors) {
                 const colors = JSON.parse(savedColors);
                 let restoredCount = 0;
@@ -109,7 +130,7 @@ class ColorConfigPanel {
                 });
                 
                 if (restoredCount > 0) {
-                    console.log(`%c🎨 Restored ${restoredCount} custom colors from previous session!`, 'color: #f0d060; font-weight: bold;');
+                    console.log(`%c🎨 Restored ${restoredCount} custom colors for ${this.currentColorFile}!`, 'color: #f0d060; font-weight: bold;');
                     
                     // Update ocean background if ocean colors were restored
                     setTimeout(() => {
@@ -126,13 +147,111 @@ class ColorConfigPanel {
 
     // Clear saved colors from session storage
     clearSavedColors() {
-        sessionStorage.removeItem('aquarex-custom-colors');
-        console.log('%c🗑️ Saved colors cleared!', 'color: #ff9800; font-weight: bold;');
+        const storageKey = this.getStorageKey();
+        sessionStorage.removeItem(storageKey);
+        console.log(`%c🗑️ Saved colors cleared for ${this.currentColorFile}!`, 'color: #ff9800; font-weight: bold;');
     }
 
-    createPanel() {
+    async fetchCSSVariables() {
+        try {
+            const response = await fetch(this.currentColorFile);
+            const cssText = await response.text();
+            
+            console.log('🔍 Parsing CSS file:', this.currentColorFile);
+            
+            // SIMPLE ROBUST PARSING - just empty lines and hex colors
+            const groups = [];
+            const lines = cssText.split('\n');
+            let currentGroup = null;
+            let groupCounter = 1;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmedLine = line.trim();
+                
+                // Empty lines create group separations
+                if (trimmedLine === '') {
+                    if (currentGroup && currentGroup.variables.size > 0) {
+                        groups.push(currentGroup);
+                        currentGroup = null;
+                        groupCounter++;
+                    }
+                    continue;
+                }
+                
+                // Find ALL hex color variables - super robust regex
+                const hexMatches = line.matchAll(/--([a-zA-Z0-9_-]+)\s*:\s*(#[0-9a-fA-F]{3,6})/g);
+                
+                for (const match of hexMatches) {
+                    const varName = `--${match[1]}`;
+                    const value = match[2];
+                    
+                    console.log('🎨 Found hex color:', varName, '=', value);
+                    
+                    if (!currentGroup) {
+                        currentGroup = {
+                            variables: new Map()
+                        };
+                    }
+                    
+                    currentGroup.variables.set(varName, value);
+                }
+            }
+            
+            // Add final group if it has variables
+            if (currentGroup && currentGroup.variables.size > 0) {
+                groups.push(currentGroup);
+            }
+            
+            // Convert to expected format
+            const groupsMap = new Map();
+            groups.forEach((group, index) => {
+                if (group.variables.size > 0) {
+                    const groupName = groups.length === 1 ? 'Colors' : `Group ${index + 1}`;
+                    groupsMap.set(groupName, group.variables);
+                    console.log('📦 Group:', groupName, '- Variables:', group.variables.size);
+                }
+            });
+            
+            console.log('🎯 Total groups found:', groupsMap.size);
+            console.log('🎯 Total hex variables:', Array.from(groupsMap.values()).reduce((sum, map) => sum + map.size, 0));
+            
+            return groupsMap;
+            
+        } catch (error) {
+            console.error('❌ Error parsing CSS:', error);
+            return new Map();
+        }
+    }
+
+    async createPanel() {
+        const cssGroups = await this.fetchCSSVariables();
+        
         const panel = document.createElement('div');
         panel.id = 'color-config-panel';
+        
+        // Generate color sections dynamically based on groups
+        let sectionsHTML = '';
+        for (const [groupName, variables] of cssGroups) {
+            if (variables.size === 0) continue; // Skip empty groups
+            
+            let colorInputsHTML = '';
+            for (const [varName, value] of variables) {
+                // Convert CSS variable name to display label (remove -- and convert kebab-case to Title Case)
+                const label = varName.substring(2).split('-').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+                
+                colorInputsHTML += this.createColorInput(varName, label);
+            }
+            
+            sectionsHTML += `
+            <div class="color-section">
+                <h3>${groupName}</h3>
+                ${colorInputsHTML}
+            </div>`;
+        }
+        
         panel.innerHTML = `
             <style>
                 #color-config-panel {
@@ -281,40 +400,7 @@ class ColorConfigPanel {
             <button class="close-btn" onclick="hideColorConfig()">×</button>
             <h2>Live Color Editor</h2>
             
-            <div class="color-section">
-                <h3>Colors</h3>
-                ${this.createColorInput('--primary-color', 'Primary Color')}
-                ${this.createColorInput('--accent-error', 'Error Color')}
-                ${this.createColorInput('--accent-success', 'Success Color')}
-                ${this.createColorInput('--accent-warning', 'Warning Color')}
-            </div>
-
-            <div class="color-section">
-                <h3>Text Colors</h3>
-                ${this.createColorInput('--text-white', 'Text White')}
-                ${this.createColorInput('--text-contrast', 'Text Contrast')}
-                ${this.createColorInput('--text-light', 'Text Light')}
-            </div>
-
-            <div class="color-section">
-                <h3>Background</h3>
-                ${this.createColorInput('--background-dark', 'Background Dark')}
-                ${this.createColorInput('--bg-top', 'Gradient Top')}
-                ${this.createColorInput('--bg-middle', 'Gradient Middle')}
-                ${this.createColorInput('--bg-bottom', 'Gradient Bottom')}
-                ${this.createColorInput('--ocean-fog-surface', 'Ocean Surface')}
-                ${this.createColorInput('--ocean-fog-deep', 'Ocean Deep')}
-            </div>
-
-            <div class="color-section">
-                <h3>Particles</h3>
-                ${this.createColorInput('--ocean-particle-layer-2', 'Particle Color')}
-            </div>
-
-            <div class="color-section">
-                <h3>Lighting</h3>
-                ${this.createColorInput('--ocean-ambient-light', 'Light Color')}
-            </div>
+            ${sectionsHTML}
 
             <div class="panel-controls">
                 <button onclick="window.colorConfig.resetColors()">Reset</button>
@@ -340,13 +426,21 @@ class ColorConfigPanel {
     }
 
     updateColor(cssVar, value) {
+        console.log(`%c🔍 DEBUG: Updating ${cssVar} to ${value}`, 'color: #ff0000; font-weight: bold;');
+        
         // Update CSS variable
         document.documentElement.style.setProperty(cssVar, value);
+        
+        // DEBUG: Check what the actual computed value is
+        const actualValue = getComputedStyle(document.documentElement).getPropertyValue(cssVar);
+        console.log(`%c✓ ACTUAL VALUE: ${cssVar} = ${actualValue}`, 'color: #00ff00;');
         
         // Update both color picker and text input
         const panel = document.getElementById('color-config-panel');
         if (panel) {
-            const colorInputs = panel.querySelectorAll(`input[oninput*="${cssVar}"]`);
+            // More precise selector to avoid substring matches
+            const colorInputs = panel.querySelectorAll(`input[oninput*="'${cssVar}'"]`);
+            console.log(`%c📝 Updating ${colorInputs.length} inputs for ${cssVar}`, 'color: #0066ff;');
             colorInputs.forEach(input => {
                 if (input.value !== value) {
                     input.value = value;
@@ -380,10 +474,10 @@ class ColorConfigPanel {
         return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
 
-    show() {
+    async show() {
         if (this.isVisible) return;
         
-        this.panel = this.createPanel();
+        this.panel = await this.createPanel();
         document.body.appendChild(this.panel);
         this.isVisible = true;
         
@@ -403,11 +497,11 @@ class ColorConfigPanel {
         console.log('%c🎨 Color Config Panel Closed!', 'color: #f0d060; font-weight: bold;');
     }
 
-    toggle() {
+    async toggle() {
         if (this.isVisible) {
             this.hide();
         } else {
-            this.show();
+            await this.show();
         }
     }
 
@@ -429,7 +523,7 @@ class ColorConfigPanel {
         // Refresh panel if visible
         if (this.isVisible) {
             this.hide();
-            setTimeout(() => this.show(), 100);
+            setTimeout(async () => await this.show(), 100);
         }
         
         console.log('%c🎨 All colors reset to defaults!', 'color: #f0d060; font-weight: bold;');

@@ -8,11 +8,12 @@
     /* ESSENTIAL COLORS */
     --primary-color: #f0d060;            /* Main brand color */
     --background-dark: #152d28;          /* Main dark background */
-    --text-white: #ffffff;               /* Primary white text */
-    --text-contrast: #000000;            /* Text on colored backgrounds */
-    --text-light: #d0e8dc;               /* Light text for labels/headers */
-    --text-secondary: color-mix(in srgb, #d0e8dc 80%, transparent);  /* Secondary text */
-    --text-placeholder: color-mix(in srgb, #b8cfc0 60%, transparent); /* Placeholder text */
+
+    /* Text Colors - CLEARLY DIFFERENT */
+    --text-header: #ffffff;             /* Headers and titles - BRIGHT WHITE */
+    --text: #d0e8dc;                    /* Normal readable text - LIGHT GREEN */
+    --text-contrast: #000000;           /* High contrast text for buttons - WHITE */
+
     --accent-error: #ff5d5b;             /* Error/warning color */
     --accent-success: #2ecc71;           /* Success/confirmation color */
     --accent-warning: #ff9800;           /* Warning/in-progress color */

@@ -1,0 +1,126 @@
+/* Project Template - Basic Color Theme */
+/* Copy and customize this file for each new project */
+
+:root {
+    /* Primary Colors - Customize for your project */
+    --primary-color: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #1d4ed8;
+    --primary-transparent: rgba(59, 130, 246, 0.1);
+    --primary-transparent-light: rgba(59, 130, 246, 0.05);
+    --primary-transparent-medium: rgba(59, 130, 246, 0.15);
+    --primary-transparent-heavy: rgba(59, 130, 246, 0.25);
+
+    /* Accent Colors */
+    --accent-success: #10b981;
+    --accent-warning: #f59e0b;
+    --accent-error: #ef4444;
+    --accent-info: #06b6d4;
+
+    /* Background Colors */
+    --bg-top: #0f172a;
+    --bg-middle: #1e293b;
+    --bg-bottom: #334155;
+    --background-dark: #0f172a;
+    --background-card: rgba(30, 41, 59, 0.8);
+
+    /* Text Colors - CLEARLY DIFFERENT */
+    --text-header: #ffffff;           /* Headers and titles - BRIGHT WHITE */
+    --text: #d0d0d0;                  /* Normal readable text - LIGHT GRAY */
+    --text-contrast: #ffffff;         /* High contrast text for buttons - WHITE */
+
+    /* Border Colors */
+    --primary-border: rgba(59, 130, 246, 0.3);
+    --primary-border-light: rgba(59, 130, 246, 0.15);
+    --primary-border-intense: rgba(59, 130, 246, 0.6);
+
+    /* Shadow Colors */
+    --shadow-standard: rgba(0, 0, 0, 0.3);
+    --shadow-strong: rgba(0, 0, 0, 0.5);
+    --shadow-heavy: rgba(0, 0, 0, 0.7);
+
+    /* Vignette and Fog Effects */
+    --vignette-dark: rgba(15, 23, 42, 0.4);
+    --vignette-darker: rgba(15, 23, 42, 0.8);
+    --fog-1: rgba(59, 130, 246, 0.02);
+    --fog-2: rgba(16, 185, 129, 0.015);
+    --fog-3: rgba(245, 158, 11, 0.01);
+
+    /* Interactive Elements */
+    --hover-overlay: rgba(59, 130, 246, 0.1);
+    --active-overlay: rgba(59, 130, 246, 0.2);
+    --selection-bg: rgba(59, 130, 246, 0.3);
+}
+
+/* Status badge styling */
+.status-published {
+    background: var(--accent-success);
+    color: var(--text-contrast);
+}
+
+.status-development {
+    background: var(--accent-warning);
+    color: var(--text-contrast);
+}
+
+.status-completed {
+    background: var(--accent-success);
+    color: var(--text-contrast);
+}
+
+.status-paused {
+    background: var(--accent-warning);
+    color: var(--text-contrast);
+}
+
+.status-cancelled {
+    background: var(--accent-error);
+    color: var(--text-contrast);
+}
+
+/* Project title styling */
+.project-title {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: var(--text-contrast);
+}
+
+/* Button styling */
+.action-button {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.action-button:hover {
+    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+}
+
+.action-button.secondary {
+    background: var(--primary-transparent-light);
+    border: 2px solid var(--primary-border);
+}
+
+.action-button.secondary:hover {
+    background: var(--primary-transparent-medium);
+    border-color: var(--primary-border-intense);
+}
+
+/* Feature cards */
+.feature-card {
+    background: var(--background-card);
+    border: 2px solid var(--primary-border);
+    backdrop-filter: blur(15px);
+}
+
+.feature-card:hover {
+    border-color: var(--primary-border-intense);
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+}
+
+/* Section titles */
+.section-title {
+    color: var(--primary-color);
+}
+
+.section-title::after {
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+}

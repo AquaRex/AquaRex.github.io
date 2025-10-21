@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Name - Hetland</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Use project-specific colors.css -->
+    <link rel="stylesheet" href="colors.css">
+    <link rel="stylesheet" href="../../styles/selection.css">
+    <link rel="stylesheet" href="../../services/websitePreview.css">
+    <link rel="stylesheet" href="../../services/projectPageTemplate.css">
+    
+    <!-- Add 3D background scripts only if you want the ocean background -->
+    <!-- Uncomment these lines if you want the ocean background:
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="../../services/GLTFLoader.js"></script>
+    <script src="../../services/sceneManager.js"></script>
+    <script src="../../services/cameraMovement.js"></script>
+    <script src="../../services/oceanBackground.js"></script>
+    <script src="../../services/submarine.js"></script>
+    <script src="../../services/kelp.js"></script>
+    -->
+    
+    <!-- Always include these for functionality -->
+    <script src="../../services/header.js"></script>
+    <script src="../../services/colorConfigPanel.js"></script>
+    <script src="../../services/websitePreview.js"></script>
+    <script src="../../services/projectPageTemplate.js"></script>
+</head>
+<body>
+    <!-- 3D Background Elements - Only if you uncommented the scripts above -->
+    <!-- Uncomment these if you want the ocean background:
+    <canvas id="canvas3d"></canvas>
+    <div class="fog-overlay"></div>
+    <div class="cursor-light" id="cursorLight"></div>
+    <div class="vignette"></div>
+    -->
+    
+    <!-- Main Content Container for ProjectPageTemplate -->
+    <div class="content"></div>
+
+    <script>
+        // Initialize page when loaded
+        window.addEventListener('load', () => {
+            // Initialize 3D background systems first (if enabled)
+            // Uncomment this line if you want the ocean background:
+            // initializeBackground();
+            
+            // Initialize the project page template
+            const projectTemplate = new ProjectPageTemplate({
+                container: document.querySelector('.content'),
+                project: {
+                    title: 'Project Name',
+                    subtitle: 'Brief description of your project goes here',
+                    image: '../../assets/images/projects/your-project-image.jpg',
+                    liveUrl: 'https://your-project-url.com', // Optional: for live preview
+                    status: 'Development', // Published, Development, Completed, etc.
+                    date: 'Project Date',
+                    technologies: ['Technology 1', 'Technology 2', 'Technology 3'],
+                    tags: ['Tag1', 'Tag2', 'Tag3'],
+                    
+                    links: [
+                        {
+                            url: 'https://your-project-url.com',
+                            text: 'View Live',
+                            icon: 'fas fa-external-link-alt',
+                            type: ''
+                        },
+                        {
+                            url: 'https://github.com/your-repo',
+                            text: 'GitHub',
+                            icon: 'fab fa-github',
+                            type: 'secondary'
+                        }
+                    ],
+                    
+                    description: `
+                        <p>Detailed description of your project goes here. You can use HTML formatting.</p>
+                        
+                        <p>Add multiple paragraphs to explain the project's purpose, features, and benefits.</p>
+                        
+                        <p>This section will appear in the "About This Project" section.</p>
+                    `,
+                    
+                    features: [
+                        {
+                            icon: 'fas fa-star',
+                            title: 'Feature 1',
+                            description: 'Description of your first key feature.'
+                        },
+                        {
+                            icon: 'fas fa-rocket',
+                            title: 'Feature 2',
+                            description: 'Description of your second key feature.'
+                        },
+                        {
+                            icon: 'fas fa-mobile-alt',
+                            title: 'Feature 3',
+                            description: 'Description of your third key feature.'
+                        }
+                    ],
+                    
+                    homeUrl: '../../index.html',
+                    projectsUrl: '../index.html'
+                }
+            });
+            
+            // Store reference globally for potential manipulation
+            window.projectTemplate = projectTemplate;
+        });
+        
+        // Ocean background initialization function (only use if you want 3D background)
+        // Uncomment this entire function if you want the ocean background:
+        /*
+        function initializeBackground() {
+            // Mobile detection
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            window.innerWidth <= 768;
+            const isLowEndDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+            
+            // Initialize core systems
+            const sceneManager = new SceneManager();
+            const cameraMovement = new CameraMovement();
+            
+            // Get scene references
+            const scene = sceneManager.getScene();
+            const camera = sceneManager.getCamera();
+            
+            // Initialize background systems
+            const oceanOptions = {
+                enableScrollCameraMovement: true,
+                cameraMovement: cameraMovement,
+                sceneManager: sceneManager
+            };
+            
+            const oceanBackground = new OceanBackground(scene, camera, oceanOptions);
+            const submarine = new Submarine(scene, camera);
+            const kelp = new Kelp(scene);
+            
+            // Register camera for parallax movement
+            cameraMovement.addCamera(camera, 0.5);
+            
+            // Cursor light handling
+            const cursorLight = document.getElementById('cursorLight');
+            let touchActive = false;
+            
+            if (isMobile) {
+                cursorLight.style.opacity = '0';
+                
+                document.addEventListener('touchstart', (e) => {
+                    touchActive = true;
+                    cursorLight.style.opacity = '0.8';
+                    const touch = e.touches[0];
+                    cursorLight.style.left = touch.clientX + 'px';
+                    cursorLight.style.top = touch.clientY + 'px';
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (touchActive) {
+                        const touch = e.touches[0];
+                        cursorLight.style.left = touch.clientX + 'px';
+                        cursorLight.style.top = touch.clientY + 'px';
+                    }
+                });
+                
+                document.addEventListener('touchend', () => {
+                    touchActive = false;
+                    setTimeout(() => {
+                        if (!touchActive) {
+                            cursorLight.style.opacity = '0';
+                        }
+                    }, 500);
+                });
+            } else {
+                document.addEventListener('mousemove', (e) => {
+                    cursorLight.style.left = e.clientX + 'px';
+                    cursorLight.style.top = e.clientY + 'px';
+                    cursorLight.style.opacity = '1';
+                });
+                
+                document.addEventListener('mouseleave', () => {
+                    cursorLight.style.opacity = '0';
+                });
+            }
+            
+            // Mobile scroll optimization
+            let isScrolling = false;
+            let scrollTimeout;
+            let animationPaused = false;
+            
+            if (isMobile) {
+                window.addEventListener('scroll', () => {
+                    if (!isScrolling) {
+                        isScrolling = true;
+                        animationPaused = true;
+                        
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.3';
+                        }
+                    }
+                    
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        isScrolling = false;
+                        animationPaused = false;
+                        
+                        const canvas = document.getElementById('canvas3d');
+                        if (canvas) {
+                            canvas.style.opacity = '0.7';
+                        }
+                    }, 150);
+                }, { passive: true });
+            }
+            
+            // Add systems to scene manager
+            sceneManager.addSystem({
+                update: () => {
+                    try {
+                        if (isMobile && animationPaused) {
+                            return;
+                        }
+                        
+                        if (!cameraMovement || !oceanBackground || !submarine || !kelp) {
+                            return;
+                        }
+                        
+                        const mousePos = cameraMovement.getMousePosition();
+                        
+                        if (!mousePos || typeof mousePos.x !== 'number' || typeof mousePos.y !== 'number') {
+                            return;
+                        }
+                        
+                        if (oceanBackground.updateMousePosition) {
+                            oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (oceanBackground.update) {
+                            oceanBackground.update();
+                        }
+                        
+                        if (submarine.updateMousePosition) {
+                            submarine.updateMousePosition(mousePos.x, mousePos.y);
+                        }
+                        if (submarine.update) {
+                            submarine.update();
+                        }
+                        
+                        if (kelp.update) {
+                            kelp.update();
+                        }
+                        
+                        if (cameraMovement.update) {
+                            cameraMovement.update();
+                        }
+                    } catch (error) {
+                        console.error('Error in animation loop:', error);
+                    }
+                }
+            });
+            
+            // Start animation loop
+            if (isLowEndDevice && navigator.hardwareConcurrency <= 2) {
+                let lastFrame = 0;
+                const targetFPS = 30;
+                const frameDelay = 1000 / targetFPS;
+                
+                let animationId;
+                const throttledUpdate = (time) => {
+                    if (time - lastFrame >= frameDelay) {
+                        if (sceneManager.render) {
+                            sceneManager.render();
+                        } else if (sceneManager.update) {
+                            sceneManager.update();
+                        }
+                        lastFrame = time;
+                    }
+                    
+                    if (!document.hidden && !animationPaused) {
+                        animationId = requestAnimationFrame(throttledUpdate);
+                    }
+                };
+                
+                animationId = requestAnimationFrame(throttledUpdate);
+                window.animationId = animationId;
+            } else {
+                sceneManager.start();
+            }
+        }
+        */
+    </script>
+</body>
+</html>

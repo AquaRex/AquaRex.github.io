@@ -86,7 +86,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: var(--text-white);
+            color: var(--text);
             text-align: center;
             padding: 2rem;
             pointer-events: none;
@@ -123,8 +123,8 @@
             letter-spacing: 4px;
             text-transform: uppercase;
             opacity: 1;
-            /* Subtly lighter green/white using CSS variables */
-            color: var(--text-secondary);
+            /* Header text color for "Software Developer" */
+            color: var(--text-header);
             text-shadow: 0 5px 15px var(--shadow-standard)
         }
         /* Tagline/Description */
@@ -135,8 +135,8 @@
             max-width: 600px;
             line-height: 1.6;
             animation: fadeInUp 1s ease 0.3s backwards;
-            /* Muted green/white using simplified colors */
-            color: var(--text-placeholder);
+            /* Header text color for important tagline */
+            color: var(--text-header);
         }
         /* Custom Squiggly Underline Style */
         .squiggly-error {
@@ -215,8 +215,8 @@
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
-            /* Link color */
-            color: var(--text-light);
+            /* Link color - normal text color when unselected */
+            color: var(--text);
             text-decoration: none;
             /* Primary border */
             border: 2px solid var(--primary-border-light);

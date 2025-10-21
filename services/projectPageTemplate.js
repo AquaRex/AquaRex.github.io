@@ -2,6 +2,16 @@
  * Project Page Template Component
  * A reusable component for creating project showcase pages
  * Similar to EditableCard, Header, etc. - instantiable and configurable
+ * 
+ * IMPORTANT: This template does NOT control:
+ * - Background/ocean systems (handled by individual project pages)
+ * - Color themes (each project uses its own colors.css file)
+ * - Page-specific styling (controlled by project's index.html)
+ * 
+ * Each project page should:
+ * 1. Include its own colors.css file
+ * 2. Optionally include oceanBackground.js and related 3D systems
+ * 3. Initialize ColorConfigPanel for page-specific color customization
  */
 
 class ProjectPageTemplate {
@@ -38,9 +48,9 @@ class ProjectPageTemplate {
             showHero: options.showHero !== false,
             showDescription: options.showDescription !== false,
             showFeatures: options.showFeatures !== false,
-            showMedia: options.showMedia !== false,
-            showTechnical: options.showTechnical !== false,
-            showChallenges: options.showChallenges !== false,
+            showMedia: options.showMedia === true, // Disabled by default
+            showTechnical: options.showTechnical === true, // Disabled by default
+            showChallenges: options.showChallenges === true, // Disabled by default
             showFooter: options.showFooter !== false,
             
             // Animation settings
@@ -162,7 +172,7 @@ class ProjectPageTemplate {
                     </div>
                 </div>
             </div>
-            <div class="project-section">
+            <div class="project-section about-section">
                 <h2 class="section-title">About This Project</h2>
                 <div class="section-content">
                     ${this.options.project.description || ''}
