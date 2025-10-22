@@ -39,8 +39,8 @@ class ProjectPageTemplate {
                 challenges: options.project?.challenges || [],
                 
                 // Navigation
-                homeUrl: options.project?.homeUrl || '../../index.html',
-                projectsUrl: options.project?.projectsUrl || '../index.html'
+                homeUrl: options.project?.homeUrl || '../../',
+                projectsUrl: options.project?.projectsUrl || '../'
             },
             
             // Template configuration
