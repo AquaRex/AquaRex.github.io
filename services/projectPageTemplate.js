@@ -166,8 +166,10 @@ class ProjectPageTemplate {
                 </div>
             </div>
             <div class="hero-preview">
-                <div id="websitePreviewContainer">
-                    <!-- WebsitePreview will be injected here -->
+                <div class="phone-mockup" style="position: relative; width: 400px; height: 880px; background: #000; border-radius: 50px; padding: 8px; box-shadow: 0 25px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);">
+                    <div class="phone-screen" style="width: 100%; height: 100%; border-radius: 42px; overflow: hidden; background: #000;">
+                        <iframe src="${this.options.project.liveUrl || 'http://tinyvoters.app'}" style="width: 100%; height: 100%; border: none; border-radius: 42px;" title="Live Preview"></iframe>
+                    </div>
                 </div>
             </div>
             <div class="project-section about-section">
@@ -180,33 +182,6 @@ class ProjectPageTemplate {
 
         this.options.container.appendChild(hero);
         this.elements.hero = hero;
-        
-        // Initialize WebsitePreview after hero is rendered
-        this.initializeWebsitePreview();
-    }
-    
-    initializeWebsitePreview() {
-        const container = document.getElementById('websitePreviewContainer');
-        if (container && typeof WebsitePreview !== 'undefined') {
-            // Merge project previewOptions with defaults
-            const previewOptions = {
-                container: container,
-                url: this.options.project.liveUrl,
-                previewType: 'phone',
-                width: 400,
-                height: 880,
-                showPhoneFrame: true,
-                allowInteraction: true,
-                fallbackImage: this.options.project.image,
-                errorText: `${this.options.project.title} Preview Unavailable`,
-                ...this.options.project.previewOptions // Override with any custom options
-            };
-            
-            this.websitePreview = new WebsitePreview(previewOptions);
-            console.log('📱 WebsitePreview initialized with fallback support');
-        } else {
-            console.warn('WebsitePreview not available or container not found');
-        }
     }
 
     renderDescription() {
