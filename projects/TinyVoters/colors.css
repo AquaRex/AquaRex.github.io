@@ -3,14 +3,14 @@
 
 :root {
     /* Primary Colors - TinyVoters Brand */
-    --primary-color: #fea800;
+    --primary-color: #000000;
     --primary-transparent: rgba(74, 144, 226, 0.1);
     --primary-transparent-light: rgba(74, 144, 226, 0.05);
     --primary-transparent-medium: rgba(74, 144, 226, 0.15);
     --primary-transparent-heavy: rgba(74, 144, 226, 0.25);
 
     /* Accent Colors - Voting Theme */
-    --accent-success: #28a745;      /* Yes votes */
+    --accent-success: #000000;      /* Yes votes */
     --accent-warning: #ffc107;      /* Neutral/maybe */
     --accent-error: #dc3545;        /* No votes */
     --accent-info: #17a2b8;         /* Information */
@@ -25,7 +25,7 @@
     /* Text Colors - CLEARLY DIFFERENT */
     --text-header: #000000;           /* Headers and titles - BRIGHT WHITE */
     --text: #000000;                  /* Normal readable text - LIGHT BLUE */
-    --text-contrast: #000000;         /* High contrast text for buttons - WHITE */
+    --text-contrast: #fea800;         /* High contrast text for buttons - WHITE */
 
     /* Border Color - Single configurable hex color */
     --border-color: #000000;         /* Universal border color */

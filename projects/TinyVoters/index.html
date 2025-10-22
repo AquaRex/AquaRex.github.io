@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../../styles/selection.css">
     <link rel="stylesheet" href="../../services/websitePreview.css">
     <link rel="stylesheet" href="../../services/projectPageTemplate.css">
-    <script src="../../services/header.js"></script>
+    <!--<script src="../../services/header.js"></script>-->
     <script src="../../services/colorConfigPanel.js"></script>
     <script src="../../services/websitePreview.js"></script>
     <script src="../../services/projectPageTemplate.js"></script>
@@ -37,6 +37,13 @@
                     date: 'Released November 2025',
                     technologies: ['Unity', 'C#', 'WebGL'],
                     tags: ['WebApp', 'Unity', 'C#', 'Mobile'],
+                    
+                    // Website preview options
+                    previewOptions: {
+                        fallbackImage: '../../assets/images/projects/TinyVoters_FLogo_PNG_Light.webp',
+                        errorText: 'TinyVoters App Preview',
+                        allowInteraction: false // Disable interaction to avoid CORS issues
+                    },
                     
                     links: [
                         {
