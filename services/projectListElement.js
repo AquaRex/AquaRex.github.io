@@ -289,6 +289,7 @@ class ProjectListElement {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
+                    object-position: center center; /* Default center positioning for all images */
                 }
 
                 .project-header-placeholder {
