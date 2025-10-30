@@ -1304,6 +1304,24 @@
             });
 
             projectManager.addProject({
+                title: 'Star Citizen Tracker',
+                description: 'A comprehensive tracking system for Star Citizen gameplay statistics, featuring both a desktop application for real-time log parsing and a web platform for viewing and analyzing combat data.',
+                tags: ['Desktop App', 'Web App', 'Gaming', 'Analytics', 'C#'],
+                startDate: '2025-10-15',
+                status: 'Published',
+                icon: 'fas fa-rocket',
+                link: '../projects/StarCitizenTracker/',
+                image: '../assets/images/projects/star-citizen-tracker-preview.webp', // TODO: Add actual project preview image
+                frameOptions: {
+                    enableRotation: false,
+                    showCornerElements: false,
+                    showGizmo: false,
+                    showSelectionHandles: false,
+                    enableHoverGlow: true
+                }
+            });
+
+            projectManager.addProject({
                 title: 'Unity Asset: NoFolderInspection',
                 description: 'No Folder Inspection, prevents the Inspector from showing folders when they are selected by locking<br> the inspector before it is updated, unlocking again if you select anything other than a folder.',
                 tags: ['Engine Tools', 'Unity', 'C#'],

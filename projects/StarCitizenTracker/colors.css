@@ -1,0 +1,180 @@
+/* Star Citizen Tracker Project - Custom Color Theme */
+/* This file defines the color scheme specifically for the Star Citizen Tracker project page */
+
+:root {
+    /* Primary Colors - Star Citizen Blue/Cyan Theme */
+    --primary-color: #00BCD4; /* Cyan */
+    --primary-dark: #0097A7;
+    --primary-light: #26C6DA;
+    --primary-transparent: rgba(0, 188, 212, 0.1);
+    --primary-transparent-light: rgba(0, 188, 212, 0.05);
+    --primary-transparent-medium: rgba(0, 188, 212, 0.15);
+    --primary-transparent-heavy: rgba(0, 188, 212, 0.25);
+
+    /* Accent Colors - Space/Tech Theme */
+    --accent-success: #4CAF50;      /* Success/Online */
+    --accent-warning: #FF9800;      /* Warning/Pending */
+    --accent-error: #F44336;        /* Error/Offline */
+    --accent-info: #00BCD4;         /* Information */
+
+    /* Background Colors - Dark Space Theme */
+    --bg-top: #0D1B2A;
+    --bg-middle: #1B263B;
+    --bg-bottom: #415A77;
+    --background-dark: #0D1B2A;
+    --background-card: rgba(27, 38, 59, 0.8);
+
+    /* Text Colors - High Contrast for Space Theme */
+    --text-header: #B3E5FC;         /* Headers and titles - Light Blue */
+    --text: #E8F4FD;                /* Normal readable text - Very Light Blue */
+    --text-contrast: #0D1B2A;       /* High contrast text for buttons - Dark */
+
+    /* Border Color - Single configurable hex color */
+    --border-color: #00BCD4;        /* Universal border color - Cyan */
+
+    /* Border Colors - Original rgba versions for backwards compatibility */
+    --primary-border: rgba(0, 188, 212, 0.3);
+    --primary-border-light: rgba(0, 188, 212, 0.15);
+    --primary-border-intense: rgba(0, 188, 212, 0.6);
+
+    /* Shadow Colors */
+    --shadow-standard: rgba(0, 0, 0, 0.3);
+    --shadow-strong: rgba(0, 0, 0, 0.5);
+    --shadow-heavy: rgba(0, 0, 0, 0.7);
+
+    /* Vignette and Fog Effects */
+    --vignette-dark: rgba(13, 27, 42, 0.4);
+    --vignette-darker: rgba(13, 27, 42, 0.8);
+    --fog-1: rgba(0, 188, 212, 0.02);
+    --fog-2: rgba(38, 198, 218, 0.015);
+    --fog-3: rgba(129, 199, 212, 0.01);
+
+    /* Interactive Elements */
+    --hover-overlay: rgba(0, 188, 212, 0.1);
+    --active-overlay: rgba(0, 188, 212, 0.2);
+    --selection-bg: rgba(0, 188, 212, 0.3);
+
+    /* Phone mockup specific colors - Not used but kept for compatibility */
+    --phone-background: linear-gradient(145deg, #1B263B, #0D1B2A);
+    --phone-border: #00BCD4;
+}
+
+/* Star Citizen Tracker specific element styling */
+.status-published {
+    background: var(--accent-success);
+    color: var(--text-contrast);
+}
+
+.project-title {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: var(--text-contrast);
+}
+
+/* Custom button styling for Star Citizen Tracker */
+.action-button {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    box-shadow: 0 8px 25px rgba(0, 188, 212, 0.3);
+}
+
+.action-button:hover {
+    box-shadow: 0 12px 40px rgba(0, 188, 212, 0.4);
+}
+
+.action-button.secondary {
+    background: var(--primary-transparent-light);
+    border: 2px solid var(--primary-border);
+}
+
+.action-button.secondary:hover {
+    background: var(--primary-transparent-medium);
+    border-color: var(--primary-border-intense);
+}
+
+/* All borders use the same single configurable color */
+.feature-card {
+    background: var(--background-card);
+    border: 2px solid var(--border-color);
+    backdrop-filter: blur(15px);
+}
+
+.feature-card:hover {
+    border-color: var(--border-color);
+    box-shadow: 0 15px 40px rgba(0, 188, 212, 0.2);
+}
+
+/* Action buttons with single border color */
+.action-button.secondary {
+    background: var(--primary-transparent-light);
+    border: 2px solid var(--border-color);
+}
+
+.action-button.secondary:hover {
+    background: var(--primary-transparent-medium);
+    border-color: var(--border-color);
+}
+
+/* Tag badges with single border color */
+.tag-badge {
+    background: var(--primary-transparent-medium);
+    color: var(--text);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Navigation links with single border color */
+.nav-link {
+    background: var(--primary-transparent-light);
+    border: 2px solid var(--border-color);
+}
+
+.nav-link:hover {
+    background: var(--primary-transparent-medium);
+    border-color: var(--border-color);
+}
+
+/* Technical cards with single border color */
+.tech-card {
+    background: var(--primary-transparent-light);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* Challenge items with single border color */
+.challenge-item {
+    background: var(--primary-transparent-light);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* Media items with single border color */
+.media-item {
+    background: var(--primary-transparent-light);
+    border: 2px solid var(--border-color);
+}
+
+/* Navigation buttons with single border color */
+.nav-button {
+    background: var(--primary-transparent-light);
+    border: 2px solid var(--border-color);
+}
+
+.nav-button:hover {
+    background: var(--primary-transparent-medium);
+    border-color: var(--border-color);
+}
+
+/* Section titles with Star Citizen branding */
+.section-title {
+    color: var(--primary-color);
+}
+
+.section-title::after {
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+}

@@ -46,6 +46,7 @@ class ProjectPageTemplate {
             // Template configuration
             showNavigation: options.showNavigation !== false,
             showHero: options.showHero !== false,
+            showPreview: options.showPreview !== false, // Show phone preview by default
             showDescription: options.showDescription !== false,
             showFeatures: options.showFeatures !== false,
             showMedia: options.showMedia === true, // Disabled by default
@@ -165,6 +166,7 @@ class ProjectPageTemplate {
                     </div>
                 </div>
             </div>
+            ${this.options.showPreview ? `
             <div class="hero-preview">
                 <div class="phone-mockup" style="position: relative; width: 400px; height: 880px; background: #000; border-radius: 50px; padding: 8px; box-shadow: 0 25px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);">
                     <div class="phone-screen" style="width: 100%; height: 100%; border-radius: 42px; overflow: hidden; background: #000;">
@@ -172,6 +174,7 @@ class ProjectPageTemplate {
                     </div>
                 </div>
             </div>
+            ` : ''}
             <div class="project-section about-section">
                 <h2 class="section-title">About This Project</h2>
                 <div class="section-content">
