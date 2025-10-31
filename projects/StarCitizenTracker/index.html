@@ -99,8 +99,22 @@
             min-height: 400px;
         }
 
-        .image-content.reverse {
-            grid-template-columns: 1fr 1fr;
+        /* Default order: Image left, Text right */
+        .image-content .image-area {
+            order: 1;
+        }
+
+        .image-content .info-area {
+            order: 2;
+        }
+
+        /* Reverse order: Text left, Image right */
+        .image-content.reverse .image-area {
+            order: 2;
+        }
+
+        .image-content.reverse .info-area {
+            order: 1;
         }
 
         .image-area {
@@ -127,12 +141,14 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border: 4px solid var(--accent-color);
+            border: 4px solid var(--secondary-color);
             transition: all 0.3s;
+            box-shadow: none;
         }
 
         .project-image:hover {
-            border-color: var(--secondary-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 30px var(--accent-color), 0 0 60px var(--accent-color);
         }
 
         .info-area {
@@ -259,8 +275,8 @@
             font-size: 0.9em;
             font-weight: bold;
             letter-spacing: 2px;
-            background: transparent;
-            color: var(--secondary-color);
+            background: var(--secondary-color);
+            color: var(--primary-color);
             border: 2px solid var(--secondary-color);
             cursor: pointer;
             transition: all 0.3s;
@@ -269,15 +285,10 @@
             text-transform: uppercase;
         }
 
-        .cta-button.primary {
-            background: var(--secondary-color);
-            color: var(--primary-color);
-        }
-
         .cta-button:hover {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-            color: var(--primary-color);
+            background: var(--primary-color);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
         }
 
         @media (max-width: 1024px) {
@@ -376,9 +387,33 @@
                 </div>
             </div>
 
-            <!-- Staggered Image Section 2 - Web Dashboard -->
+            <!-- Staggered Image Section 2 - Design -->
             <div class="image-section">
                 <div class="image-content reverse">
+                    <div class="info-area">
+                        <div class="info-header">Design Philosophy</div>
+                        <div class="info-text">
+                            Built on modern minimalist principles using a strict 3-color design system that maintains visual hierarchy and user focus. The interface features adaptive theming capabilities, allowing seamless transitions between light and dark modes while preserving accessibility and readability across all user interactions.<br>
+                            The .NET Application uses HTML for it's frontend to provide a scalable window with consistent design language to the website, something normal Windows Forms windows could not properly achieve.
+                        </div>
+                        <ul class="info-features">
+                            <li>Three-color design system for visual clarity</li>
+                            <li>light and dark modes simply swaps colors</li>
+                            <li>Brutalist UI elements with sharp, geometric forms</li>
+                            <li>High contrast ratios for optimal readability</li>
+                            <li>Minimalist layouts reducing cognitive load</li>
+                            <li>Clear design intent for interactive elements</li>
+                        </ul>
+                    </div>
+                    <div class="image-area">
+                        <img src="assets/image_settings.png" alt="Design Settings Interface" class="project-image">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Staggered Image Section 3 - Web Dashboard -->
+            <div class="image-section">
+                <div class="image-content">
                     <div class="info-area">
                         <div class="info-header">Analytics Dashboard</div>
                         <div class="info-text">
@@ -399,9 +434,9 @@
                 </div>
             </div>
 
-            <!-- Staggered Image Section 3 - Leaderboards -->
+            <!-- Staggered Image Section 4 - Database Management -->
             <div class="image-section">
-                <div class="image-content">
+                <div class="image-content reverse">
                     <div class="image-area">
                         <img src="assets/image_sqlEditor.png" alt="SQL Database Editor" class="project-image">
                     </div>
