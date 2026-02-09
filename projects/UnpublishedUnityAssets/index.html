@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unpublished Unity Assets - Hetland</title>
+    <!-- Reuse StarCitizenTracker's styles -->
+    <link rel="stylesheet" href="../StarCitizenTracker/styles.css">
+    <link rel="stylesheet" href="../StarCitizenTracker/color-config.css">
+    <!-- Page-specific colors (overrides StarCitizenTracker's color values) -->
+    <link rel="stylesheet" href="colors.css">
+    <style>
+        /* Page layout styles - same pattern as StarCitizenTracker */
+        .project-section {
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            padding: 25px 40px;
+            border: 2px solid var(--secondary-color);
+            background: var(--secondary-color);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            font-size: 1em;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            color: var(--primary-color);
+        }
+
+        /* Project Overview */
+        .project-overview {
+            border: 2px solid var(--secondary-color);
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .overview-text {
+            font-size: 0.95em;
+            line-height: 1.8;
+            color: var(--secondary-color);
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        /* Staggered Image Sections */
+        .image-section {
+            margin-bottom: 60px;
+            border: 2px solid var(--secondary-color);
+        }
+
+        .image-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 400px;
+        }
+
+        /* Default order: Image left, Text right */
+        .image-content .image-area {
+            order: 1;
+        }
+
+        .image-content .info-area {
+            order: 2;
+        }
+
+        /* Reverse order: Text left, Image right */
+        .image-content.reverse .image-area {
+            order: 2;
+        }
+
+        .image-content.reverse .info-area {
+            order: 1;
+        }
+
+        .image-area {
+            background: var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            border: 4px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: var(--secondary-color);
+            opacity: 0.5;
+        }
+
+        .project-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 4px solid var(--secondary-color);
+            transition: all 0.3s;
+            box-shadow: none;
+        }
+
+        .project-image:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 30px var(--accent-color), 0 0 60px var(--accent-color);
+        }
+
+        .info-area {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .info-header {
+            font-size: 1.4em;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+        }
+
+        .info-text {
+            font-size: 0.95em;
+            line-height: 1.8;
+            color: var(--secondary-color);
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+
+        .info-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .info-features li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 20px;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+            color: var(--secondary-color);
+            opacity: 0.8;
+        }
+
+        .info-features li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* Call to Action */
+        .cta-section {
+            border: 2px solid var(--secondary-color);
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .cta-title {
+            font-size: 2em;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+
+        .cta-text {
+            font-size: 1em;
+            line-height: 1.6;
+            color: var(--secondary-color);
+            opacity: 0.7;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Navigation Tags */
+        .nav-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .nav-tag {
+            padding: 8px 15px;
+            border: 2px solid var(--secondary-color);
+            background: transparent;
+            color: var(--secondary-color);
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.2s;
+            cursor: default;
+        }
+
+        .nav-tag:hover {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .nav-tag.tech {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .nav-tag.tech:hover {
+            background: var(--accent-color);
+            color: var(--primary-color);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 20px 40px;
+            font-size: 0.9em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: var(--secondary-color);
+            color: var(--primary-color);
+            border: 2px solid var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .cta-button:hover {
+            background: var(--primary-color);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        @media (max-width: 1024px) {
+            .image-content, .image-content.reverse {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cta-button {
+                width: 250px;
+            }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <!-- Top Left Navigation -->
+    <div class="top-left-nav">
+        <button class="top-nav-button" onclick="window.open('../../', '_self')" title="Back to Home">HOME</button>
+        <button class="top-nav-button" onclick="window.open('../../projects/', '_self')" title="View All Projects">PROJECTS</button>
+    </div>
+
+    <div class="main-container">
+        <!-- Navigation -->
+        <div id="navigation-container"></div>
+
+        <div class="project-section">
+            <div class="section-header">
+                <h1 class="section-title">UNPUBLISHED UNITY ASSETS</h1>
+                <p class="section-subtitle">EDITOR TOOLS & UTILITIES IN DEVELOPMENT</p>
+            </div>
+
+            <!-- Project Overview -->
+            <div class="project-overview">
+                <div class="info-text">
+                    A collection of Unity Editor tools and utilities that are currently in development or awaiting publication. 
+                    These assets are designed to streamline workflows, enhance the Unity Editor experience, and solve common 
+                    development challenges. Click on any asset image to learn more or get early access.
+                </div>
+            </div>
+
+            <!-- Asset 1: UIDesignManager -->
+            <div class="image-section">
+                <div class="image-content">
+                    <div class="info-area">
+                        <div class="info-header">UI Design Manager</div>
+                        <div class="info-text">
+                            A centralized theme and color management system for Unity UI. Define your color palette once 
+                            and apply it across your entire project with automatic light/dark mode switching. Works in 
+                            Edit Mode for instant visual feedback while designing your UI.
+                        </div>
+                        <ul class="info-features">
+                            <li>Centralized color palette with customizable color keys</li>
+                            <li>Automatic Light/Dark theme switching</li>
+                            <li>Works in Edit Mode - see changes instantly</li>
+                            <li>DesignController component for UI elements (Image, Text, Button, Toggle)</li>
+                            <li>Custom property drawers for easy color selection</li>
+                            <li>Singleton pattern for global access</li>
+                        </ul>
+                        <a href="../../assets/downloads/unityassets/UIDesignManager.unitypackage" download class="cta-button" style="margin-top: 20px; padding: 12px 24px; font-size: 0.8em;">Download Package</a>
+                    </div>
+                    <div class="image-area" onclick="window.open('#', '_blank')" style="cursor: pointer;" title="Click to learn more">
+                        <img src="../../assets/images/unpublishedunityassets/uidesignmanager.webp" alt="UI Design Manager Preview" class="project-image">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset 2: DebugTools -->
+            <div class="image-section">
+                <div class="image-content reverse">
+                    <div class="image-area" onclick="window.open('#', '_blank')" style="cursor: pointer;" title="Click to learn more">
+                        <img src="../../assets/images/unpublishedunityassets/DebugGraphVisualizer.webp" alt="Debug Graph Visualizer Preview" class="project-image">
+                    </div>
+                    <div class="info-area">
+                        <div class="info-header">Debug Tools</div>
+                        <div class="info-text">
+                            Real-time debug visualization toolkit for Unity. Graph any field from any MonoBehaviour 
+                            directly in the Inspector. Perfect for debugging physics, animations, AI behavior, and 
+                            any numeric values that change over time.
+                        </div>
+                        <ul class="info-features">
+                            <li>Real-time graphing of any MonoBehaviour field</li>
+                            <li>Multiple graph types: Line, Filled Area, XY Plot</li>
+                            <li>Track multiple values simultaneously with color coding</li>
+                            <li>Auto-scaling or manual Y-axis range</li>
+                            <li>Field visibility filter (Public, Serialized, Private)</li>
+                            <li>Network visualizer for multiplayer debugging</li>
+                        </ul>
+                        <a href="../../assets/downloads/unityassets/DebugTools.unitypackage" download class="cta-button" style="margin-top: 20px; padding: 12px 24px; font-size: 0.8em;">Download Package</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset 3: AnimStudio -->
+            <div class="image-section">
+                <div class="image-content">
+                    <div class="info-area">
+                        <div class="info-header">Anim Studio</div>
+                        <div class="info-text">
+                            A frame-based animation recording and playback system for Unity. Record transform data 
+                            at runtime and play it back with precise frame control. Ideal for cinematics, 
+                            motion capture cleanup, and creating repeatable animation sequences.
+                        </div>
+                        <ul class="info-features">
+                            <li>Frame-based recording and playback system</li>
+                            <li>StudioDirector for centralized animation control</li>
+                            <li>TransformRecorder for position, rotation, and scale</li>
+                            <li>World or Local space recording options</li>
+                            <li>Automatic physics handling during playback</li>
+                            <li>IStudioAnimator interface for custom animators</li>
+                        </ul>
+                    </div>
+                    <div class="image-area" onclick="window.open('#', '_blank')" style="cursor: pointer;" title="Click to learn more">
+                        <div class="image-placeholder">[ ANIM STUDIO ]</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <div class="cta-title">INTERESTED IN THESE ASSETS?</div>
+                <div class="cta-text">
+                    These Unity assets are currently in development. Check back soon for updates, 
+                    or contact me for early access and feedback opportunities.
+                </div>
+                <div class="cta-buttons">
+                    <a href="../../contact-me/" class="cta-button primary">Get In Touch</a>
+                    <a href="../../projects/" class="cta-button">View All Projects</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reuse StarCitizenTracker's color config module -->
+    <script src="../StarCitizenTracker/color-config.js"></script>
+    <script>
+        // Simple navigation generator (same pattern as StarCitizenTracker)
+        function generateNavigation() {
+            return `
+                <nav class="top-nav">
+                    <div class="nav-logo">
+                        <div class="nav-tags">
+                            <div class="nav-tag tech">UNITY</div>
+                            <div class="nav-tag">C#</div>
+                            <div class="nav-tag">EDITOR TOOLS</div>
+                            <div class="nav-tag">UNPUBLISHED</div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-actions">
+                        <button class="btn btn-icon" id="darkModeToggle" title="Toggle Dark Mode">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                        </button>
+                        
+                        <button class="btn btn-icon" onclick="window.open('../../', '_self')" title="Back to Portfolio">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H6M12 5l-7 7 7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </nav>
+            `;
+        }
+        
+        // Initialize navigation and theme
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded');
+            
+            // Render navigation
+            document.getElementById('navigation-container').innerHTML = generateNavigation();
+            
+            // Initialize theme
+            const isDarkMode = localStorage.getItem('darkMode') !== 'false';
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            document.body.classList.toggle('light-mode', !isDarkMode);
+            
+            // Setup theme toggle
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('click', () => {
+                    const isDark = document.body.classList.toggle('dark-mode');
+                    document.body.classList.toggle('light-mode', !isDark);
+                    localStorage.setItem('darkMode', isDark);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

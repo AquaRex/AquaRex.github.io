@@ -1,0 +1,25 @@
+/* Unpublished Unity Assets - Color Theme */
+/* Follows the same 3-color system as StarCitizenTracker */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* CSS Custom Properties (Variables) for Theme Colors */
+:root {
+    --color-light: #e0e0e0;
+    --color-dark: #1a1a1a;
+    --accent-color: #3eb5ff;       /* Unity blue accent */
+    
+    /* Light mode assignments */
+    --primary-color: var(--color-light);
+    --secondary-color: var(--color-dark);
+}
+
+body.dark-mode {
+    /* Dark mode swaps the assignments */
+    --primary-color: var(--color-dark);
+    --secondary-color: var(--color-light);
+}
