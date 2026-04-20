@@ -11,6 +11,11 @@
             --color-light: #aba9a2;
             --color-dark: #18140c;
             --accent-color: #d05252;
+            --cv2-shadow-blur: 1.5px;
+            --cv2-shadow-text-blur: 3px;
+            --cv2-shadow-text-opacity: 1;
+            --cv2-shadow-offset-x: 3.5px;
+            --cv2-shadow-offset-y: 5px;
 
             --primary-color: var(--color-light);
             --secondary-color: var(--color-dark);
@@ -38,11 +43,82 @@
             min-height: 100vh;
             padding: 50px;
             line-height: 1.6;
+            position: relative;
             transition: background-color 0.3s, color 0.3s;
         }
 
+        #cv2RenderRoot {
+            position: relative;
+            z-index: 2;
+        }
+        #cv2ShadowLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.3;
+            filter: blur(var(--cv2-shadow-blur));
+        }
+        #cv2NavShadowLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.3;
+            filter: blur(var(--cv2-shadow-blur));
+        }
+        #cv2ShadowLayer > * {
+            pointer-events: none;
+        }
+        #cv2NavShadowLayer > * {
+            pointer-events: none;
+        }
+        #cv2ShadowLayer .top-nav-button,
+        #cv2NavShadowLayer .top-nav-button,
+        #cv2ShadowLayer .cv-tag,
+        #cv2ShadowLayer .cv-name,
+        #cv2ShadowLayer .cv-subtitle,
+        #cv2ShadowLayer .cv-section-title,
+        #cv2ShadowLayer .cv-sidebar-title,
+        #cv2ShadowLayer .cv-field-date,
+        #cv2ShadowLayer .cv-field-title,
+        #cv2ShadowLayer .cv-field-org,
+        #cv2ShadowLayer .cv-field-desc,
+        #cv2ShadowLayer .cv-project-name,
+        #cv2ShadowLayer .cv-project-date,
+        #cv2ShadowLayer .cv-project-desc,
+        #cv2ShadowLayer .cv-info-label,
+        #cv2ShadowLayer .cv-info-value,
+        #cv2ShadowLayer .cv-skill-tag,
+        #cv2ShadowLayer .placeholder-text,
+        #cv2ShadowLayer .btn-icon,
+        #cv2ShadowLayer .cv-popup-title,
+        #cv2ShadowLayer .cv-popup-date,
+        #cv2ShadowLayer .cv-popup-desc,
+        #cv2ShadowLayer .cv-popup-close,
+        #cv2ShadowLayer .cv-topbar-left,
+        #cv2ShadowLayer a {
+            filter: blur(var(--cv2-shadow-text-blur));
+            opacity: var(--cv2-shadow-text-opacity);
+        }
+        #cv2ShadowLayer .main-container,
+        #cv2ShadowLayer .cv-topbar,
+        #cv2ShadowLayer .cv-header,
+        #cv2ShadowLayer .cv-section,
+        #cv2ShadowLayer .cv-sidebar-block,
+        #cv2ShadowLayer .cv-photo,
+        #cv2ShadowLayer .top-nav-button,
+        #cv2ShadowLayer .btn-icon,
+        #cv2ShadowLayer .cv-popup,
+        #cv2ShadowLayer .cv-popup-image,
+        #cv2ShadowLayer .cv-popup-details {
+            background: transparent !important;
+        }
+
         a { color: var(--secondary-color); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        a:hover,
+        a.is-hovered { text-decoration: underline; }
 
         /* ===== TOP NAV ===== */
         .top-left-nav {
@@ -50,7 +126,7 @@
             display: flex; gap: 20px; z-index: 1000;
         }
         .top-nav-button {
-            background: var(--primary-color);
+            background: transparent;
             border: 2px solid var(--secondary-color);
             padding: 12px 20px;
             font-size: 0.7rem; font-weight: bold;
@@ -59,7 +135,8 @@
             cursor: pointer; transition: all 0.2s;
             font-family: inherit;
         }
-        .top-nav-button:hover {
+        .top-nav-button:hover,
+        .top-nav-button.is-hovered {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
@@ -67,7 +144,7 @@
         /* ===== MAIN CONTAINER ===== */
         .main-container {
             max-width: 1200px; margin: 0 auto;
-            background: var(--primary-color);
+            background: transparent;
             border: 2px solid var(--secondary-color);
             padding: 40px;
             display: flex; flex-direction: column;
@@ -92,7 +169,8 @@
             text-transform: uppercase; font-weight: bold;
             transition: all 0.2s;
         }
-        .cv-tag:hover {
+        .cv-tag:hover,
+        .cv-tag.is-hovered {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
@@ -100,7 +178,8 @@
             border-color: var(--accent-color);
             color: var(--accent-color);
         }
-        .cv-tag.accent:hover {
+        .cv-tag.accent:hover,
+        .cv-tag.accent.is-hovered {
             background: var(--accent-color);
             color: var(--primary-color);
         }
@@ -116,7 +195,12 @@
             display: flex; align-items: center; justify-content: center;
             font-family: inherit;
         }
-        .btn-icon:hover {
+        .btn-icon:hover,
+        .btn-icon.is-hovered {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+        }
+        .btn-icon.is-active {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
@@ -124,18 +208,23 @@
         /* ===== HEADER (inside left column) ===== */
         .cv-header {
             padding: 30px 30px;
-            background: var(--secondary-color);
+            background: transparent;
             border: 2px solid var(--secondary-color);
         }
         .cv-name {
+            display: block;
+            width: 100%;
+            padding: 8px 14px;
             font-size: 2.4em; font-weight: bold;
             letter-spacing: 4px;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            background: var(--secondary-color);
+            margin-bottom: 12px;
         }
         .cv-subtitle {
+            display: block;
             font-size: 1em; letter-spacing: 2px;
-            color: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         /* ===== TWO-COLUMN BODY ===== */
@@ -177,7 +266,8 @@
         .cv-field:last-child {
             border-bottom: none;
         }
-        .cv-field:hover {
+        .cv-field:hover,
+        .cv-field.is-hovered {
             background: color-mix(in srgb, var(--secondary-color) 5%, transparent);
         }
 
@@ -238,20 +328,23 @@
         .cv-project + .cv-project {
             margin-top: 24px;
         }
-        .cv-project:hover {
+        .cv-project:hover,
+        .cv-project.is-hovered {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
-        .cv-project:hover .cv-project-name {
+        .cv-project:hover .cv-project-name,
+        .cv-project.is-hovered .cv-project-name {
             color: var(--accent-color);
         }
-        .cv-project:hover .cv-project-date {
+        .cv-project:hover .cv-project-date,
+        .cv-project.is-hovered .cv-project-date {
             color: var(--primary-color);
         }
 
         .cv-project-thumb {
             width: 120px; flex-shrink: 0;
-            background: var(--secondary-color);
+            background: transparent;
             display: flex; align-items: center; justify-content: center;
             border-right: 2px solid var(--secondary-color);
             overflow: hidden;
@@ -262,7 +355,7 @@
         .cv-project-thumb .placeholder-text {
             font-size: 0.6rem; font-weight: bold;
             letter-spacing: 2px; text-transform: uppercase;
-            color: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         .cv-project-info {
@@ -294,8 +387,8 @@
             font-size: 0.7rem; font-weight: bold;
             letter-spacing: 3px; text-transform: uppercase;
             border-bottom: 2px solid var(--secondary-color);
-            color: var(--primary-color);
-            background: var(--secondary-color);
+            color: var(--secondary-color);
+            background: transparent;
         }
         .cv-sidebar-content {
             padding: 25px;
@@ -304,7 +397,7 @@
         /* Photo */
         .cv-photo {
             width: 100%; aspect-ratio: 1;
-            background: var(--secondary-color);
+            background: transparent;
             border: 2px solid var(--secondary-color);
             display: flex; align-items: center; justify-content: center;
             border-bottom: 2px solid var(--secondary-color);
@@ -316,7 +409,7 @@
         .cv-photo .placeholder-text {
             font-size: 0.8rem; font-weight: bold;
             letter-spacing: 3px; text-transform: uppercase;
-            color: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         /* Info list */
@@ -369,7 +462,8 @@
             border: 2px solid var(--secondary-color);
             transition: all 0.2s;
         }
-        .cv-skill-tag:hover {
+        .cv-skill-tag:hover,
+        .cv-skill-tag.is-hovered {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
@@ -389,7 +483,7 @@
             opacity: 1; pointer-events: auto;
         }
         .cv-popup {
-            background: var(--primary-color);
+            background: transparent;
             border: 2px solid var(--secondary-color);
             max-width: 1120px; width: 96%;
             max-height: 92vh; overflow-y: auto;
@@ -412,7 +506,8 @@
             transition: all 0.2s; z-index: 2;
             font-family: inherit;
         }
-        .cv-popup-close:hover {
+        .cv-popup-close:hover,
+        .cv-popup-close.is-hovered {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
@@ -423,7 +518,7 @@
         }
         .cv-popup-image {
             flex: 1.4; min-width: 0; min-height: 460px;
-            background: var(--secondary-color);
+            background: transparent;
             display: flex; align-items: center; justify-content: center;
             border-right: 2px solid var(--secondary-color);
         }
@@ -433,7 +528,7 @@
         .cv-popup-image .placeholder-text {
             font-size: 0.7rem; font-weight: bold;
             letter-spacing: 2px; text-transform: uppercase;
-            color: var(--primary-color);
+            color: var(--secondary-color);
         }
         .cv-popup-details {
             flex: 1; min-width: 0;
@@ -495,6 +590,9 @@
     </style>
 </head>
 <body>
+    <div id="cv2NavShadowLayer" aria-hidden="true"></div>
+    <div id="cv2ShadowLayer" aria-hidden="true"></div>
+    <div id="cv2RenderRoot">
     <!-- Top Left Navigation -->
     <div class="top-left-nav">
         <button class="top-nav-button" onclick="window.open('../', '_self')" title="Back to Home">HOME</button>
@@ -527,6 +625,13 @@
                 CV - Portfolio
             </div>
             <div class="cv-topbar-actions" style="padding: 15px 25px;">
+                <button class="btn-icon" id="glassToggle" title="Toggle Bottom Layer" aria-label="Toggle Bottom Layer" aria-pressed="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="8.2" cy="11.0" r="3.6" opacity="0.95"></circle>
+                        <circle cx="14.9" cy="8.2" r="2.4" opacity="0.75"></circle>
+                        <circle cx="14.8" cy="15.2" r="3.2" opacity="0.85"></circle>
+                    </svg>
+                </button>
                 <button class="btn-icon" id="darkModeToggle" title="Toggle Dark Mode">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -612,6 +717,7 @@
         </div><!-- /cv-body -->
 
     </div><!-- /main-container -->
+    </div><!-- /cv2RenderRoot -->
 
     <script src="../cv/cv.js"></script>
     <script src="../projects/StarCitizenTracker/color-config.js"></script>
@@ -732,9 +838,198 @@
             if (projectGroups) {
                 projectGroups.innerHTML = (data.projects || []).map((item) => renderCv2Field(item, false)).join('');
             }
+
+            scheduleCv2ShadowSync();
         }
 
+        let cv2ShadowSyncFrame = null;
+        let cv2HoveredKeys = new Set();
+    let cv2BottomLayerVisible = true;
+
+        const cv2HoverSelector = [
+            '.top-nav-button',
+            '.cv-tag',
+            '.btn-icon',
+            '.cv-field',
+            '.cv-project',
+            '.cv-skill-tag',
+            '.cv-popup-close',
+            'a'
+        ].join(', ');
+
+        function stripIdsFromClone(root) {
+            if (root.nodeType !== Node.ELEMENT_NODE) {
+                return;
+            }
+            root.removeAttribute('id');
+            root.removeAttribute('onclick');
+            const descendants = root.querySelectorAll('[id], [onclick]');
+            descendants.forEach((node) => {
+                node.removeAttribute('id');
+                node.removeAttribute('onclick');
+            });
+        }
+
+        function assignCv2ShadowKeys(sourceRoot) {
+            const sourceNodes = sourceRoot.querySelectorAll(cv2HoverSelector);
+            sourceNodes.forEach((node, index) => {
+                node.dataset.shadowKey = String(index);
+            });
+        }
+
+        function applyCv2HoveredState() {
+            const renderRoot = document.getElementById('cv2RenderRoot');
+            const shadowLayer = document.getElementById('cv2ShadowLayer');
+            const navShadowLayer = document.getElementById('cv2NavShadowLayer');
+            if (!renderRoot || !shadowLayer || !navShadowLayer) {
+                return;
+            }
+
+            renderRoot.querySelectorAll('.is-hovered').forEach((node) => {
+                node.classList.remove('is-hovered');
+            });
+            shadowLayer.querySelectorAll('.is-hovered').forEach((node) => {
+                node.classList.remove('is-hovered');
+            });
+            navShadowLayer.querySelectorAll('.is-hovered').forEach((node) => {
+                node.classList.remove('is-hovered');
+            });
+
+            cv2HoveredKeys.forEach((key) => {
+                const sourceNode = renderRoot.querySelector(`[data-shadow-key="${key}"]`);
+                const cloneNode = shadowLayer.querySelector(`[data-shadow-key="${key}"]`) || navShadowLayer.querySelector(`[data-shadow-key="${key}"]`);
+                if (sourceNode) {
+                    sourceNode.classList.add('is-hovered');
+                }
+                if (cloneNode) {
+                    cloneNode.classList.add('is-hovered');
+                }
+            });
+        }
+
+        function collectCv2HoverKeys(target, root) {
+            const nextKeys = new Set();
+            let current = target;
+            while (current && current !== root) {
+                if (current.matches && current.matches(cv2HoverSelector) && current.dataset.shadowKey) {
+                    nextKeys.add(current.dataset.shadowKey);
+                }
+                current = current.parentElement;
+            }
+            return nextKeys;
+        }
+
+        function updateCv2HoveredKeys(nextKeys) {
+            const hasChanged = nextKeys.size !== cv2HoveredKeys.size || [...nextKeys].some((key) => !cv2HoveredKeys.has(key));
+            if (!hasChanged) {
+                return;
+            }
+            cv2HoveredKeys = nextKeys;
+            applyCv2HoveredState();
+        }
+
+        function setCv2BottomLayerVisible(visible) {
+            cv2BottomLayerVisible = visible;
+            const shadowLayer = document.getElementById('cv2ShadowLayer');
+            const navShadowLayer = document.getElementById('cv2NavShadowLayer');
+            const glassToggle = document.getElementById('glassToggle');
+
+            if (shadowLayer) {
+                shadowLayer.style.display = visible ? '' : 'none';
+            }
+            if (navShadowLayer) {
+                navShadowLayer.style.display = visible ? '' : 'none';
+            }
+            if (glassToggle) {
+                glassToggle.classList.toggle('is-active', visible);
+                glassToggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+                glassToggle.title = visible ? 'Hide Bottom Layer' : 'Show Bottom Layer';
+            }
+            if (visible) {
+                scheduleCv2ShadowSync();
+            }
+        }
+
+        function syncCv2ShadowLayer() {
+            cv2ShadowSyncFrame = null;
+            const renderRoot = document.getElementById('cv2RenderRoot');
+            const shadowLayer = document.getElementById('cv2ShadowLayer');
+            const navShadowLayer = document.getElementById('cv2NavShadowLayer');
+            if (!renderRoot || !shadowLayer || !navShadowLayer) {
+                return;
+            }
+
+            if (!cv2BottomLayerVisible) {
+                return;
+            }
+
+            const rootStyle = getComputedStyle(document.documentElement);
+            const offsetX = Number.parseFloat(rootStyle.getPropertyValue('--cv2-shadow-offset-x')) || 0;
+            const offsetY = Number.parseFloat(rootStyle.getPropertyValue('--cv2-shadow-offset-y')) || 0;
+
+            const rect = renderRoot.getBoundingClientRect();
+            shadowLayer.style.top = `${window.scrollY + rect.top + offsetY}px`;
+            shadowLayer.style.left = `${window.scrollX + rect.left + offsetX}px`;
+            shadowLayer.style.width = `${rect.width}px`;
+            shadowLayer.style.height = `${renderRoot.offsetHeight}px`;
+
+            assignCv2ShadowKeys(renderRoot);
+
+            const clone = renderRoot.cloneNode(true);
+            stripIdsFromClone(clone);
+            const navInClone = clone.querySelector('.top-left-nav');
+            if (navInClone) {
+                navInClone.remove();
+            }
+            clone.style.margin = '0';
+            shadowLayer.innerHTML = '';
+            shadowLayer.appendChild(clone);
+
+            navShadowLayer.innerHTML = '';
+            const sourceNav = renderRoot.querySelector('.top-left-nav');
+            if (sourceNav) {
+                const navRect = sourceNav.getBoundingClientRect();
+                const navClone = sourceNav.cloneNode(true);
+                stripIdsFromClone(navClone);
+                navClone.style.position = 'fixed';
+                navClone.style.top = `${navRect.top + offsetY}px`;
+                navClone.style.left = `${navRect.left + offsetX}px`;
+                navShadowLayer.appendChild(navClone);
+            }
+
+            applyCv2HoveredState();
+        }
+
+        function scheduleCv2ShadowSync() {
+            if (cv2ShadowSyncFrame !== null) {
+                return;
+            }
+            cv2ShadowSyncFrame = window.requestAnimationFrame(syncCv2ShadowLayer);
+        }
+
+        setCv2BottomLayerVisible(true);
+
         renderCv2FromData();
+
+        const cv2RenderRoot = document.getElementById('cv2RenderRoot');
+        if (cv2RenderRoot) {
+            const cv2ShadowObserver = new MutationObserver(() => scheduleCv2ShadowSync());
+            cv2ShadowObserver.observe(cv2RenderRoot, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                characterData: true
+            });
+            cv2RenderRoot.addEventListener('pointermove', (event) => {
+                updateCv2HoveredKeys(collectCv2HoverKeys(event.target, cv2RenderRoot));
+            });
+            cv2RenderRoot.addEventListener('pointerleave', () => {
+                updateCv2HoveredKeys(new Set());
+            });
+            window.addEventListener('scroll', scheduleCv2ShadowSync, { passive: true });
+            window.addEventListener('resize', scheduleCv2ShadowSync);
+            window.addEventListener('load', scheduleCv2ShadowSync);
+        }
 
         /* ===== POPUP LOGIC ===== */
         function openProjectPopup(el) {
@@ -781,8 +1076,15 @@
 
         /* ===== DARK MODE TOGGLE ===== */
         const darkModeToggle = document.getElementById('darkModeToggle');
+        const glassToggle = document.getElementById('glassToggle');
         const savedMode = localStorage.getItem('cv2-dark-mode');
         if (savedMode === 'true') document.body.classList.add('dark-mode');
+
+        if (glassToggle) {
+            glassToggle.addEventListener('click', () => {
+                setCv2BottomLayerVisible(!cv2BottomLayerVisible);
+            });
+        }
 
         darkModeToggle.addEventListener('click', (e) => {
             if (e.shiftKey) {
@@ -791,6 +1093,7 @@
             }
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('cv2-dark-mode', document.body.classList.contains('dark-mode'));
+            scheduleCv2ShadowSync();
         });
 
         function setColorConfiguratorVisible(visible) {
