@@ -120,23 +120,6 @@
             background: var(--secondary-color);
             color: var(--primary-color);
         }
-        .btn-text {
-            background: transparent;
-            border: 2px solid var(--secondary-color);
-            padding: 10px 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--secondary-color);
-            font-family: inherit;
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        .btn-text:hover {
-            background: var(--secondary-color);
-            color: var(--primary-color);
-        }
 
         /* ===== HEADER (inside left column) ===== */
         .cv-header {
@@ -507,9 +490,6 @@
                 CV - Portfolio
             </div>
             <div class="cv-topbar-actions" style="padding: 15px 25px;">
-                <button class="btn-text" id="colorConfigToggle" title="Open Color Configurator">
-                    Colors
-                </button>
                 <button class="btn-icon" id="darkModeToggle" title="Toggle Dark Mode">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -752,7 +732,6 @@
 
         /* ===== DARK MODE TOGGLE ===== */
         const darkModeToggle = document.getElementById('darkModeToggle');
-        const colorConfigToggle = document.getElementById('colorConfigToggle');
         const savedMode = localStorage.getItem('cv2-dark-mode');
         if (savedMode === 'true') document.body.classList.add('dark-mode');
 
@@ -791,15 +770,14 @@
         window.setTimeout(() => setColorConfiguratorVisible(false), 0);
         window.setTimeout(() => setColorConfiguratorVisible(false), 120);
 
-        colorConfigToggle.addEventListener('click', toggleColorConfigurator);
-
-        // Browser often reserves Ctrl+Shift+C for devtools; provide reliable alternatives.
+        // Primary shortcut: Ctrl+Shift+C.
         document.addEventListener('keydown', (e) => {
             const key = e.key.toLowerCase();
-            if ((e.ctrlKey || e.metaKey) && e.altKey && key === 'c') {
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'c') {
                 e.preventDefault();
                 toggleColorConfigurator();
             }
+            // Fallback shortcut for environments where Ctrl+Shift+C is reserved by devtools.
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'k') {
                 e.preventDefault();
                 toggleColorConfigurator();
