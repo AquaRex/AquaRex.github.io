@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV - Thomas Hetland</title>
+    <link rel="stylesheet" href="../projects/StarCitizenTracker/color-config.css">
     <style>
         /* ===== 3-COLOR SYSTEM ===== */
         :root {
@@ -116,6 +117,23 @@
             font-family: inherit;
         }
         .btn-icon:hover {
+            background: var(--secondary-color);
+            color: var(--primary-color);
+        }
+        .btn-text {
+            background: transparent;
+            border: 2px solid var(--secondary-color);
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--secondary-color);
+            font-family: inherit;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .btn-text:hover {
             background: var(--secondary-color);
             color: var(--primary-color);
         }
@@ -456,17 +474,6 @@
             .cv-name { font-size: 1.5em; }
         }
     </style>
-            <script>
-            // ===== COLOR CONFIG PANEL =====
-            (function() {
-                var script = document.createElement('script');
-                script.src = '/services/colorConfigPanel.js';
-                script.onload = function() {
-                    if (window.ColorConfigPanel) new window.ColorConfigPanel();
-                };
-                document.head.appendChild(script);
-            })();
-            </script>
 </head>
 <body>
     <!-- Top Left Navigation -->
@@ -500,6 +507,9 @@
                 CV - Portfolio
             </div>
             <div class="cv-topbar-actions" style="padding: 15px 25px;">
+                <button class="btn-text" id="colorConfigToggle" title="Open Color Configurator">
+                    Colors
+                </button>
                 <button class="btn-icon" id="darkModeToggle" title="Toggle Dark Mode">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -707,6 +717,7 @@
 
     </div><!-- /main-container -->
 
+    <script src="../projects/StarCitizenTracker/color-config.js"></script>
     <script>
         /* ===== POPUP LOGIC ===== */
         function openProjectPopup(el) {
@@ -741,12 +752,43 @@
 
         /* ===== DARK MODE TOGGLE ===== */
         const darkModeToggle = document.getElementById('darkModeToggle');
+        const colorConfigToggle = document.getElementById('colorConfigToggle');
         const savedMode = localStorage.getItem('cv2-dark-mode');
         if (savedMode === 'true') document.body.classList.add('dark-mode');
 
         darkModeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('cv2-dark-mode', document.body.classList.contains('dark-mode'));
+        });
+
+        function toggleColorConfigurator() {
+            const menu = document.getElementById('colorConfigMenu');
+            if (!menu) return;
+            menu.classList.toggle('show');
+            if (menu.classList.contains('show') && window.colorConfigMenu && typeof window.colorConfigMenu.loadCurrentColors === 'function') {
+                window.colorConfigMenu.loadCurrentColors();
+            }
+        }
+
+        // The imported StarCitizenTracker configurator defaults to visible; force hidden on load for this page.
+        const initialConfigMenu = document.getElementById('colorConfigMenu');
+        if (initialConfigMenu) {
+            initialConfigMenu.classList.remove('show');
+        }
+
+        colorConfigToggle.addEventListener('click', toggleColorConfigurator);
+
+        // Browser often reserves Ctrl+Shift+C for devtools; provide reliable alternatives.
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && e.altKey && key === 'c') {
+                e.preventDefault();
+                toggleColorConfigurator();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'k') {
+                e.preventDefault();
+                toggleColorConfigurator();
+            }
         });
     </script>
 </body>
