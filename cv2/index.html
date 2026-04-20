@@ -227,10 +227,16 @@
         /* ===== PROJECT MODULE ===== */
         .cv-project {
             display: flex; gap: 0;
-            margin-top: 16px;
+            margin-top: 0;
             border: 2px solid var(--secondary-color);
             cursor: pointer;
             transition: all 0.2s;
+        }
+        .cv-field-desc + .cv-project {
+            margin-top: 24px;
+        }
+        .cv-project + .cv-project {
+            margin-top: 24px;
         }
         .cv-project:hover {
             background: var(--secondary-color);
@@ -735,7 +741,11 @@
         const savedMode = localStorage.getItem('cv2-dark-mode');
         if (savedMode === 'true') document.body.classList.add('dark-mode');
 
-        darkModeToggle.addEventListener('click', () => {
+        darkModeToggle.addEventListener('click', (e) => {
+            if (e.shiftKey) {
+                toggleColorConfigurator();
+                return;
+            }
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('cv2-dark-mode', document.body.classList.contains('dark-mode'));
         });
@@ -745,7 +755,6 @@
             if (!menu) return;
 
             if (visible) {
-                menu.style.display = '';
                 menu.classList.add('show');
                 if (window.colorConfigMenu && typeof window.colorConfigMenu.loadCurrentColors === 'function') {
                     window.colorConfigMenu.loadCurrentColors();
@@ -754,7 +763,6 @@
             }
 
             menu.classList.remove('show');
-            menu.style.display = 'none';
         }
 
         function toggleColorConfigurator() {
@@ -770,19 +778,7 @@
         window.setTimeout(() => setColorConfiguratorVisible(false), 0);
         window.setTimeout(() => setColorConfiguratorVisible(false), 120);
 
-        // Primary shortcut: Ctrl+Shift+C.
-        document.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'c') {
-                e.preventDefault();
-                toggleColorConfigurator();
-            }
-            // Fallback shortcut for environments where Ctrl+Shift+C is reserved by devtools.
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'k') {
-                e.preventDefault();
-                toggleColorConfigurator();
-            }
-        });
+        // Shortcut handling comes from StarCitizenTracker color-config.js (Ctrl/Cmd+Shift+C).
     </script>
 </body>
 </html>
