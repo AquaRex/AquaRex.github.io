@@ -761,20 +761,35 @@
             localStorage.setItem('cv2-dark-mode', document.body.classList.contains('dark-mode'));
         });
 
+        function setColorConfiguratorVisible(visible) {
+            const menu = document.getElementById('colorConfigMenu');
+            if (!menu) return;
+
+            if (visible) {
+                menu.style.display = '';
+                menu.classList.add('show');
+                if (window.colorConfigMenu && typeof window.colorConfigMenu.loadCurrentColors === 'function') {
+                    window.colorConfigMenu.loadCurrentColors();
+                }
+                return;
+            }
+
+            menu.classList.remove('show');
+            menu.style.display = 'none';
+        }
+
         function toggleColorConfigurator() {
             const menu = document.getElementById('colorConfigMenu');
             if (!menu) return;
-            menu.classList.toggle('show');
-            if (menu.classList.contains('show') && window.colorConfigMenu && typeof window.colorConfigMenu.loadCurrentColors === 'function') {
-                window.colorConfigMenu.loadCurrentColors();
-            }
+            const isVisible = menu.classList.contains('show') && menu.style.display !== 'none';
+            setColorConfiguratorVisible(!isVisible);
         }
 
-        // The imported StarCitizenTracker configurator defaults to visible; force hidden on load for this page.
-        const initialConfigMenu = document.getElementById('colorConfigMenu');
-        if (initialConfigMenu) {
-            initialConfigMenu.classList.remove('show');
-        }
+        // The imported StarCitizenTracker configurator starts with .show; hide it reliably after creation.
+        setColorConfiguratorVisible(false);
+        window.addEventListener('DOMContentLoaded', () => setColorConfiguratorVisible(false));
+        window.setTimeout(() => setColorConfiguratorVisible(false), 0);
+        window.setTimeout(() => setColorConfiguratorVisible(false), 120);
 
         colorConfigToggle.addEventListener('click', toggleColorConfigurator);
 
