@@ -40,7 +40,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        a { color: var(--accent-color); text-decoration: none; }
+        a { color: var(--secondary-color); text-decoration: none; }
         a:hover { text-decoration: underline; }
 
         /* ===== TOP NAV ===== */
@@ -162,7 +162,7 @@
             padding: 15px 30px;
             font-size: 0.8rem; font-weight: bold;
             letter-spacing: 3px; text-transform: uppercase;
-            color: var(--primary-color);
+            color: var(--accent-color);
             border-bottom: 2px solid var(--secondary-color);
             background: var(--secondary-color);
         }
@@ -265,7 +265,7 @@
         .cv-project-date {
             font-size: 0.7rem; font-weight: bold;
             letter-spacing: 2px;
-            color: var(--accent-color);
+            color: var(--secondary-color);
             margin-bottom: 6px; display: block;
         }
         .cv-project-desc {
@@ -421,7 +421,7 @@
         .cv-popup-date {
             font-size: 0.75rem; font-weight: bold;
             letter-spacing: 2px;
-            color: var(--accent-color);
+            color: var(--secondary-color);
             margin-bottom: 20px;
         }
         .cv-popup-desc {
@@ -456,6 +456,17 @@
             .cv-name { font-size: 1.5em; }
         }
     </style>
+            <script>
+            // ===== COLOR CONFIG PANEL =====
+            (function() {
+                var script = document.createElement('script');
+                script.src = '/services/colorConfigPanel.js';
+                script.onload = function() {
+                    if (window.ColorConfigPanel) new window.ColorConfigPanel();
+                };
+                document.head.appendChild(script);
+            })();
+            </script>
 </head>
 <body>
     <!-- Top Left Navigation -->
