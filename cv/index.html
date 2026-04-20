@@ -286,6 +286,23 @@
             margin-bottom: 0.8rem;
         }
 
+        .cv-field--date-top-right {
+            padding-top: 1.2rem;
+        }
+        .cv-field--date-top-right .cv-field-date {
+            position: absolute;
+            top: 0.9rem;
+            left: -152px;
+            width: 104px;
+            margin-bottom: 0;
+            text-align: right;
+            line-height: 1.25;
+            white-space: normal;
+        }
+        .cv-field-date-line {
+            display: block;
+        }
+
         /* Horizontal tick from timeline to the field card */
         .cv-field::before {
             content: '';
@@ -362,7 +379,7 @@
             box-shadow: 0 6px 20px var(--shadow-standard);
         }
         .cv-project-thumb {
-            width: 120px; height: 80px; flex-shrink: 0;
+            width: 96px; height: 96px; flex-shrink: 0;
             border-radius: 4px; overflow: hidden;
             background: var(--primary-transparent-light);
             border: 1px solid var(--primary-border-light);
@@ -397,7 +414,9 @@
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(6px);
             z-index: 1000; display: flex;
-            align-items: center; justify-content: center;
+            align-items: flex-start; justify-content: center;
+            overflow-y: auto;
+            padding: 2rem;
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
         }
@@ -408,8 +427,10 @@
             background: linear-gradient(135deg, var(--bg-bottom), var(--bg-middle));
             border: 1px solid var(--primary-border);
             border-radius: 12px;
-            max-width: 860px; width: 92%;
-            max-height: 85vh; overflow-y: auto;
+            max-width: 1120px; width: 96%;
+            max-height: none;
+            overflow: visible;
+            margin: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--primary-transparent-light);
             transform: scale(0.92) translateY(20px);
             transition: transform 0.35s ease;
@@ -457,12 +478,13 @@
             padding: 2rem;
         }
         .cv-popup-image {
-            flex: 1; min-width: 0;
+            flex: 0 0 42%; min-width: 0;
             border-radius: 8px; overflow: hidden;
             background: var(--primary-transparent-light);
             border: 1px solid var(--primary-border-light);
             display: flex; align-items: center; justify-content: center;
-            min-height: 280px;
+            aspect-ratio: 1 / 1;
+            min-height: 0;
         }
         .cv-popup-image img {
             width: 100%; height: 100%; object-fit: cover;
@@ -473,6 +495,16 @@
         .cv-popup-details {
             flex: 1; min-width: 0;
             display: flex; flex-direction: column;
+        }
+        .cv-popup-org-logo {
+            margin-bottom: 14px;
+            max-width: 180px;
+        }
+        .cv-popup-org-logo img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
         }
         .cv-popup-title {
             font-size: 1.5rem; font-weight: 800;
@@ -528,11 +560,29 @@
             .cv-section-title::after { left: -24px; }
             .cv-field::before { left: -21px; width: 21px; }
             .cv-field::after { left: -25px; }
+            .cv-field--date-top-right {
+                padding-top: 1.2rem;
+            }
+            .cv-field--date-top-right .cv-field-date {
+                position: absolute;
+                left: -118px;
+                width: 88px;
+                top: 0.95rem;
+                text-align: right;
+            }
             .cv-project { flex-direction: column; }
-            .cv-project-thumb { width: 100%; height: 140px; }
+            .cv-project-thumb {
+                width: min(100%, 220px);
+                height: auto;
+                aspect-ratio: 1 / 1;
+            }
             .cv-popup-content { flex-direction: column; }
-            .cv-popup-image { min-height: 200px; }
-            .cv-popup { width: 96%; max-height: 90vh; }
+            .cv-popup-image {
+                width: 100%;
+                aspect-ratio: 1 / 1;
+                min-height: 0;
+            }
+            .cv-popup { width: 96%; max-height: none; }
             #canvasCardGizmo { display: none; }
         }
         @media (max-width: 480px) {
@@ -565,6 +615,7 @@
                     <i class="fas fa-image placeholder-icon"></i>
                 </div>
                 <div class="cv-popup-details">
+                    <div class="cv-popup-org-logo" id="popupOrgLogo"></div>
                     <h3 class="cv-popup-title" id="popupTitle"></h3>
                     <span class="cv-popup-date" id="popupDate"></span>
                     <p class="cv-popup-desc" id="popupDesc"></p>
@@ -585,137 +636,33 @@
                 <!-- HEADER (left column only) -->
                 <div class="cv-topbar">
                     <div class="cv-identity">
-                        <h1>Thomas Hetland</h1>
-                        <p class="cv-role">IT, Designer &amp; Developer</p>
+                        <h1 id="cv1Name"></h1>
+                        <p class="cv-role" id="cv1Role"></p>
                     </div>
                 </div>
 
                 <!-- SUMMARY -->
                 <div class="cv-section">
                     <h2 class="cv-section-title"><i class="fas fa-user-circle"></i> Summary</h2>
-                    <p class="cv-field-desc" style="padding-left: 4px;">
-                        Placeholder summary. Replace with your personal description.
-                    </p>
+                    <p class="cv-field-desc" style="padding-left: 4px;" id="cv1Summary"></p>
                 </div>
 
                 <!-- EXPERIENCE -->
                 <div class="cv-section">
                     <h2 class="cv-section-title"><i class="fas fa-briefcase"></i> Experience</h2>
-
-                    <!-- Company 1 -->
-                    <div class="cv-field" data-start="2022-01" data-end="2024-12">
-                        <span class="cv-field-date">2022 — 2024</span>
-                        <div class="cv-field-logo">
-                            <img src="../logo.png" alt="Company 1">
-                        </div>
-                        <h3 class="cv-field-title">Developer — Company One</h3>
-                        <p class="cv-field-desc">
-                            Description of role and responsibilities at this company.
-                        </p>
-
-                        <div class="cv-project" onclick="openProjectPopup(this)"
-                             data-title="Project Name"
-                             data-date="Jan 2023 — Jun 2024"
-                             data-desc="Full description of this project that appears in the popup."
-                             data-img="">
-                            <div class="cv-project-thumb">
-                                <i class="fas fa-image placeholder-icon"></i>
-                            </div>
-                            <div class="cv-project-info">
-                                <h4 class="cv-project-name">Project Name</h4>
-                                <span class="cv-project-date">Jan 2023 — Jun 2024</span>
-                                <p class="cv-project-desc">Short description of the project visible in the card.</p>
-                            </div>
-                        </div>
-
-                        <div class="cv-project" onclick="openProjectPopup(this)"
-                             data-title="Another Project"
-                             data-date="Mar 2022 — Dec 2022"
-                             data-desc="Full description for the popup."
-                             data-img="">
-                            <div class="cv-project-thumb">
-                                <i class="fas fa-image placeholder-icon"></i>
-                            </div>
-                            <div class="cv-project-info">
-                                <h4 class="cv-project-name">Another Project</h4>
-                                <span class="cv-project-date">Mar 2022 — Dec 2022</span>
-                                <p class="cv-project-desc">Short description of this project.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Company 2 -->
-                    <div class="cv-field" data-start="2020-06" data-end="2021-12">
-                        <span class="cv-field-date">2020 — 2021</span>
-                        <div class="cv-field-logo">
-                            <img src="../logo.png" alt="Company 2">
-                        </div>
-                        <h3 class="cv-field-title">Role Title — Company Two</h3>
-                        <p class="cv-field-desc">
-                            Description of what you did at this position.
-                        </p>
-                    </div>
+                    <div id="cv1ExperienceFields"></div>
                 </div>
 
                 <!-- EDUCATION -->
                 <div class="cv-section">
                     <h2 class="cv-section-title"><i class="fas fa-graduation-cap"></i> Education</h2>
-
-                    <div class="cv-field" data-start="2017-08" data-end="2020-06">
-                        <span class="cv-field-date">2017 — 2020</span>
-                        <div class="cv-field-logo">
-                            <i class="fas fa-university placeholder-icon"></i>
-                        </div>
-                        <h3 class="cv-field-title">Degree Title</h3>
-                        <p class="cv-field-org">University / Institution</p>
-                        <p class="cv-field-desc">
-                            Relevant coursework or achievements.
-                        </p>
-                    </div>
+                    <div id="cv1EducationFields"></div>
                 </div>
 
                 <!-- PROJECTS (standalone) -->
                 <div class="cv-section">
                     <h2 class="cv-section-title"><i class="fas fa-rocket"></i> Projects</h2>
-
-                    <div class="cv-field" data-start="2025-01" data-end="present">
-                        <span class="cv-field-date">2025 — Present</span>
-                        <div class="cv-field-logo">
-                            <i class="fas fa-rocket placeholder-icon"></i>
-                        </div>
-                        <h3 class="cv-field-title">Personal Projects</h3>
-                        <p class="cv-field-desc">A selection of notable side projects.</p>
-
-                        <div class="cv-project" onclick="openProjectPopup(this)"
-                             data-title="Project Alpha"
-                             data-date="Oct 2025 — Present"
-                             data-desc="Detailed description for the popup view."
-                             data-img="">
-                            <div class="cv-project-thumb">
-                                <i class="fas fa-image placeholder-icon"></i>
-                            </div>
-                            <div class="cv-project-info">
-                                <h4 class="cv-project-name">Project Alpha</h4>
-                                <span class="cv-project-date">Oct 2025 — Present</span>
-                                <p class="cv-project-desc">Brief summary of this project.</p>
-                            </div>
-                        </div>
-
-                        <div class="cv-project" onclick="openProjectPopup(this)"
-                             data-title="Project Beta"
-                             data-date="Jan 2025 — Sep 2025"
-                             data-desc="Detailed description for the popup view."
-                             data-img="">
-                            <div class="cv-project-thumb">
-                                <i class="fas fa-image placeholder-icon"></i>
-                            </div>
-                            <div class="cv-project-info">
-                                <h4 class="cv-project-name">Project Beta</h4>
-                                <span class="cv-project-date">Jan 2025 — Sep 2025</span>
-                                <p class="cv-project-desc">Brief summary of this project.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="cv1ProjectGroups"></div>
                 </div>
 
             </div><!-- /cv-main -->
@@ -724,58 +671,20 @@
             <div class="cv-sidebar">
 
                 <!-- PROFILE PHOTO -->
-                <div class="cv-photo">
-                    <!-- Replace with: <img src="assets/profile.jpg" alt="Thomas Hetland"> -->
+                <div class="cv-photo" id="cv1Photo">
                     <i class="fas fa-user placeholder-icon"></i>
                 </div>
 
                 <!-- ABOUT ME -->
                 <div class="cv-sidebar-block">
                     <h3 class="cv-sidebar-title"><i class="fas fa-address-card"></i> About Me</h3>
-                    <ul class="cv-info-list">
-                        <li>
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div><span class="cv-info-label">Address</span>Norway</div>
-                        </li>
-                        <li>
-                            <i class="fas fa-phone"></i>
-                            <div><span class="cv-info-label">Phone</span>—</div>
-                        </li>
-                        <li>
-                            <i class="fas fa-envelope"></i>
-                            <div><span class="cv-info-label">Email</span><a href="/contact-me">Contact form</a></div>
-                        </li>
-                        <li>
-                            <i class="fas fa-calendar"></i>
-                            <div><span class="cv-info-label">Date of Birth</span>—</div>
-                        </li>
-                        <li>
-                            <i class="fas fa-language"></i>
-                            <div><span class="cv-info-label">Language</span>Norwegian (native)<br>English</div>
-                        </li>
-                        <li>
-                            <i class="fab fa-linkedin"></i>
-                            <div><span class="cv-info-label">Social</span><a href="https://www.linkedin.com/in/thomashetland/" target="_blank" rel="noopener">LinkedIn</a></div>
-                        </li>
-                    </ul>
+                    <ul class="cv-info-list" id="cv1AboutList"></ul>
                 </div>
 
                 <!-- SKILLS -->
                 <div class="cv-sidebar-block">
                     <h3 class="cv-sidebar-title"><i class="fas fa-code"></i> Skills</h3>
-                    <div class="cv-skills">
-                        <span class="cv-skill-tag">C#</span>
-                        <span class="cv-skill-tag">Unity</span>
-                        <span class="cv-skill-tag">Unreal Engine</span>
-                        <span class="cv-skill-tag">JavaScript</span>
-                        <span class="cv-skill-tag">HTML / CSS</span>
-                        <span class="cv-skill-tag">.NET</span>
-                        <span class="cv-skill-tag">SQL</span>
-                        <span class="cv-skill-tag">Git</span>
-                        <span class="cv-skill-tag">VR / XR</span>
-                        <span class="cv-skill-tag">3D Modelling</span>
-                        <span class="cv-skill-tag">Blueprint</span>
-                    </div>
+                    <div class="cv-skills" id="cv1SkillsList"></div>
                 </div>
 
             </div><!-- /cv-sidebar -->
@@ -784,7 +693,154 @@
 
     </div><!-- /cv-page -->
 
+    <script src="./cv.js"></script>
     <script>
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function cv1IconForAboutLabel(label) {
+            const key = String(label || '').toLowerCase();
+            if (key.includes('location') || key.includes('address')) return 'fa-map-marker-alt';
+            if (key.includes('phone')) return 'fa-phone';
+            if (key.includes('email')) return 'fa-envelope';
+            if (key.includes('birth')) return 'fa-calendar';
+            if (key.includes('language')) return 'fa-language';
+            if (key.includes('social')) return 'fa-linkedin';
+            return 'fa-circle';
+        }
+
+        function cv1RenderLogo(logo, fallbackIcon) {
+            if (logo && logo.src) {
+                return `<img src="${escapeHtml(logo.src)}" alt="${escapeHtml(logo.alt || '')}">`;
+            }
+            const iconClass = fallbackIcon || 'fa-building';
+            return `<i class="fas ${iconClass} placeholder-icon"></i>`;
+        }
+
+        function cv1RenderProjectCards(projects, sectionLogo) {
+            const sectionLogoSrc = escapeHtml((sectionLogo && sectionLogo.src) || '');
+            const sectionLogoAlt = escapeHtml((sectionLogo && sectionLogo.alt) || '');
+            return (projects || []).map((project) => {
+                const title = escapeHtml(project.name);
+                const date = escapeHtml(project.date);
+                const summary = escapeHtml(project.summary);
+                const popupDesc = escapeHtml(project.popupDescription || project.summary);
+                const image = escapeHtml(project.image || '');
+                return `
+                    <div class="cv-project" onclick="openProjectPopup(this)"
+                         data-title="${title}"
+                         data-date="${date}"
+                         data-desc="${popupDesc}"
+                         data-img="${image}"
+                         data-org-logo="${sectionLogoSrc}"
+                         data-org-logo-alt="${sectionLogoAlt}">
+                        <div class="cv-project-thumb">
+                            <i class="fas fa-image placeholder-icon"></i>
+                        </div>
+                        <div class="cv-project-info">
+                            <h4 class="cv-project-name">${title}</h4>
+                            <span class="cv-project-date">${date}</span>
+                            <p class="cv-project-desc">${summary}</p>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function cv1RenderField(item, options) {
+            const opts = options || {};
+            const title = escapeHtml(item.title || '');
+            const org = escapeHtml(item.org || '');
+            const description = escapeHtml(item.description || '');
+            const date = escapeHtml(item.date || '');
+            const projectsHtml = cv1RenderProjectCards(item.projects || [], item.logo);
+            const fieldClass = opts.dateTopRight ? 'cv-field cv-field--date-top-right' : 'cv-field';
+            const dateParts = (item.date || '').split(' - ');
+            const dateHtml = opts.dateTopRight && dateParts.length === 2
+                ? `<span class="cv-field-date-line">${escapeHtml(dateParts[0])}</span><span class="cv-field-date-line">${escapeHtml(dateParts[1])}</span>`
+                : date;
+            return `
+                <div class="${fieldClass}">
+                    <span class="cv-field-date">${dateHtml}</span>
+                    <div class="cv-field-logo">${cv1RenderLogo(item.logo, opts.fallbackIcon)}</div>
+                    <h3 class="cv-field-title">${opts.combineTitleOrg && org ? `${title} — ${org}` : title}</h3>
+                    ${!opts.combineTitleOrg && org ? `<p class="cv-field-org">${org}</p>` : ''}
+                    <p class="cv-field-desc">${description}</p>
+                    ${projectsHtml}
+                </div>`;
+        }
+
+        function renderCv1FromData() {
+            const data = window.CV_DATA;
+            if (!data) {
+                return;
+            }
+
+            document.getElementById('cv1Name').textContent = (data.profile && data.profile.name) || '';
+            document.getElementById('cv1Role').textContent = (data.profile && data.profile.role) || '';
+            document.getElementById('cv1Summary').textContent = data.summary || '';
+
+            const photo = document.getElementById('cv1Photo');
+            if (photo && data.profile && data.profile.photo && data.profile.photo.src) {
+                photo.innerHTML = `<img src="${escapeHtml(data.profile.photo.src)}" alt="${escapeHtml(data.profile.photo.alt || '')}">`;
+            }
+
+            const aboutList = document.getElementById('cv1AboutList');
+            if (aboutList) {
+                aboutList.innerHTML = (data.about || []).map((item) => {
+                    const label = escapeHtml(item.label || '');
+                    const valueText = escapeHtml(item.value || '');
+                    const valueHtml = item.href
+                        ? `<a href="${escapeHtml(item.href)}"${item.target ? ` target="${escapeHtml(item.target)}" rel="noopener"` : ''}>${valueText}</a>`
+                        : valueText;
+                    const iconClass = cv1IconForAboutLabel(item.label);
+                    return `
+                        <li>
+                            <i class="fas ${iconClass}"></i>
+                            <div><span class="cv-info-label">${label}</span>${valueHtml}</div>
+                        </li>`;
+                }).join('');
+            }
+
+            const skillsList = document.getElementById('cv1SkillsList');
+            if (skillsList) {
+                skillsList.innerHTML = (data.skills || []).map((skill) => `<span class="cv-skill-tag">${escapeHtml(skill)}</span>`).join('');
+            }
+
+            const experienceFields = document.getElementById('cv1ExperienceFields');
+            if (experienceFields) {
+                experienceFields.innerHTML = (data.experience || []).map((item) => cv1RenderField(item, {
+                    combineTitleOrg: true,
+                    fallbackIcon: 'fa-building',
+                    dateTopRight: true
+                })).join('');
+            }
+
+            const educationFields = document.getElementById('cv1EducationFields');
+            if (educationFields) {
+                educationFields.innerHTML = (data.education || []).map((item) => cv1RenderField(item, {
+                    combineTitleOrg: false,
+                    fallbackIcon: 'fa-university',
+                    dateTopRight: true
+                })).join('');
+            }
+
+            const projectGroups = document.getElementById('cv1ProjectGroups');
+            if (projectGroups) {
+                projectGroups.innerHTML = (data.projects || []).map((item) => cv1RenderField(item, {
+                    combineTitleOrg: false,
+                    fallbackIcon: 'fa-rocket'
+                })).join('');
+            }
+        }
+
+        renderCv1FromData();
+
         /* ===== PROJECT POPUP LOGIC ===== */
         function openProjectPopup(el) {
             const overlay = document.getElementById('cvPopupOverlay');
@@ -792,10 +848,22 @@
             const popupDate = document.getElementById('popupDate');
             const popupDesc = document.getElementById('popupDesc');
             const popupImage = document.getElementById('popupImage');
+            const popupOrgLogo = document.getElementById('popupOrgLogo');
 
             popupTitle.textContent = el.dataset.title || '';
             popupDate.textContent = el.dataset.date || '';
             popupDesc.textContent = el.dataset.desc || '';
+
+            const sectionLogoImg = el.closest('.cv-field') ? el.closest('.cv-field').querySelector('.cv-field-logo img') : null;
+            const orgLogoSrc = el.dataset.orgLogo || (sectionLogoImg ? sectionLogoImg.getAttribute('src') : '');
+            const orgLogoAlt = el.dataset.orgLogoAlt || (sectionLogoImg ? sectionLogoImg.getAttribute('alt') : '');
+            popupOrgLogo.innerHTML = '';
+            if (orgLogoSrc) {
+                const img = document.createElement('img');
+                img.src = orgLogoSrc;
+                img.alt = orgLogoAlt || 'Organization logo';
+                popupOrgLogo.appendChild(img);
+            }
 
             // Image handling
             const imgSrc = el.dataset.img;

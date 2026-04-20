@@ -2,12 +2,15 @@
 class ColorConfigMenu {
     constructor() {
         this.isDragging = false;
-        this.currentX = 0;
-        this.currentY = 0;
+        this.hasCustomPosition = false;
+        this.currentX = 492;
+        this.currentY = -60;
         this.initialX = 0;
         this.initialY = 0;
-        this.xOffset = 0;
-        this.yOffset = 0;
+        this.xOffset = 492;
+        this.yOffset = -60;
+        this.baseTop = 50;
+        this.baseLeft = 20;
         
         // Store original values
         this.originalColors = {
@@ -21,9 +24,45 @@ class ColorConfigMenu {
     
     init() {
         this.createMenu();
+        this.updateAnchoredPosition();
         this.attachEventListeners();
         this.loadCurrentColors();
         this.addKeyboardShortcut();
+        window.addEventListener('resize', () => {
+            if (!this.hasCustomPosition) {
+                this.updateAnchoredPosition();
+            }
+        });
+    }
+
+    updateAnchoredPosition() {
+        const menu = document.getElementById('colorConfigMenu');
+        if (!menu) {
+            return;
+        }
+
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const menuWidth = menu.offsetWidth || 400;
+        const viewportPadding = 20;
+        const anchorOffsetX = 16;
+
+        let anchoredLeft = this.baseLeft;
+        let anchoredTop = 50;
+
+        if (darkModeToggle) {
+            const buttonRect = darkModeToggle.getBoundingClientRect();
+            anchoredLeft = buttonRect.right - menuWidth + anchorOffsetX;
+            anchoredTop = buttonRect.top;
+        }
+
+        const maxLeft = Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding);
+        this.baseLeft = Math.min(Math.max(viewportPadding, anchoredLeft), maxLeft);
+        this.baseTop = Math.max(viewportPadding, anchoredTop);
+
+        menu.style.top = `${this.baseTop}px`;
+        menu.style.left = `${this.baseLeft}px`;
+        menu.style.right = 'auto';
+        menu.style.transform = `translate(${this.currentX}px, ${this.currentY}px)`;
     }
     
     createMenu() {
@@ -85,6 +124,9 @@ class ColorConfigMenu {
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
                 e.preventDefault();
                 const menu = document.getElementById('colorConfigMenu');
+                if (!this.hasCustomPosition) {
+                    this.updateAnchoredPosition();
+                }
                 menu.classList.toggle('show');
                 if (menu.classList.contains('show')) {
                     this.loadCurrentColors();
@@ -230,7 +272,6 @@ class ColorConfigMenu {
     }
     
     dragStart(e) {
-        const menu = document.getElementById('colorConfigMenu');
         this.initialX = e.clientX - this.xOffset;
         this.initialY = e.clientY - this.yOffset;
         
@@ -244,6 +285,7 @@ class ColorConfigMenu {
         if (this.isDragging) {
             e.preventDefault();
             const menu = document.getElementById('colorConfigMenu');
+            this.hasCustomPosition = true;
             
             this.currentX = e.clientX - this.initialX;
             this.currentY = e.clientY - this.initialY;
@@ -251,18 +293,19 @@ class ColorConfigMenu {
             this.xOffset = this.currentX;
             this.yOffset = this.currentY;
             
-            // Calculate actual position on screen
-            const actualTop = 50 + this.currentY;
-            const actualRight = 132 - this.currentX; // Right positioning works inversely
+            // Report position relative to the layout anchor, not the viewport.
+            const relativeTop = this.currentY;
+            const relativeLeft = this.currentX;
             
             menu.style.transform = `translate(${this.currentX}px, ${this.currentY}px)`;
-            menu.style.top = '50px';
-            menu.style.right = '132px';
+            menu.style.top = `${this.baseTop}px`;
+            menu.style.left = `${this.baseLeft}px`;
+            menu.style.right = 'auto';
             
             // Update position display in real-time
             const titleElement = menu.querySelector('.color-config-title');
             if (titleElement) {
-                titleElement.textContent = `Color Configuration - Position: Top: ${actualTop}px, Right: ${actualRight}px`;
+                titleElement.textContent = `Color Configuration - Offset: Top: ${relativeTop}px, Left: ${relativeLeft}px`;
             }
         }
     }

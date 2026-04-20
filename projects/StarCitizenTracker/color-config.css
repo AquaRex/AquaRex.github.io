@@ -2,7 +2,8 @@
 .color-config-menu {
     position: fixed;
     top: 50px;
-    right: 132px;
+    left: 20px;
+    right: auto;
     width: 400px;
     background: var(--primary-color);
     border: 2px solid var(--secondary-color);
