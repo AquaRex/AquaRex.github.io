@@ -4,15 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
-    <title>CV - Hetland</title>
+    <title>CV1 - Hetland</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../styles/colors.css">
     <link rel="stylesheet" href="../styles/selection.css">
     <style>
-        /* Override ocean fog colors for CV page */
+        /* ===== BIOLUMINESCENT PALETTE OVERRIDES (CV page) ===== */
         :root {
-            --ocean-fog-surface: #1a1a19;
+            --ocean-fog-surface: #0d1210;
             --ocean-fog-deep: #000000;
+
+            /* Neutralise base surfaces — no more heavy green tint */
+            --background-dark: #0B0F11;
+            --bg-top:    #0d1614;
+            --bg-middle: #0B0F11;
+            --bg-bottom: #080c0b;
+
+            /* Text — high contrast neutrals */
+            --text:        #9FB3AD;
+            --text-header: #E6F2EF;
+
+            /* Accent: keep gold but only for emphasis */
+            --primary-color: #FACC15;
+
+            /* Teal — bioluminescent secondary accent */
+            --cv-teal:       #2DD4BF;
+            --cv-teal-dim:   rgba(45, 212, 191, 0.18);
+            --cv-teal-glow:  rgba(45, 212, 191, 0.35);
+
+            /* Neutral surfaces (replace gold-tinted transparencies) */
+            --cv-surface:          #12181A;
+            --cv-surface-elevated: #1A1F1D;
+            --cv-border-subtle:    rgba(255,255,255,0.06);
+            --cv-border-soft:      rgba(255,255,255,0.10);
+            --cv-border-medium:    rgba(255,255,255,0.16);
+
+            /* Override gold transparencies → neutral dark */
+            --primary-transparent-light:  rgba(255,255,255,0.04);
+            --primary-transparent-medium: rgba(255,255,255,0.06);
+            --primary-transparent-heavy:  rgba(255,255,255,0.08);
+            --primary-border-light:       rgba(255,255,255,0.06);
+            --primary-border:             rgba(255,255,255,0.12);
+            --primary-border-strong:      rgba(255,255,255,0.22);
+            --primary-border-intense:     rgba(255,255,255,0.32);
+            --primary-glow:               var(--cv-teal-glow);
+
+            /* Fog / vignette — darker to kill green influence */
+            --vignette-dark:   rgba(4, 8, 7, 0.45);
+            --vignette-darker: rgba(4, 8, 7, 0.75);
+            --fog-1: rgba(13, 22, 20, 0.18);
+            --fog-2: rgba(11, 15, 17, 0.14);
+            --fog-3: rgba(8, 12, 11, 0.10);
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -38,10 +80,24 @@
         }
 
         /* ===== 3D BACKGROUND LAYERS (same as main site) ===== */
+        /* Dark overlay on top of 3D background to neutralise green tint */
         #canvas3d {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 0; filter: blur(2px);
+        }
+        #canvas3d::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.68);
+            pointer-events: none;
+        }
+        /* Pseudo-overlay via a sibling div injected by JS isn't available;
+           use a fixed overlay div instead (added in HTML below) */
+        .bg-dark-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 1; pointer-events: none;
         }
         #canvasCardGizmo {
             position: fixed; top: 0; left: 0;
@@ -96,10 +152,10 @@
             font-size: 3.2rem; font-weight: 900;
             text-transform: uppercase; letter-spacing: 5px;
             background: var(--primary-color);
-            color: var(--text-contrast);
+            color: #000000;
             padding: 0.1rem 0.8rem; border-radius: 2px;
             display: inline-block;
-            box-shadow: 0 2px 12px var(--shadow-standard);
+            box-shadow: 0 2px 16px rgba(250, 204, 21, 0.3);
         }
         .cv-identity .cv-role {
             font-size: 1.2rem; font-weight: 300;
@@ -112,9 +168,9 @@
         .cv-photo {
             width: 100%; aspect-ratio: 5 / 6;
             border-radius: 6px; overflow: hidden;
-            border: 2px solid var(--primary-border);
-            box-shadow: 0 8px 30px var(--shadow-strong), 0 0 20px var(--primary-transparent-light);
-            background: var(--primary-transparent-light);
+            border: 1px solid var(--cv-border-soft);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.55);
+            background: var(--cv-surface);
             display: flex; align-items: center; justify-content: center;
             margin-bottom: 1.5rem;
         }
@@ -167,7 +223,7 @@
             display: flex; align-items: flex-start; gap: 0.6rem;
             font-size: 0.84rem; color: var(--text);
             padding: 0.4rem 0;
-            border-bottom: 1px solid color-mix(in srgb, var(--primary-color) 8%, transparent);
+            border-bottom: 1px solid var(--cv-border-subtle);
         }
         .cv-info-list li:last-child { border-bottom: none; }
         .cv-info-list li i {
@@ -178,7 +234,7 @@
             color: var(--text); text-decoration: none;
             transition: color 0.3s ease;
         }
-        .cv-info-list li a:hover { color: var(--primary-color); }
+        .cv-info-list li a:hover { color: var(--cv-teal); }
 
         .cv-info-label {
             font-weight: 600; color: var(--text-header);
@@ -194,16 +250,17 @@
             padding: 0.3rem 0.7rem;
             font-size: 0.74rem; font-weight: 600;
             letter-spacing: 0.5px;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+            background: var(--cv-surface-elevated);
+            border: 1px solid var(--cv-border-soft);
             border-radius: 20px;
-            color: var(--primary-color);
+            color: #C4D9D3;
             transition: all 0.3s ease;
         }
         .cv-skill-tag:hover {
-            border-color: var(--primary-border);
-            background: var(--primary-transparent-medium);
-            box-shadow: 0 0 10px var(--primary-transparent-light);
+            border-color: rgba(45,212,191,0.4);
+            background: var(--cv-teal-dim);
+            color: var(--cv-teal);
+            box-shadow: 0 0 8px var(--cv-teal-dim);
         }
 
         /* ===== SECTION BLOCK (with timeline) ===== */
@@ -223,7 +280,7 @@
             content: '';
             position: absolute; left: 11px; top: 0.65rem; bottom: 0;
             width: 2px;
-            background: linear-gradient(to bottom, var(--primary-border) 0%, var(--primary-border-light) 70%, transparent 100%);
+            background: linear-gradient(to bottom, rgba(45,212,191,0.45) 0%, rgba(45,212,191,0.15) 70%, transparent 100%);
         }
 
         .cv-section-title {
@@ -242,9 +299,9 @@
             position: absolute;
             left: -32px; top: 50%;
             width: 32px; height: 2px;
-            background: var(--primary-border);
+            background: rgba(250, 204, 21, 0.4);
         }
-        /* Dot at the junction — 10px wide, centered at 12px from section left */
+        /* Dot at the junction — gold, section marker */
         .cv-section-title::after {
             content: '';
             position: absolute;
@@ -253,7 +310,7 @@
             border-radius: 50%;
             background: var(--primary-color);
             border: none;
-            box-shadow: 0 0 6px var(--primary-glow);
+            box-shadow: 0 0 8px rgba(250, 204, 21, 0.55);
         }
 
         /* ===== TIMELINE FIELD (date-bounded entry) ===== */
@@ -264,16 +321,17 @@
         .cv-field {
             padding: 1.2rem 1.4rem;
             margin-bottom: 1rem;
-            background: var(--primary-transparent-light);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--primary-border-light);
+            background: var(--cv-surface);
+            backdrop-filter: blur(6px);
+            border: 1px solid var(--cv-border-subtle);
             border-radius: 8px;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
             position: relative;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.35);
         }
         .cv-field:hover {
-            border-color: var(--primary-border);
-            box-shadow: 0 4px 24px var(--shadow-light), 0 0 12px var(--primary-transparent-light);
+            border-color: var(--cv-teal-dim);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 14px var(--cv-teal-dim);
         }
 
         /* Date range — inside card, above logo */
@@ -309,18 +367,18 @@
             position: absolute;
             left: -32px; top: 1.6rem;
             width: 32px; height: 2px;
-            background: var(--primary-border-light);
+            background: rgba(45,212,191,0.25);
         }
-        /* Dot on timeline at field level — 8px wide, centered at 12px from section left */
+        /* Teal dot on timeline at field level */
         .cv-field::after {
             content: '';
             position: absolute;
             left: -36px; top: 1.6rem; transform: translateY(-50%);
             width: 8px; height: 8px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: var(--cv-teal);
             border: none;
-            box-shadow: 0 0 4px var(--primary-glow);
+            box-shadow: 0 0 6px var(--cv-teal-glow);
         }
 
         /* Company logo — top of card, wide-rectangle friendly */
@@ -332,9 +390,9 @@
             border-radius: 4px;
         }
         .cv-field-logo .placeholder-icon {
-            font-size: 1.4rem; color: var(--primary-border);
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+            font-size: 1.4rem; color: rgba(255,255,255,0.25);
+            background: var(--cv-surface-elevated);
+            border: 1px solid var(--cv-border-subtle);
             border-radius: 6px;
             width: 52px; height: 52px;
             display: flex; align-items: center; justify-content: center;
@@ -366,23 +424,23 @@
             display: flex; gap: 1rem;
             padding: 0.8rem;
             margin-top: 0.8rem;
-            background: color-mix(in srgb, var(--background-dark) 60%, transparent);
-            border: 1px solid var(--primary-border-light);
+            background: var(--cv-surface-elevated);
+            border: 1px solid var(--cv-border-subtle);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .cv-project:hover {
-            border-color: var(--primary-border);
-            background: color-mix(in srgb, var(--background-dark) 80%, transparent);
+            border-color: rgba(45,212,191,0.3);
+            background: #1e2624;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--shadow-standard);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 10px var(--cv-teal-dim);
         }
         .cv-project-thumb {
             width: 96px; height: 96px; flex-shrink: 0;
             border-radius: 4px; overflow: hidden;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+            background: var(--cv-surface);
+            border: 1px solid var(--cv-border-subtle);
             display: flex; align-items: center; justify-content: center;
         }
         .cv-project-thumb img {
@@ -424,14 +482,14 @@
             opacity: 1; pointer-events: auto;
         }
         .cv-popup {
-            background: linear-gradient(135deg, var(--bg-bottom), var(--bg-middle));
-            border: 1px solid var(--primary-border);
+            background: var(--cv-surface);
+            border: 1px solid var(--cv-border-soft);
             border-radius: 12px;
             max-width: 1120px; width: 96%;
             max-height: none;
             overflow: visible;
             margin: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--primary-transparent-light);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.65), 0 0 30px var(--cv-teal-dim);
             transform: scale(0.92) translateY(20px);
             transition: transform 0.35s ease;
             position: relative;
@@ -448,29 +506,29 @@
         }
         .cv-popup::before {
             top: -1px; left: -1px;
-            border-top: 2px solid var(--primary-border-strong);
-            border-left: 2px solid var(--primary-border-strong);
+            border-top: 2px solid var(--cv-teal);
+            border-left: 2px solid var(--cv-teal);
         }
         .cv-popup::after {
             bottom: -1px; right: -1px;
-            border-bottom: 2px solid var(--primary-border-strong);
-            border-right: 2px solid var(--primary-border-strong);
+            border-bottom: 2px solid var(--cv-teal);
+            border-right: 2px solid var(--cv-teal);
         }
 
         .cv-popup-close {
             position: absolute; top: 1rem; right: 1rem;
             width: 36px; height: 36px; border-radius: 50%;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+            background: var(--cv-surface-elevated);
+            border: 1px solid var(--cv-border-soft);
             color: var(--text); font-size: 1.1rem;
             cursor: pointer; display: flex;
             align-items: center; justify-content: center;
             transition: all 0.3s ease; z-index: 2;
         }
         .cv-popup-close:hover {
-            background: var(--primary-transparent-heavy);
-            border-color: var(--primary-border-strong);
-            color: var(--primary-color);
+            background: var(--cv-teal-dim);
+            border-color: rgba(45,212,191,0.4);
+            color: var(--cv-teal);
         }
 
         .cv-popup-content {
@@ -480,8 +538,8 @@
         .cv-popup-image {
             flex: 0 0 42%; min-width: 0;
             border-radius: 8px; overflow: hidden;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+            background: var(--cv-surface-elevated);
+            border: 1px solid var(--cv-border-subtle);
             display: flex; align-items: center; justify-content: center;
             aspect-ratio: 1 / 1;
             min-height: 0;
@@ -598,6 +656,7 @@
 </head>
 <body>
     <canvas id="canvas3d"></canvas>
+    <div class="bg-dark-overlay"></div>
     <canvas id="canvasCardGizmo"></canvas>
     <div class="fog-overlay"></div>
     <div class="cursor-light" id="cursorLight"></div>
@@ -693,7 +752,7 @@
 
     </div><!-- /cv-page -->
 
-    <script src="./cv.js"></script>
+    <script src="../cv/cv.js"></script>
     <script>
         function escapeHtml(value) {
             return String(value ?? '')
