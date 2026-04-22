@@ -6,6 +6,7 @@
     <title>Projects — Thomas Hetland</title>
     <link rel="stylesheet" href="../projects/StarCitizenTracker/color-config.css">
     <link rel="stylesheet" href="../services/cvLayout.css">
+    <link rel="stylesheet" href="../services/cvEditor.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ===== COLOR SYSTEM (mirrors CV3) ===== */
@@ -544,6 +545,7 @@
 
     <script src="../cv/cv.js"></script>
     <script src="../services/cvLayout.js"></script>
+    <script src="../services/cvEditor.js"></script>
     <script src="../projects/StarCitizenTracker/color-config.js"></script>
     <script>
         (function () {
@@ -564,23 +566,25 @@
             const data   = window.CV_DATA || {};
             const groups = [];
 
-            (data.experience || []).forEach(exp => {
+            (data.experience || []).forEach((exp, i) => {
                 if ((exp.projects || []).length) {
                     groups.push({
                         title:    exp.org || exp.title || 'Experience',
                         icon:     'experience',
                         logo:     exp.logo || null,
                         projects: exp.projects,
+                        path:     `experience.${i}`,
                     });
                 }
             });
-            (data.projects || []).forEach(group => {
+            (data.projects || []).forEach((group, i) => {
                 if ((group.projects || []).length) {
                     groups.push({
                         title:    group.title || 'Projects',
                         icon:     'projects',
                         logo:     null,
                         projects: group.projects,
+                        path:     `projects.${i}`,
                     });
                 }
             });
@@ -590,16 +594,53 @@
             const allTags = [...new Set(allProjects.flatMap(p => p.tags || []))].sort();
 
             /* ===== STATE ===== */
-            let activeTag = new URLSearchParams(location.search).get('tag') || null;
+            const _initialParams = new URLSearchParams(location.search);
+            const _initialRaw = (_initialParams.get('tags') || _initialParams.get('tag') || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            // Set of lowercased active tag strings
+            const activeTags = new Set(_initialRaw.map(s => s.toLowerCase()));
 
             /* ===== RENDER SECTIONS ===== */
+            // Re-derive groups from CV_DATA on each render so editor changes appear.
+            function deriveGroups() {
+                const d = window.CV_DATA || {};
+                const out = [];
+                (d.experience || []).forEach((exp, i) => {
+                    if ((exp.projects || []).length) {
+                        out.push({
+                            title:    exp.org || exp.title || 'Experience',
+                            icon:     'experience',
+                            logo:     exp.logo || null,
+                            projects: exp.projects,
+                            path:     `experience.${i}`,
+                        });
+                    }
+                });
+                (d.projects || []).forEach((group, i) => {
+                    if ((group.projects || []).length) {
+                        out.push({
+                            title:    group.title || 'Projects',
+                            icon:     'projects',
+                            logo:     null,
+                            projects: group.projects,
+                            path:     `projects.${i}`,
+                        });
+                    }
+                });
+                return out;
+            }
+
             function renderSections() {
+                const isEdit = document.body.classList.contains('cv-edit-mode');
+                const liveGroups = deriveGroups();
                 const main = document.getElementById('cvpMain');
-                main.innerHTML = groups.map((group, i) => {
+                main.innerHTML = liveGroups.map((group, i) => {
                     const num  = String(i + 1).padStart(2, '0');
                     const icon = ICONS[group.icon] || ICONS.projects;
 
-                    const cardsHtml = (group.projects || []).map(p => {
+                    const cardsHtml = (group.projects || []).map((p, pi) => {
+                        const basePath = `${group.path}.projects.${pi}`;
+                        const showOnCv = p.showOnCv !== false;
                         const name     = esc(p.name || '');
                         const date     = esc(p.date || '');
                         const summary  = esc(p.summary || '');
@@ -611,15 +652,15 @@
                         const logoSrc  = esc((group.logo && group.logo.src) || '');
                         const logoAlt  = esc((group.logo && group.logo.alt) || '');
                         const tags     = p.tags || [];
-                        const tagsHtml = tags.length
-                            ? `<div class="cv3-project-tags">${tags.map(t =>
-                                `<span class="cv3-project-tag${t === activeTag ? ' is-active-filter' : ''}" data-tag="${esc(t)}">${esc(t)}</span>`
-                              ).join('')}</div>`
-                            : '';
+                        const tagsHtml = `<div class="cv3-project-tags" data-edit-list="${basePath}.tags">${tags.map((t, ti) =>
+                                `<span class="cv3-project-tag${activeTags.has((t||'').toLowerCase()) ? ' is-active-filter' : ''}" data-tag="${esc(t)}" data-edit-item="${basePath}.tags.${ti}"><span class="cv3-project-tag-text" data-edit-path="${basePath}.tags.${ti}">${esc(t)}</span></span>`
+                              ).join('')}</div>`;
                         const cardBtnHtml = (showOnCard && linkUrl)
                             ? `<a class="cv3-project-link-btn" href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkLabel || 'Visit project'}</a>`
                             : '';
-                        return `<div class="cv3-project"
+                        const hiddenClass = showOnCv ? '' : ' cv3-project-cv-hidden';
+                        return `<div class="cv3-project${hiddenClass}"
+                                    data-edit-item="${basePath}"
                                     data-title="${name}" data-date="${date}"
                                     data-desc="${popupDesc}" data-img="${img}"
                                     data-tags='${JSON.stringify(tags)}'
@@ -627,15 +668,27 @@
                                     data-link-label="${linkLabel}" data-link-url="${linkUrl}">
                             <div class="cv3-project-thumb">
                                 ${img ? `<img src="${img}" alt="${name}">` : '<span class="cv3-project-thumb-ph">IMG</span>'}
+                                <span class="cv3-edit-thumb-path cv3-edit-only" data-edit-path="${basePath}.image" data-edit-type="image-src">${img || 'image path…'}</span>
                             </div>
                             <div class="cv3-project-info">
                                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;">
-                                    <h4 class="cv3-project-name">${name}</h4>
+                                    <h4 class="cv3-project-name" data-edit-path="${basePath}.name">${name}</h4>
                                     ${tagsHtml}
                                 </div>
-                                <span class="cv3-project-date">${date}</span>
-                                <p class="cv3-project-desc">${summary}</p>
+                                <span class="cv3-project-date" data-edit-path="${basePath}.date">${date}</span>
+                                <p class="cv3-project-desc" data-edit-path="${basePath}.summary">${summary}</p>
+                                <p class="cv3-project-popupdesc cv3-edit-only" data-edit-path="${basePath}.popupDescription" data-edit-type="multiline">${popupDesc}</p>
                                 ${cardBtnHtml}
+                                <div class="cv3-project-link-edit cv3-edit-only">
+                                    <span class="cv3-edit-link-toggle">Show in CV:
+                                        <span class="cv3-edit-bool ${showOnCv ? 'is-on' : 'is-off'}" data-edit-path="${basePath}.showOnCv" data-edit-type="bool">${showOnCv ? 'YES' : 'NO'}</span>
+                                    </span>
+                                    <span class="cv3-edit-link-label">Button label: <span data-edit-path="${basePath}.link.label">${linkLabel}</span></span>
+                                    <span class="cv3-edit-link-url">URL: <span data-edit-path="${basePath}.link.url">${linkUrl}</span></span>
+                                    <span class="cv3-edit-link-toggle">Show on card:
+                                        <span class="cv3-edit-bool ${showOnCard ? 'is-on' : 'is-off'}" data-edit-path="${basePath}.link.showOnCard" data-edit-type="bool">${showOnCard ? 'YES' : 'NO'}</span>
+                                    </span>
+                                </div>
                             </div>
                         </div>`;
                     }).join('');
@@ -648,7 +701,7 @@
                             <span class="cv3-strip-num">${num}</span>
                         </div>
                         <div class="cv3-section-header">${icon} ${esc(group.title)}</div>
-                        <div class="cvp-projects" id="cvpGroup${i}">
+                        <div class="cvp-projects" id="cvpGroup${i}" data-edit-list="${group.path}.projects">
                             ${cardsHtml}
                             <p class="cvp-no-results" style="display:none;">No projects match this filter</p>
                         </div>
@@ -660,9 +713,9 @@
             function renderFilters() {
                 const el = document.getElementById('cvpFilterTags');
                 el.innerHTML = allTags.map(t =>
-                    `<button class="cvp-filter-tag${tagEq(t, activeTag) ? ' is-active' : ''}" data-tag="${esc(t)}">${esc(t)}</button>`
+                    `<button class="cvp-filter-tag${activeTags.has((t||'').toLowerCase()) ? ' is-active' : ''}" data-tag="${esc(t)}">${esc(t)}</button>`
                 ).join('');
-                document.getElementById('cvpFilterClear').classList.toggle('visible', !!activeTag);
+                document.getElementById('cvpFilterClear').classList.toggle('visible', activeTags.size > 0);
             }
 
             /* ===== APPLY FILTER ===== */
@@ -670,17 +723,26 @@
                 return (a || '').toLowerCase() === (b || '').toLowerCase();
             }
 
+            function toggleActiveTag(tag) {
+                const k = (tag || '').toLowerCase();
+                if (!k) return;
+                if (activeTags.has(k)) activeTags.delete(k);
+                else activeTags.add(k);
+            }
+
             function applyFilter() {
+                const hasFilter = activeTags.size > 0;
                 document.querySelectorAll('.cv3-project').forEach(card => {
-                    const tags = JSON.parse(card.dataset.tags || '[]');
-                    const match = !activeTag || tags.some(t => tagEq(t, activeTag));
+                    const tags = JSON.parse(card.dataset.tags || '[]').map(t => (t||'').toLowerCase());
+                    // OR match: project shown if any of its tags is active
+                    const match = !hasFilter || tags.some(t => activeTags.has(t));
                     card.classList.toggle('is-hidden', !match);
                 });
                 document.querySelectorAll('.cv3-project-tag').forEach(el => {
-                    el.classList.toggle('is-active-filter', tagEq(el.dataset.tag, activeTag));
+                    el.classList.toggle('is-active-filter', activeTags.has((el.dataset.tag||'').toLowerCase()));
                 });
                 document.querySelectorAll('.cvp-filter-tag').forEach(el => {
-                    el.classList.toggle('is-active', tagEq(el.dataset.tag, activeTag));
+                    el.classList.toggle('is-active', activeTags.has((el.dataset.tag||'').toLowerCase()));
                 });
 
                 /* show/hide per-section no-results message */
@@ -689,10 +751,12 @@
                     group.querySelector('.cvp-no-results').style.display = visible ? 'none' : 'block';
                 });
 
-                document.getElementById('cvpFilterClear').classList.toggle('visible', !!activeTag);
+                document.getElementById('cvpFilterClear').classList.toggle('visible', hasFilter);
 
                 const url = new URL(location.href);
-                activeTag ? url.searchParams.set('tag', activeTag) : url.searchParams.delete('tag');
+                url.searchParams.delete('tag');
+                if (hasFilter) url.searchParams.set('tags', [...activeTags].join(','));
+                else url.searchParams.delete('tags');
                 history.replaceState(null, '', url);
             }
 
@@ -745,16 +809,17 @@
 
             /* ===== EVENTS ===== */
             document.addEventListener('click', e => {
-                /* filter tag on a card */
+                const inEdit = document.body.classList.contains('cv-edit-mode');
+                /* filter tag on a card (skip in edit mode so tags become editable) */
                 const cardTag = e.target.closest('.cv3-project-tag');
-                if (cardTag) {
+                if (cardTag && !inEdit) {
                     e.stopPropagation();
-                    activeTag = tagEq(cardTag.dataset.tag, activeTag) ? null : cardTag.dataset.tag;
+                    toggleActiveTag(cardTag.dataset.tag);
                     applyFilter(); renderFilters(); return;
                 }
-                /* open project popup */
+                /* open project popup (skip in edit mode) */
                 const project = e.target.closest('.cv3-project');
-                if (project) {
+                if (project && !inEdit) {
                     if (e.target.closest('.cv3-project-link-btn')) return;
                     openPopup(project);
                     return;
@@ -763,12 +828,12 @@
                 /* sidebar filter button */
                 const filterBtn = e.target.closest('.cvp-filter-tag');
                 if (filterBtn) {
-                    activeTag = tagEq(filterBtn.dataset.tag, activeTag) ? null : filterBtn.dataset.tag;
+                    toggleActiveTag(filterBtn.dataset.tag);
                     applyFilter(); renderFilters(); return;
                 }
                 /* clear button */
                 if (e.target.closest('#cvpFilterClear')) {
-                    activeTag = null; applyFilter(); renderFilters(); return;
+                    activeTags.clear(); applyFilter(); renderFilters(); return;
                 }
                 /* close popup */
                 const overlay = document.getElementById('cvpPopupOverlay');
@@ -788,6 +853,23 @@
             /* ===== DARK MODE & SHADOW LAYER are handled by services/cvLayout.js ===== */
 
             /* ===== INIT ===== */
+            // Re-derive tag set from live data so editor changes are reflected
+            function refreshAllTags() {
+                const liveProjects = deriveGroups().flatMap(g => g.projects);
+                allTags.length = 0;
+                [...new Set(liveProjects.flatMap(p => p.tags || []))].sort()
+                    .forEach(t => allTags.push(t));
+            }
+
+            // Public re-render hook used by cvEditor after edits
+            window.renderCv3 = function () {
+                refreshAllTags();
+                renderSections();
+                renderFilters();
+                applyFilter();
+                if (window.cvEditor && window.cvEditor.onRender) window.cvEditor.onRender();
+            };
+
             renderSections();
             renderFilters();
             applyFilter();

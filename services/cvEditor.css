@@ -244,6 +244,13 @@ body.cv-edit-mode [data-edit-path][data-placeholder]:empty::before {
     font-style: italic;
 }
 
+/* Project marked as hidden in CV: visible in editor but visually muted */
+body.cv-edit-mode .cv3-project.cv3-project-cv-hidden {
+    opacity: 0.45;
+    outline: 2px dashed var(--muted, #888);
+    outline-offset: -4px;
+}
+
 /* Image-path pill */
 body.cv-edit-mode .cv3-edit-thumb-path,
 body.cv-edit-mode .cv3-edit-logo-path,

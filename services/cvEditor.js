@@ -141,6 +141,8 @@
         dirty = false;
         if (saveBtn) saveBtn.disabled = false;
         document.body.classList.add('cv-edit-mode');
+        // Re-render so view-mode-hidden items reappear under edit mode
+        window.renderCv3 && window.renderCv3();
         bindEditableElements(document);
         injectAddButtons();
         injectReorderHandles();

@@ -50,7 +50,7 @@ window.CV_DATA = {
         "AZURE",
         "Networking",
         "Mobile",
-        "WebApp"
+        "WEB"
     ],
     "experience": [
         {
@@ -200,7 +200,7 @@ window.CV_DATA = {
                     "image": "/assets/images/cvprojects/private_tinyvoters.png",
                     "tags": [
                         "Unity",
-                        "WebApp",
+                        "WEB",
                         "Mobile",
                         "C#"
                     ],
@@ -208,6 +208,26 @@ window.CV_DATA = {
                         "url": "https://tinyvoters.app/",
                         "label": "Try it!",
                         "showOnCard": true
+                    }
+                },
+                {
+                    "name": "STAR CITIZEN TRACKER",
+                    "date": "",
+                    "summary": "A .NET Application using HTML for frontend and a C# backend, that tracks player statistics in-game and uploads the data in real-time to an SQL database.",
+                    "popupDescription": "A .NET Application using HTML for frontend and a C# backend, that tracks player statistics in-game and uploads the data in real-time to an SQL database. The website provides a user-friendly, realtime analytics dashboard for players to view their performance and statistics directly from the database using secure Web Service APIs. The .NET application provides, like the website, a login interface that verifies users securely using encrypted credentials, ensuring data privacy and security.\nThe design of the .NET App and Website was designed as modern minimalism with the principle of 3 colors for the entire website, where the colors could flip to allow darkmode viewing, reveal hovered interaction states, intent and contrast.",
+                    "image": "/assets/images/cvprojects/private_sctracker.png",
+                    "tags": [
+                        "Azure",
+                        "SQL",
+                        "WEB",
+                        "C#",
+                        ".NET"
+                    ],
+                    "showOnCv": false,
+                    "link": {
+                        "label": "Read More",
+                        "url": "https://hetland.dev/projects/StarCitizenTracker/",
+                        "showOnCard": false
                     }
                 }
             ],
