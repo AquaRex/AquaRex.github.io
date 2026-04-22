@@ -43,11 +43,13 @@ window.CV_DATA = {
         "BLENDER",
         "SUBSTANCE PAINTER",
         "ADOBE SUITE",
+        "VR / XR",
         "C#",
         "Blueprint",
         ".NET",
         "AZURE",
-        "VR / XR"
+        "Networking",
+        "Mobile"
     ],
     "experience": [
         {
@@ -70,7 +72,7 @@ window.CV_DATA = {
                         "Unity",
                         "C#",
                         "VR / XR",
-                        "3D"
+                        "Mobile"
                     ]
                 },
                 {
@@ -83,7 +85,7 @@ window.CV_DATA = {
                         "Unreal Engine",
                         "Blueprint",
                         "VR / XR",
-                        "3D"
+                        "Networking"
                     ]
                 },
                 {
@@ -107,7 +109,7 @@ window.CV_DATA = {
                     "tags": [
                         "Unity",
                         "C#",
-                        "3D"
+                        "Mobile"
                     ]
                 },
                 {
@@ -120,7 +122,8 @@ window.CV_DATA = {
                         "Unity",
                         "C#",
                         "VR / XR",
-                        "3D"
+                        "Networking",
+                        "Mobile"
                     ]
                 },
                 {
@@ -131,8 +134,9 @@ window.CV_DATA = {
                     "image": "/assets/images/cvprojects/nagelld_vesselbridge.jpeg",
                     "tags": [
                         "Unity",
-                        "3D",
-                        "VR / XR"
+                        "VR / XR",
+                        "Blender",
+                        "Substance Painter"
                     ]
                 }
             ]
@@ -157,7 +161,7 @@ window.CV_DATA = {
                         "Unity",
                         "C#",
                         "VR / XR",
-                        "3D"
+                        "Mobile"
                     ]
                 }
             ]
