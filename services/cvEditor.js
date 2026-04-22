@@ -1,29 +1,24 @@
 /* ================================================================
-   CV Editor
+   CV Editor (localhost-only)
    --------------------------------------------------------------
-   - Login = paste a GitHub fine-grained Personal Access Token
-     (scoped to this repo, Contents: write)
-   - Persists edits in-memory, re-renders via window.renderCv3()
-   - On Save: commits the updated cv.js back to GitHub via API
-   ---
-   NOTE: "OAuth via third-party service" would require a backend
-   to exchange the client secret. Using a PAT keeps this static.
+   - Only loads when the page is served from localhost / 127.0.0.1
+   - Edits CV_DATA in-memory and re-renders via window.renderCv3()
+   - Save = downloads an updated cv/cv.js; commit it manually
    ================================================================ */
 
 (function () {
     'use strict';
 
-    /* ---------- Storage keys ---------- */
-    const LS_TOKEN  = 'cv-editor-gh-token';
-    const LS_REPO   = 'cv-editor-gh-repo';    // "owner/repo"
-    const LS_PATH   = 'cv-editor-gh-path';    // "cv/cv.js"
-    const LS_BRANCH = 'cv-editor-gh-branch';  // "main"
+    /* ---------- Localhost gate ---------- */
+    const host = location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '' || location.protocol === 'file:';
+    if (!isLocal) return;
 
     /* ---------- State ---------- */
     let originalData = null;  // snapshot for cancel
     let editMode     = false;
     let dirty        = false;
-    let bar, dirtyDot, editBtn, saveBtn, cancelBtn, loginBtn, logoutBtn, settingsBtn;
+    let bar, dirtyDot, editBtn, saveBtn, cancelBtn;
 
     /* ---------- DOM helpers ---------- */
     function el(tag, attrs = {}, children = []) {
@@ -84,218 +79,47 @@
        ================================================================ */
     function buildBar() {
         bar = el('div', { class: 'cv-editor-bar' });
-        loginBtn    = el('button', { class: 'primary', text: 'Login', onclick: openLoginModal });
-        settingsBtn = el('button', { class: 'secondary', text: 'Settings', onclick: openSettingsModal });
-        editBtn     = el('button', { class: 'primary', text: 'Edit', onclick: enterEditMode });
-        saveBtn     = el('button', { class: 'primary', text: 'Save', onclick: saveChanges });
-        cancelBtn   = el('button', { class: 'secondary', text: 'Cancel', onclick: cancelChanges });
-        logoutBtn   = el('button', { class: 'danger', text: 'Logout', onclick: logout });
+        editBtn   = el('button', { class: 'primary', text: 'Edit', onclick: enterEditMode });
+        saveBtn   = el('button', { class: 'primary', text: 'Download cv.js', onclick: saveChanges });
+        cancelBtn = el('button', { class: 'secondary', text: 'Cancel', onclick: cancelChanges });
         document.body.appendChild(bar);
         refreshBar();
     }
 
     function refreshBar() {
         bar.innerHTML = '';
-        const hasToken = !!localStorage.getItem(LS_TOKEN);
-        if (!hasToken) {
-            bar.appendChild(loginBtn);
-            return;
-        }
         if (editMode) {
             if (dirty) {
                 dirtyDot = el('span', { class: 'dirty-dot', title: 'Unsaved changes' });
                 saveBtn.innerHTML = '';
                 saveBtn.appendChild(dirtyDot);
-                saveBtn.appendChild(document.createTextNode('Save'));
+                saveBtn.appendChild(document.createTextNode('Download cv.js'));
             } else {
-                saveBtn.textContent = 'Save';
+                saveBtn.textContent = 'Download cv.js';
             }
             bar.appendChild(saveBtn);
             bar.appendChild(cancelBtn);
         } else {
             bar.appendChild(editBtn);
-            bar.appendChild(settingsBtn);
         }
-    }
-
-    /* ================================================================
-       LOGIN / SETTINGS MODALS
-       ================================================================ */
-    function closeModal() {
-        document.querySelectorAll('.cv-editor-modal-overlay').forEach(n => n.remove());
-    }
-
-    function openLoginModal() {
-        closeModal();
-        const repoInput   = el('input', { type: 'text', placeholder: 'owner/repo (e.g. AquaRex/AquaRex.github.io)', value: localStorage.getItem(LS_REPO) || guessRepo() });
-        const pathInput   = el('input', { type: 'text', placeholder: 'cv/cv.js', value: localStorage.getItem(LS_PATH) || 'cv/cv.js' });
-        const branchInput = el('input', { type: 'text', placeholder: 'main', value: localStorage.getItem(LS_BRANCH) || 'main' });
-        const tokenInput  = el('input', { type: 'password', placeholder: 'github_pat_...' });
-        const errorMsg    = el('div', { class: 'error-msg' });
-
-        const loginAction = async () => {
-            errorMsg.textContent = '';
-            const repo = repoInput.value.trim();
-            const path = pathInput.value.trim();
-            const branch = branchInput.value.trim() || 'main';
-            const token = tokenInput.value.trim();
-            if (!repo || !path || !token) { errorMsg.textContent = 'Repo, path, and token are required.'; return; }
-            if (!/^[^/]+\/[^/]+$/.test(repo)) { errorMsg.textContent = 'Repo must be in the form "owner/repo".'; return; }
-            errorMsg.textContent = 'Validating…';
-            const ok = await validateToken(token, repo, path, branch);
-            if (ok !== true) { errorMsg.textContent = 'Failed: ' + ok; return; }
-            localStorage.setItem(LS_TOKEN, token);
-            localStorage.setItem(LS_REPO, repo);
-            localStorage.setItem(LS_PATH, path);
-            localStorage.setItem(LS_BRANCH, branch);
-            closeModal();
-            refreshBar();
-            showStatus('Logged in.', 'ok');
-        };
-
-        const modal = el('div', { class: 'cv-editor-modal' }, [
-            el('h2', { text: 'Login to Edit' }),
-            el('p', { text: 'Paste a GitHub fine-grained Personal Access Token with "Contents: write" permission on this repository. Everything is stored locally in your browser.' }),
-            el('label', { text: 'Repository' }),
-            repoInput,
-            el('label', { text: 'File path' }),
-            pathInput,
-            el('label', { text: 'Branch' }),
-            branchInput,
-            el('label', { text: 'GitHub Personal Access Token' }),
-            tokenInput,
-            errorMsg,
-            el('div', { class: 'actions' }, [
-                el('button', { class: 'secondary', text: 'Cancel', onclick: closeModal }),
-                el('button', { text: 'Login', onclick: loginAction })
-            ])
-        ]);
-        const overlay = el('div', { class: 'cv-editor-modal-overlay' }, [modal]);
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-        document.body.appendChild(overlay);
-        tokenInput.focus();
-    }
-
-    function openSettingsModal() {
-        closeModal();
-        const repoInput   = el('input', { type: 'text', value: localStorage.getItem(LS_REPO) || '' });
-        const pathInput   = el('input', { type: 'text', value: localStorage.getItem(LS_PATH) || 'cv/cv.js' });
-        const branchInput = el('input', { type: 'text', value: localStorage.getItem(LS_BRANCH) || 'main' });
-
-        const save = () => {
-            localStorage.setItem(LS_REPO, repoInput.value.trim());
-            localStorage.setItem(LS_PATH, pathInput.value.trim());
-            localStorage.setItem(LS_BRANCH, branchInput.value.trim() || 'main');
-            closeModal();
-            showStatus('Settings saved.', 'ok');
-        };
-
-        const modal = el('div', { class: 'cv-editor-modal' }, [
-            el('h2', { text: 'Settings' }),
-            el('label', { text: 'Repository' }), repoInput,
-            el('label', { text: 'File path' }), pathInput,
-            el('label', { text: 'Branch' }), branchInput,
-            el('div', { class: 'actions' }, [
-                el('button', { class: 'danger', text: 'Logout', onclick: () => { closeModal(); logout(); } }),
-                el('button', { class: 'secondary', text: 'Cancel', onclick: closeModal }),
-                el('button', { text: 'Save', onclick: save })
-            ])
-        ]);
-        const overlay = el('div', { class: 'cv-editor-modal-overlay' }, [modal]);
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-        document.body.appendChild(overlay);
-    }
-
-    function guessRepo() {
-        // Custom domain? fall back to hard default for this project.
-        const host = location.hostname;
-        if (host.endsWith('.github.io')) {
-            const owner = host.split('.')[0];
-            return `${owner}/${host}`;
-        }
-        return 'AquaRex/AquaRex.github.io';
-    }
-
-    function logout() {
-        if (editMode && dirty) {
-            if (!confirm('You have unsaved changes. Logout anyway?')) return;
-        }
-        localStorage.removeItem(LS_TOKEN);
-        if (editMode) exitEditMode(true);
-        refreshBar();
-        showStatus('Logged out.', 'ok');
-    }
-
-    /* ================================================================
-       GITHUB API
-       ================================================================ */
-    function ghHeaders() {
-        return {
-            'Accept': 'application/vnd.github+json',
-            'Authorization': `Bearer ${localStorage.getItem(LS_TOKEN)}`,
-            'X-GitHub-Api-Version': '2022-11-28'
-        };
-    }
-
-    async function validateToken(token, repo, path, branch) {
-        try {
-            const res = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`, {
-                headers: {
-                    'Accept': 'application/vnd.github+json',
-                    'Authorization': `Bearer ${token}`,
-                    'X-GitHub-Api-Version': '2022-11-28'
-                }
-            });
-            if (res.status === 401) return 'invalid token';
-            if (res.status === 404) return 'file or repo not found (check path/branch)';
-            if (!res.ok) return `HTTP ${res.status}`;
-            return true;
-        } catch (e) {
-            return e.message || 'network error';
-        }
-    }
-
-    async function fetchCurrentSha() {
-        const repo   = localStorage.getItem(LS_REPO);
-        const path   = localStorage.getItem(LS_PATH);
-        const branch = localStorage.getItem(LS_BRANCH) || 'main';
-        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`, { headers: ghHeaders() });
-        if (!res.ok) throw new Error(`Fetch SHA failed: HTTP ${res.status}`);
-        const json = await res.json();
-        return json.sha;
-    }
-
-    async function commitFile(content, message) {
-        const repo   = localStorage.getItem(LS_REPO);
-        const path   = localStorage.getItem(LS_PATH);
-        const branch = localStorage.getItem(LS_BRANCH) || 'main';
-        const sha    = await fetchCurrentSha();
-        const encoded = b64encodeUtf8(content);
-        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path)}`, {
-            method: 'PUT',
-            headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, content: encoded, sha, branch })
-        });
-        if (!res.ok) {
-            let errTxt;
-            try { errTxt = (await res.json()).message; } catch { errTxt = `HTTP ${res.status}`; }
-            throw new Error(errTxt);
-        }
-        return await res.json();
-    }
-
-    function b64encodeUtf8(str) {
-        // Handles non-ASCII safely
-        return btoa(unescape(encodeURIComponent(str)));
     }
 
     /* ================================================================
        SERIALIZATION
        ================================================================ */
     function serializeCvJs(data) {
-        // JSON.stringify produces valid JS for plain data objects.
         const json = JSON.stringify(data, null, 4);
         return 'window.CV_DATA = ' + json + ';\n';
+    }
+
+    function downloadCvJs(content) {
+        const blob = new Blob([content], { type: 'application/javascript' });
+        const url  = URL.createObjectURL(blob);
+        const a    = el('a', { href: url, download: 'cv.js' });
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     /* ================================================================
@@ -311,7 +135,7 @@
         injectAddButtons();
         injectReorderHandles();
         refreshBar();
-        showStatus('Edit mode: click any text to edit. Changes commit to GitHub on Save.', 'info');
+        showStatus('Edit mode: click any text to edit. Save downloads an updated cv.js.', 'info');
     }
 
     function exitEditMode(discard) {
@@ -571,16 +395,13 @@
        ================================================================ */
     async function saveChanges() {
         if (!dirty) { exitEditMode(false); return; }
-        saveBtn.disabled = true;
-        showStatus('Committing to GitHub…', 'info', true);
         try {
             const content = serializeCvJs(window.CV_DATA);
-            const result  = await commitFile(content, 'chore(cv): update content via in-browser editor');
+            downloadCvJs(content);
             exitEditMode(false);
-            showStatus(`Saved. Commit ${result.commit.sha.slice(0, 7)}.`, 'ok');
+            showStatus('Downloaded cv.js — replace cv/cv.js in the repo and commit.', 'ok');
         } catch (e) {
             showStatus('Save failed: ' + e.message, 'error', true);
-            saveBtn.disabled = false;
         }
     }
 
