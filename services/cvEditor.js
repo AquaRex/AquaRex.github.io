@@ -115,7 +115,6 @@
         } else {
             bar.appendChild(editBtn);
             bar.appendChild(settingsBtn);
-            bar.appendChild(logoutBtn);
         }
     }
 
@@ -197,6 +196,7 @@
             el('label', { text: 'File path' }), pathInput,
             el('label', { text: 'Branch' }), branchInput,
             el('div', { class: 'actions' }, [
+                el('button', { class: 'danger', text: 'Logout', onclick: () => { closeModal(); logout(); } }),
                 el('button', { class: 'secondary', text: 'Cancel', onclick: closeModal }),
                 el('button', { text: 'Save', onclick: save })
             ])
@@ -207,13 +207,13 @@
     }
 
     function guessRepo() {
-        // location.hostname like "aquarex.github.io" → "AquaRex/AquaRex.github.io"
+        // Custom domain? fall back to hard default for this project.
         const host = location.hostname;
         if (host.endsWith('.github.io')) {
             const owner = host.split('.')[0];
             return `${owner}/${host}`;
         }
-        return '';
+        return 'AquaRex/AquaRex.github.io';
     }
 
     function logout() {
@@ -321,7 +321,17 @@
         dirty = false;
         originalData = null;
         document.body.classList.remove('cv-edit-mode');
+        removeEditControls();
         refreshBar();
+    }
+
+    function removeEditControls() {
+        document.querySelectorAll('.cv-edit-add-btn, .cv-edit-del-btn').forEach(n => n.remove());
+        document.querySelectorAll('[data-edit-list]').forEach(n => { n.__cvEditAddBound = false; });
+        document.querySelectorAll('[data-edit-path]').forEach(n => {
+            n.removeAttribute('contenteditable');
+            n.__cvEditorBound = false;
+        });
     }
 
     function markDirty() {

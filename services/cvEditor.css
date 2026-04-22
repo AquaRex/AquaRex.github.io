@@ -15,43 +15,55 @@
     right: 16px;
     z-index: 9998;
     display: flex;
-    gap: 8px;
+    gap: var(--sp-2, 8px);
     font-family: inherit;
 }
 .cv-editor-bar button {
-    background: #111;
-    color: #fff;
-    border: 2px solid #111;
-    padding: 8px 14px;
-    font-size: 0.7rem;
+    background: var(--dark, #111);
+    color: var(--bg, #fff);
+    border: 2px solid var(--border, #111);
+    padding: 10px 16px;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    transition: opacity 0.2s, background 0.2s, color 0.2s;
     font-family: inherit;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
-.cv-editor-bar button:hover { opacity: 0.8; }
+.cv-editor-bar button:hover { opacity: 0.7; }
 .cv-editor-bar button.primary {
-    background: #d6ff39;
-    color: #111;
-    border-color: #111;
-}
-.cv-editor-bar button.danger {
-    background: #fff;
-    color: #b00;
-    border-color: #b00;
+    background: var(--dark, #111);
+    color: var(--bg, #fff);
 }
 .cv-editor-bar button.secondary {
-    background: #fff;
-    color: #111;
+    background: var(--bg, #fff);
+    color: var(--dark, #111);
+}
+.cv-editor-bar button.danger {
+    background: var(--bg, #fff);
+    color: var(--dark, #111);
+    border-color: var(--border, #111);
+}
+.cv-editor-bar button.danger:hover {
+    background: var(--dark, #111);
+    color: var(--bg, #fff);
+    opacity: 1;
+}
+.cv-editor-bar button[disabled] {
+    opacity: 0.4;
+    cursor: default;
 }
 .cv-editor-bar .dirty-dot {
     display: inline-block;
-    width: 8px; height: 8px;
+    width: 7px; height: 7px;
     border-radius: 50%;
-    background: #ff3860;
-    margin-right: 6px;
+    background: var(--accent-color, #d6ff39);
+    margin-right: 8px;
     vertical-align: middle;
 }
 
@@ -61,16 +73,27 @@
     top: 64px;
     right: 16px;
     z-index: 9998;
-    background: #111;
-    color: #fff;
+    background: var(--dark, #111);
+    color: var(--bg, #fff);
     padding: 10px 14px;
-    font-size: 0.72rem;
-    letter-spacing: 1px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     max-width: 340px;
-    border: 2px solid #111;
+    border: 2px solid var(--border, #111);
+    font-family: inherit;
 }
-.cv-editor-status.error { background: #b00; border-color: #b00; }
-.cv-editor-status.ok { background: #2ea043; border-color: #2ea043; }
+.cv-editor-status.error {
+    background: var(--bg, #fff);
+    color: var(--dark, #111);
+    border-color: var(--border, #111);
+}
+.cv-editor-status.ok {
+    background: var(--accent-color, #d6ff39);
+    color: var(--dark, #111);
+    border-color: var(--dark, #111);
+}
 
 /* Modal */
 .cv-editor-modal-overlay {
@@ -81,44 +104,64 @@
     padding: 20px;
 }
 .cv-editor-modal {
-    background: #fff;
-    color: #111;
-    border: 2px solid #111;
+    background: var(--surface, #fff);
+    color: var(--text, #111);
+    border: 2px solid var(--border, #111);
     width: 100%;
     max-width: 540px;
-    padding: 24px;
+    padding: var(--sp-6, 28px);
     font-family: inherit;
 }
 .cv-editor-modal h2 {
-    font-size: 1.05rem;
+    font-size: 0.92rem;
     font-weight: 900;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    margin: 0 0 12px 0;
+    margin: 0 0 var(--sp-4, 14px) 0;
+    padding-bottom: var(--sp-3, 10px);
+    border-bottom: 2px solid var(--border, #111);
 }
 .cv-editor-modal p {
-    font-size: 0.82rem;
-    line-height: 1.5;
-    margin: 0 0 12px 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    margin: 0 0 var(--sp-4, 14px) 0;
+    color: var(--muted, #555);
 }
 .cv-editor-modal label {
     display: block;
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    margin: 10px 0 4px 0;
+    margin: var(--sp-3, 10px) 0 var(--sp-1, 4px) 0;
+    color: var(--muted, #555);
 }
 .cv-editor-modal input,
 .cv-editor-modal textarea,
 .cv-editor-modal select {
     width: 100%;
-    padding: 8px 10px;
-    border: 2px solid #111;
-    background: #fff;
+    padding: 10px 12px;
+    border: 2px solid var(--border, #111);
+    background: var(--bg, #fff);
+    color: var(--dark, #111);
     font: inherit;
-    font-size: 0.84rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
     box-sizing: border-box;
+    -webkit-text-fill-color: var(--dark, #111);
+    caret-color: var(--dark, #111);
+    transition: border-color 0.15s;
+}
+.cv-editor-modal input:focus,
+.cv-editor-modal textarea:focus,
+.cv-editor-modal select:focus {
+    outline: none;
+    border-color: var(--accent-color, #d6ff39);
+}
+.cv-editor-modal input::placeholder,
+.cv-editor-modal textarea::placeholder {
+    color: var(--muted, #999);
+    opacity: 1;
 }
 .cv-editor-modal textarea {
     min-height: 120px;
@@ -127,30 +170,52 @@
 .cv-editor-modal .actions {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    margin-top: 18px;
+    gap: var(--sp-2, 8px);
+    margin-top: var(--sp-5, 20px);
+    padding-top: var(--sp-4, 14px);
+    border-top: 2px solid var(--border, #111);
 }
 .cv-editor-modal .actions button {
-    background: #111;
-    color: #fff;
-    border: 2px solid #111;
-    padding: 8px 14px;
-    font-size: 0.7rem;
+    background: var(--dark, #111);
+    color: var(--bg, #fff);
+    border: 2px solid var(--border, #111);
+    padding: 10px 18px;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
     font-family: inherit;
+    transition: opacity 0.2s;
 }
+.cv-editor-modal .actions button:hover { opacity: 0.7; }
 .cv-editor-modal .actions button.secondary {
-    background: #fff;
-    color: #111;
+    background: var(--bg, #fff);
+    color: var(--dark, #111);
+}
+.cv-editor-modal .actions button.danger {
+    background: var(--bg, #fff);
+    color: var(--dark, #111);
+    margin-right: auto;
+}
+.cv-editor-modal .actions button.danger:hover {
+    background: var(--dark, #111);
+    color: var(--bg, #fff);
+    opacity: 1;
 }
 .cv-editor-modal .error-msg {
-    color: #b00;
-    font-size: 0.78rem;
-    margin-top: 8px;
+    color: var(--dark, #111);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: var(--sp-3, 10px);
     min-height: 1em;
+}
+.cv-editor-modal .error-msg:not(:empty) {
+    padding: var(--sp-2, 8px) var(--sp-3, 10px);
+    background: var(--accent-color, #d6ff39);
+    border: 2px solid var(--border, #111);
 }
 
 /* =================== EDIT MODE ==================== */
