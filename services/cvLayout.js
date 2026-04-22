@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CV3 Shared Layout — shadow-layer + dark-mode persistence
-   Shared between cv3 and any extension pages (e.g. cvprojects).
+   CV Shared Layout — shadow-layer + dark-mode persistence
+   Shared between cv and any extension pages (e.g. cvprojects).
 
    Required DOM:
      - <div id="cv3NavShadowLayer" aria-hidden="true"></div>
@@ -226,7 +226,7 @@
     }
 
     /* ===== PUBLIC API ===== */
-    window.cv3Layout = {
+    window.cvLayout = {
         scheduleShadowSync,
         setBottomLayerVisible,
         applyDarkMode,

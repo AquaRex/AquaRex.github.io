@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CV3 Shared Layout — shadow-layer + dark-mode infrastructure
-   Shared between cv3 and any extension pages (e.g. cvprojects).
+   CV Shared Layout — shadow-layer + dark-mode infrastructure
+   Shared between cv and any extension pages (e.g. cvprojects).
    ========================================================================== */
 
 /* ===== SHADOW VARIABLES ===== */
@@ -64,16 +64,15 @@
 }
 
 /* Container backgrounds transparent in shadow layer.
-   NOTE: do not include elements whose hover state should show. */
+   NOTE: do not include elements whose hover state should show.
+   NOTE: keep elements that are themselves visual shapes (dark strip, nav toggles)
+   with their backgrounds so they cast a real shadow. */
 #cv3ShadowLayer .cv3-outer,
 #cv3ShadowLayer .cv3-nav,
 #cv3ShadowLayer .cv3-section,
-#cv3ShadowLayer .cv3-section::before,
 #cv3ShadowLayer .cv3-sidebar-photo,
 #cv3ShadowLayer .cv3-sidebar-block,
 #cv3ShadowLayer .cv3-sidebar-card,
-#cv3ShadowLayer .cv3-nav-toggle,
-#cv3ShadowLayer .cv3-nav-toggle.is-active,
 #cv3ShadowLayer .cv3-popup,
 #cv3ShadowLayer .cv3-popup-image,
 #cv3ShadowLayer .cv3-popup-details {
