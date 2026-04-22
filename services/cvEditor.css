@@ -6,7 +6,9 @@
    ========================================================== */
 
 /* Hide edit-only helpers by default */
-.cv3-edit-only { display: none; }
+.cv3-edit-only { display: none !important; }
+body.cv-edit-mode .cv3-edit-only { display: block !important; }
+body.cv-edit-mode .cv3-project-link-edit.cv3-edit-only { display: flex !important; }
 
 /* Floating toolbar */
 .cv-editor-bar {
@@ -219,7 +221,6 @@
 }
 
 /* =================== EDIT MODE ==================== */
-body.cv-edit-mode .cv3-edit-only { display: block; }
 
 body.cv-edit-mode [data-edit-path] {
     outline: 1px dashed rgba(0,0,0,0.25);
@@ -236,6 +237,11 @@ body.cv-edit-mode [data-edit-path]:hover {
 body.cv-edit-mode [data-edit-path]:focus {
     outline: 2px solid #d6ff39;
     background: rgba(214,255,57,0.18);
+}
+body.cv-edit-mode [data-edit-path][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    opacity: 0.5;
+    font-style: italic;
 }
 
 /* Image-path pill */

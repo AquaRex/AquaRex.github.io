@@ -15,10 +15,11 @@
     if (!isLocal) return;
 
     /* ---------- State ---------- */
-    let originalData = null;  // snapshot for cancel
+    let originalData = null;  // snapshot for cancel (start of current edit session)
     let editMode     = false;
-    let dirty        = false;
-    let bar, dirtyDot, editBtn, saveBtn, cancelBtn;
+    let dirty        = false;  // edits made in current edit session
+    let sessionDirty = false;  // changes applied via Test but not yet downloaded
+    let bar, dirtyDot, editBtn, saveBtn, cancelBtn, testBtn, downloadBtn;
 
     /* ---------- DOM helpers ---------- */
     function el(tag, attrs = {}, children = []) {
@@ -79,9 +80,11 @@
        ================================================================ */
     function buildBar() {
         bar = el('div', { class: 'cv-editor-bar' });
-        editBtn   = el('button', { class: 'primary', text: 'Edit', onclick: enterEditMode });
-        saveBtn   = el('button', { class: 'primary', text: 'Download cv.js', onclick: saveChanges });
-        cancelBtn = el('button', { class: 'secondary', text: 'Cancel', onclick: cancelChanges });
+        editBtn     = el('button', { class: 'primary',   text: 'Edit',           onclick: enterEditMode });
+        testBtn     = el('button', { class: 'primary',   text: 'Test',           onclick: testChanges, title: 'Apply changes for this session without saving to disk' });
+        saveBtn     = el('button', { class: 'primary',   text: 'Download cv.js', onclick: saveChanges });
+        downloadBtn = el('button', { class: 'primary',   text: 'Download cv.js', onclick: downloadSession, title: 'Save tested changes to cv.js' });
+        cancelBtn   = el('button', { class: 'secondary', text: 'Cancel',         onclick: cancelChanges });
         document.body.appendChild(bar);
         refreshBar();
     }
@@ -91,16 +94,23 @@
         if (editMode) {
             if (dirty) {
                 dirtyDot = el('span', { class: 'dirty-dot', title: 'Unsaved changes' });
-                saveBtn.innerHTML = '';
-                saveBtn.appendChild(dirtyDot);
-                saveBtn.appendChild(document.createTextNode('Download cv.js'));
+                testBtn.innerHTML = '';
+                testBtn.appendChild(dirtyDot);
+                testBtn.appendChild(document.createTextNode('Test'));
             } else {
-                saveBtn.textContent = 'Download cv.js';
+                testBtn.textContent = 'Test';
             }
+            bar.appendChild(testBtn);
             bar.appendChild(saveBtn);
             bar.appendChild(cancelBtn);
         } else {
             bar.appendChild(editBtn);
+            if (sessionDirty) {
+                downloadBtn.innerHTML = '';
+                downloadBtn.appendChild(el('span', { class: 'dirty-dot', title: 'Tested but not saved' }));
+                downloadBtn.appendChild(document.createTextNode('Download cv.js'));
+                bar.appendChild(downloadBtn);
+            }
         }
     }
 
@@ -135,19 +145,20 @@
         injectAddButtons();
         injectReorderHandles();
         refreshBar();
-        showStatus('Edit mode: click any text to edit. Save downloads an updated cv.js.', 'info');
+        showStatus('Edit mode: click any text to edit. "Test" applies for this session, "Download cv.js" saves to disk.', 'info');
     }
 
     function exitEditMode(discard) {
         if (discard && originalData) {
             window.CV_DATA = originalData;
-            window.renderCv3 && window.renderCv3();
         }
         editMode = false;
         dirty = false;
         originalData = null;
         document.body.classList.remove('cv-edit-mode');
         removeEditControls();
+        // Re-render so attribute-bound values (href, src, data-*) reflect latest CV_DATA
+        window.renderCv3 && window.renderCv3();
         refreshBar();
     }
 
@@ -174,6 +185,18 @@
         node.__cvEditorBound = true;
         const path = node.getAttribute('data-edit-path');
         const type = node.getAttribute('data-edit-type') || 'text';
+
+        if (type === 'bool') {
+            node.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const cur = !!getByPath(window.CV_DATA, path);
+                setByPath(window.CV_DATA, path, !cur);
+                markDirty();
+                window.renderCv3 && window.renderCv3();
+            });
+            return;
+        }
 
         node.setAttribute('contenteditable', 'plaintext-only');
         node.addEventListener('focus', (e) => e.stopPropagation());
@@ -306,7 +329,7 @@
         if (path === 'about') return { label: 'New', value: 'value' };
         if (path === 'experience') return { date: '', title: 'Role', org: 'Organization', description: 'Describe your role.', logo: { src: '', alt: '' }, projects: [] };
         if (path === 'education') return { date: '', title: 'Institution', org: '', description: 'Details.', logo: { src: '', alt: '' } };
-        if (path.endsWith('.projects')) return { name: 'New Project', date: '', summary: 'Short summary.', popupDescription: 'Longer description.', image: '', tags: [] };
+        if (path.endsWith('.projects')) return { name: 'New Project', date: '', summary: 'Short summary.', popupDescription: 'Longer description.', image: '', tags: [], showOnCv: true, link: { label: '', url: '', showOnCard: false } };
         return {};
     }
 
@@ -324,9 +347,9 @@
     }
 
     function addSection() {
-        const type = prompt('Section type? (summary | fields)', 'fields');
+        const type = prompt('Section type? (summary | fields | button)', 'fields');
         if (!type) return;
-        if (type !== 'summary' && type !== 'fields') { alert('Type must be "summary" or "fields".'); return; }
+        if (type !== 'summary' && type !== 'fields' && type !== 'button') { alert('Type must be "summary", "fields", or "button".'); return; }
         const title = prompt('Section title?', 'NEW SECTION');
         if (!title) return;
         const section = { icon: 'projects', title, type };
@@ -335,6 +358,9 @@
             if (!dataKey) return;
             section.dataKey = dataKey;
             if (!Array.isArray(window.CV_DATA[dataKey])) window.CV_DATA[dataKey] = [];
+        }
+        if (type === 'button') {
+            section.button = { label: 'Click me', url: 'https://example.com' };
         }
         window.CV_DATA.sections = window.CV_DATA.sections || [];
         window.CV_DATA.sections.push(section);
@@ -391,13 +417,23 @@
     function escapeReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
     /* ================================================================
-       SAVE / CANCEL
+       SAVE / TEST / CANCEL
        ================================================================ */
+    function testChanges() {
+        // Exit edit chrome but KEEP in-memory edits for this session.
+        if (dirty) sessionDirty = true;
+        exitEditMode(false);
+        showStatus(sessionDirty
+            ? 'Changes applied for this session. Click "Download cv.js" when ready to save.'
+            : 'No changes to test.', 'ok');
+    }
+
     async function saveChanges() {
-        if (!dirty) { exitEditMode(false); return; }
+        if (!dirty && !sessionDirty) { exitEditMode(false); return; }
         try {
             const content = serializeCvJs(window.CV_DATA);
             downloadCvJs(content);
+            sessionDirty = false;
             exitEditMode(false);
             showStatus('Downloaded cv.js — replace cv/cv.js in the repo and commit.', 'ok');
         } catch (e) {
@@ -405,8 +441,20 @@
         }
     }
 
+    function downloadSession() {
+        try {
+            const content = serializeCvJs(window.CV_DATA);
+            downloadCvJs(content);
+            sessionDirty = false;
+            refreshBar();
+            showStatus('Downloaded cv.js — replace cv/cv.js in the repo and commit.', 'ok');
+        } catch (e) {
+            showStatus('Save failed: ' + e.message, 'error', true);
+        }
+    }
+
     function cancelChanges() {
-        if (dirty && !confirm('Discard all unsaved changes?')) return;
+        if (dirty && !confirm('Discard changes made since you clicked Edit?')) return;
         exitEditMode(true);
         showStatus('Changes discarded.', 'ok');
     }

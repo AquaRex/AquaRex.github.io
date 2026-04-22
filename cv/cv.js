@@ -49,7 +49,8 @@ window.CV_DATA = {
         ".NET",
         "AZURE",
         "Networking",
-        "Mobile"
+        "Mobile",
+        "WebApp"
     ],
     "experience": [
         {
@@ -162,7 +163,10 @@ window.CV_DATA = {
                         "C#",
                         "VR / XR",
                         "Mobile"
-                    ]
+                    ],
+                    "link": {
+                        "showOnCard": false
+                    }
                 }
             ]
         }
@@ -184,10 +188,32 @@ window.CV_DATA = {
     ],
     "projects": [
         {
-            "date": "2017 — Present",
-            "title": "Personal Projects",
+            "date": "",
+            "title": "Side-Projects",
             "description": "A selection of notable side projects.",
-            "projects": []
+            "projects": [
+                {
+                    "name": "TINY VOTERS",
+                    "date": "",
+                    "summary": "Ever had problems making up your mind? Tiny Voters will help you decide. Get answers at once whether it's yes, no, a number you're thinking of, or anything else.",
+                    "popupDescription": "Tiny Voters is an interactive decision-making web application designed to help users overcome choice paralysis and make decisions quickly and efficiently. Whether you're trying to decide between yes or no, pick a random number, or choose from a list of options, Tiny Voters provides an engaging and visually appealing solution.\n\nBuilt with Unity and deployed as a WebGL application, Tiny Voters combines the power of game engine technology with web accessibility, creating a smooth and responsive user experience across all devices and platforms.\n\nThe application features cute animated characters called \"Tiny Voters\" who cast their votes to help you make decisions. Each decision type has its own unique voting mechanism, making the process both functional and entertaining.",
+                    "image": "/assets/images/cvprojects/private_tinyvoters.png",
+                    "tags": [
+                        "Unity",
+                        "WebApp",
+                        "Mobile",
+                        "C#"
+                    ],
+                    "link": {
+                        "url": "https://tinyvoters.app/",
+                        "label": "Try it!",
+                        "showOnCard": true
+                    }
+                }
+            ],
+            "logo": {
+                "src": ""
+            }
         }
     ],
     "sections": [
@@ -208,6 +234,12 @@ window.CV_DATA = {
             "title": "EDUCATION",
             "type": "fields",
             "dataKey": "education"
+        },
+        {
+            "icon": "projects",
+            "title": "SIDE-PROJECTS",
+            "type": "fields",
+            "dataKey": "projects"
         }
     ]
 };
