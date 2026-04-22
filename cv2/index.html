@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV - Thomas Hetland</title>
     <link rel="stylesheet" href="../projects/StarCitizenTracker/color-config.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ===== 3-COLOR SYSTEM ===== */
         :root {
@@ -254,6 +255,7 @@
             color: var(--primary-color);
             border-bottom: 2px solid var(--secondary-color);
             background: var(--secondary-color);
+            display: flex; align-items: center; gap: 10px;
         }
 
         /* ===== TIMELINE FIELD ===== */
@@ -389,6 +391,7 @@
             border-bottom: 2px solid var(--secondary-color);
             color: var(--secondary-color);
             background: transparent;
+            display: flex; align-items: center; gap: 10px;
         }
         .cv-sidebar-content {
             padding: 25px;
@@ -622,7 +625,7 @@
         <!-- TOP BAR -->
         <div class="cv-topbar">
             <div class="cv-topbar-left" style="padding: 15px 25px; font-size: 0.8rem; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">
-                CV - Portfolio
+                Thomas Hetland / CV - Portfolio
             </div>
             <div class="cv-topbar-actions" style="padding: 15px 25px;">
                 <button class="btn-icon" id="glassToggle" title="Toggle Bottom Layer" aria-label="Toggle Bottom Layer" aria-pressed="true">
@@ -662,7 +665,7 @@
 
                 <!-- SUMMARY -->
                 <div class="cv-section">
-                    <div class="cv-section-title">SUMMARY</div>
+                    <div class="cv-section-title"><i class="fas fa-align-left"></i> SUMMARY</div>
                     <div class="cv-field">
                         <p class="cv-field-desc" id="cv2Summary"></p>
                     </div>
@@ -670,19 +673,19 @@
 
                 <!-- EXPERIENCE -->
                 <div class="cv-section">
-                    <div class="cv-section-title">EXPERIENCE</div>
+                    <div class="cv-section-title"><i class="fas fa-briefcase"></i> EXPERIENCE</div>
                     <div id="cv2ExperienceFields"></div>
                 </div>
 
                 <!-- EDUCATION -->
                 <div class="cv-section">
-                    <div class="cv-section-title">EDUCATION</div>
+                    <div class="cv-section-title"><i class="fas fa-graduation-cap"></i> EDUCATION</div>
                     <div id="cv2EducationFields"></div>
                 </div>
 
                 <!-- PROJECTS -->
                 <div class="cv-section">
-                    <div class="cv-section-title">PROJECTS</div>
+                    <div class="cv-section-title"><i class="fas fa-code"></i> PROJECTS</div>
                     <div id="cv2ProjectGroups"></div>
                 </div>
 
@@ -698,7 +701,7 @@
 
                 <!-- ABOUT ME -->
                 <div class="cv-sidebar-block">
-                    <div class="cv-sidebar-title">ABOUT ME</div>
+                    <div class="cv-sidebar-title"><i class="fas fa-user"></i> ABOUT ME</div>
                     <div class="cv-sidebar-content">
                         <ul class="cv-info-list" id="cv2AboutList"></ul>
                     </div>
@@ -706,7 +709,7 @@
 
                 <!-- SKILLS -->
                 <div class="cv-sidebar-block">
-                    <div class="cv-sidebar-title">SKILLS</div>
+                    <div class="cv-sidebar-title"><i class="fas fa-book"></i> SKILLS</div>
                     <div class="cv-sidebar-content">
                         <div class="cv-skills" id="cv2SkillsList"></div>
                     </div>

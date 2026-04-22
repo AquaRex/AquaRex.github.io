@@ -1,0 +1,306 @@
+/* ==========================================================
+   CV Editor UI
+   - Floating toolbar (top-right, outside page layout)
+   - Login modal
+   - Edit-mode affordances (contenteditable, add/delete buttons)
+   ========================================================== */
+
+/* Hide edit-only helpers by default */
+.cv3-edit-only { display: none; }
+
+/* Floating toolbar */
+.cv-editor-bar {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 9998;
+    display: flex;
+    gap: 8px;
+    font-family: inherit;
+}
+.cv-editor-bar button {
+    background: #111;
+    color: #fff;
+    border: 2px solid #111;
+    padding: 8px 14px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    font-family: inherit;
+}
+.cv-editor-bar button:hover { opacity: 0.8; }
+.cv-editor-bar button.primary {
+    background: #d6ff39;
+    color: #111;
+    border-color: #111;
+}
+.cv-editor-bar button.danger {
+    background: #fff;
+    color: #b00;
+    border-color: #b00;
+}
+.cv-editor-bar button.secondary {
+    background: #fff;
+    color: #111;
+}
+.cv-editor-bar .dirty-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ff3860;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* Status pill for save result */
+.cv-editor-status {
+    position: fixed;
+    top: 64px;
+    right: 16px;
+    z-index: 9998;
+    background: #111;
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    max-width: 340px;
+    border: 2px solid #111;
+}
+.cv-editor-status.error { background: #b00; border-color: #b00; }
+.cv-editor-status.ok { background: #2ea043; border-color: #2ea043; }
+
+/* Modal */
+.cv-editor-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.cv-editor-modal {
+    background: #fff;
+    color: #111;
+    border: 2px solid #111;
+    width: 100%;
+    max-width: 540px;
+    padding: 24px;
+    font-family: inherit;
+}
+.cv-editor-modal h2 {
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 0 0 12px 0;
+}
+.cv-editor-modal p {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+}
+.cv-editor-modal label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 10px 0 4px 0;
+}
+.cv-editor-modal input,
+.cv-editor-modal textarea,
+.cv-editor-modal select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 2px solid #111;
+    background: #fff;
+    font: inherit;
+    font-size: 0.84rem;
+    box-sizing: border-box;
+}
+.cv-editor-modal textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+.cv-editor-modal .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px;
+}
+.cv-editor-modal .actions button {
+    background: #111;
+    color: #fff;
+    border: 2px solid #111;
+    padding: 8px 14px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+}
+.cv-editor-modal .actions button.secondary {
+    background: #fff;
+    color: #111;
+}
+.cv-editor-modal .error-msg {
+    color: #b00;
+    font-size: 0.78rem;
+    margin-top: 8px;
+    min-height: 1em;
+}
+
+/* =================== EDIT MODE ==================== */
+body.cv-edit-mode .cv3-edit-only { display: block; }
+
+body.cv-edit-mode [data-edit-path] {
+    outline: 1px dashed rgba(0,0,0,0.25);
+    outline-offset: 2px;
+    cursor: text;
+    min-width: 20px;
+    min-height: 1em;
+}
+body.cv-edit-mode [data-edit-path]:hover {
+    outline-color: #d6ff39;
+    outline-style: solid;
+    background: rgba(214,255,57,0.12);
+}
+body.cv-edit-mode [data-edit-path]:focus {
+    outline: 2px solid #d6ff39;
+    background: rgba(214,255,57,0.18);
+}
+
+/* Image-path pill */
+body.cv-edit-mode .cv3-edit-thumb-path,
+body.cv-edit-mode .cv3-edit-logo-path,
+body.cv-edit-mode .cv3-edit-photo-path,
+body.cv-edit-mode .cv3-edit-href {
+    display: inline-block;
+    background: #111;
+    color: #fff;
+    font-size: 0.6rem;
+    letter-spacing: 0.5px;
+    padding: 3px 6px;
+    font-family: monospace;
+    word-break: break-all;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+body.cv-edit-mode .cv3-project-thumb {
+    position: relative;
+}
+body.cv-edit-mode .cv3-edit-thumb-path {
+    position: absolute;
+    left: 4px; right: 4px; bottom: 4px;
+    text-align: left;
+}
+body.cv-edit-mode .cv3-edit-logo-path {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.58rem;
+}
+body.cv-edit-mode .cv3-edit-photo-path {
+    position: absolute;
+    left: 4px; right: 4px; bottom: 4px;
+    background: rgba(0,0,0,0.85);
+    text-align: left;
+}
+body.cv-edit-mode .cv3-sidebar-photo,
+body.cv-edit-mode .cv3-hero-photo-wrap {
+    position: relative;
+}
+body.cv-edit-mode .cv3-edit-href {
+    display: block;
+    margin-top: 4px;
+    background: #333;
+}
+body.cv-edit-mode .cv3-project-popupdesc.cv3-edit-only {
+    margin-top: 6px;
+    font-size: 0.72rem;
+    background: rgba(0,0,0,0.04);
+    padding: 6px;
+    border-left: 3px solid #d6ff39;
+    line-height: 1.5;
+}
+
+/* Add / Delete controls */
+.cv-edit-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    color: #111;
+    border: 2px dashed #111;
+    padding: 6px 12px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin: 6px 0;
+    font-family: inherit;
+}
+.cv-edit-add-btn:hover {
+    background: #d6ff39;
+    border-style: solid;
+}
+
+.cv-edit-del-btn {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 22px; height: 22px;
+    background: #fff;
+    color: #b00;
+    border: 2px solid #b00;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 900;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    padding: 0;
+}
+.cv-edit-del-btn:hover {
+    background: #b00;
+    color: #fff;
+}
+
+body.cv-edit-mode [data-edit-item] {
+    position: relative;
+}
+
+body.cv-edit-mode .cv3-skill-tag[data-edit-item] {
+    padding-right: 22px;
+}
+body.cv-edit-mode .cv3-skill-tag .cv-edit-del-btn {
+    width: 16px; height: 16px;
+    font-size: 0.6rem;
+    top: 2px; right: 2px;
+}
+
+/* Disable navigation clicks on skills/about links in edit mode */
+body.cv-edit-mode .cv3-skill-tag,
+body.cv-edit-mode .cv3-info-value a {
+    pointer-events: none;
+}
+body.cv-edit-mode .cv3-skill-tag [data-edit-path],
+body.cv-edit-mode .cv3-info-value a {
+    pointer-events: auto;
+}
+
+/* Don't open project popup when clicking-to-edit inside a project */
+body.cv-edit-mode .cv3-project {
+    cursor: default;
+}
+
+/* Section add button */
+.cv-edit-section-add {
+    margin: 24px auto;
+    display: block;
+}

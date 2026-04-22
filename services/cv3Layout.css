@@ -1,0 +1,84 @@
+/* ==========================================================================
+   CV3 Shared Layout — shadow-layer + dark-mode infrastructure
+   Shared between cv3 and any extension pages (e.g. cvprojects).
+   ========================================================================== */
+
+/* ===== SHADOW VARIABLES ===== */
+:root {
+    --cv3-shadow-blur: 1.25px;
+    --cv3-shadow-text-blur: 4px;
+    --cv3-shadow-offset-x: 3.5px;
+    --cv3-shadow-offset-y: 5px;
+}
+
+/* ===== RENDER ROOT + SHADOW LAYERS ===== */
+#cv3RenderRoot {
+    position: relative;
+    z-index: 2;
+}
+#cv3ShadowLayer {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.3;
+    filter: blur(var(--cv3-shadow-blur));
+}
+#cv3NavShadowLayer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.3;
+    filter: blur(var(--cv3-shadow-blur));
+}
+#cv3ShadowLayer > *,
+#cv3NavShadowLayer > * { pointer-events: none; }
+
+/* Text elements get extra blur so they're unreadable in the shadow */
+#cv3ShadowLayer .cv3-nav-left,
+#cv3ShadowLayer .cv3-hero-name,
+#cv3ShadowLayer .cv3-hero-role,
+#cv3ShadowLayer .cv3-section-header,
+#cv3ShadowLayer .cv3-strip-num,
+#cv3ShadowLayer .cv3-field-title,
+#cv3ShadowLayer .cv3-field-org,
+#cv3ShadowLayer .cv3-field-desc,
+#cv3ShadowLayer .cv3-field-date,
+#cv3ShadowLayer .cv3-project-name,
+#cv3ShadowLayer .cv3-project-date,
+#cv3ShadowLayer .cv3-project-desc,
+#cv3ShadowLayer .cv3-project-thumb-ph,
+#cv3ShadowLayer .cv3-project-tag,
+#cv3ShadowLayer .cv3-info-label,
+#cv3ShadowLayer .cv3-info-value,
+#cv3ShadowLayer .cv3-sidebar-photo-ph,
+#cv3ShadowLayer .cv3-sidebar-card-header,
+#cv3ShadowLayer .cv3-popup-title,
+#cv3ShadowLayer .cv3-popup-date,
+#cv3ShadowLayer .cv3-popup-desc,
+#cv3ShadowLayer .cvp-filter-tag,
+#cv3ShadowLayer .cvp-filter-clear,
+#cv3ShadowLayer .cvp-no-results {
+    filter: blur(var(--cv3-shadow-text-blur));
+}
+
+/* Container backgrounds transparent in shadow layer.
+   NOTE: do not include elements whose hover state should show. */
+#cv3ShadowLayer .cv3-outer,
+#cv3ShadowLayer .cv3-nav,
+#cv3ShadowLayer .cv3-section,
+#cv3ShadowLayer .cv3-section::before,
+#cv3ShadowLayer .cv3-sidebar-photo,
+#cv3ShadowLayer .cv3-sidebar-block,
+#cv3ShadowLayer .cv3-sidebar-card,
+#cv3ShadowLayer .cv3-nav-toggle,
+#cv3ShadowLayer .cv3-nav-toggle.is-active,
+#cv3ShadowLayer .cv3-popup,
+#cv3ShadowLayer .cv3-popup-image,
+#cv3ShadowLayer .cv3-popup-details {
+    background: transparent !important;
+}
+
+/* Hide the popup overlay entirely in the shadow layer */
+#cv3ShadowLayer .cv3-popup-overlay { display: none !important; }

@@ -3,700 +3,834 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
-    <title>CV - Hetland</title>
+    <meta name="color-scheme" content="light dark">
+    <title>CV - Thomas Hetland</title>
+    <link rel="stylesheet" href="../projects/StarCitizenTracker/color-config.css">
+    <link rel="stylesheet" href="../services/cv3Layout.css">
+    <link rel="stylesheet" href="../services/cvEditor.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../styles/colors.css">
-    <link rel="stylesheet" href="../styles/selection.css">
     <style>
-        /* Override ocean fog colors for CV page */
+        /* ===== COLOR SYSTEM ===== */
         :root {
-            --ocean-fog-surface: #1a1a19;
-            --ocean-fog-deep: #000000;
+            /* Base colors — overridable by the Color Configurator */
+            --color-light:  #e0dcd9;
+            --color-dark:   #151312;
+            --accent-color: #fbc25b;
+
+            /* CV2-compatible primary/secondary mapping */
+            --primary-color:   var(--color-light);
+            --secondary-color: var(--color-dark);
+
+            /* CV3 semantic aliases derived from base colors */
+            --bg:      var(--color-light);
+            --surface: color-mix(in srgb, var(--color-light) 82%, white);
+            --dark:    var(--color-dark);
+            --text:    var(--color-dark);
+            --muted:   color-mix(in srgb, var(--color-dark) 45%, var(--color-light));
+            --border:  var(--color-dark);
+            --strip-w: 52px;
+
+            /* ===== SPACING SCALE (4px base) ===== */
+            --sp-1:  4px;
+            --sp-2:  8px;
+            --sp-3:  12px;
+            --sp-4:  16px;
+            --sp-5:  20px;
+            --sp-6:  24px;
+            --sp-7:  32px;
+            --sp-8:  40px;
         }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="../services/GLTFLoader.js"></script>
-    <script src="../services/sceneManager.js"></script>
-    <script src="../services/cameraMovement.js"></script>
-    <script src="../services/oceanBackground.js"></script>
-    <script src="../services/submarine.js"></script>
-    <script src="../services/kelp.js"></script>
-    <script src="../services/header.js"></script>
-    <script src="../services/colorConfigPanel.js"></script>
-    <style>
-        /* ===== BASE RESET ===== */
+        body.dark-mode {
+            --primary-color:   var(--color-dark);
+            --secondary-color: var(--color-light);
+
+            --bg:      var(--color-dark);
+            --surface: color-mix(in srgb, var(--color-dark) 82%, black);
+            --dark:    var(--color-light);
+            --text:    var(--color-light);
+            --muted:   color-mix(in srgb, var(--color-light) 45%, var(--color-dark));
+            --border:  var(--color-light);
+        }
+
+        /* ===== RESET ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        a { color: inherit; text-decoration: none; }
 
+        /* ===== BASE ===== */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 0;
-            background: linear-gradient(to bottom, var(--bg-top) 0%, var(--bg-middle) 50%, var(--bg-bottom) 100%);
-            background-attachment: fixed;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
             color: var(--text);
-            overflow-x: hidden;
+            min-height: 100vh;
+            padding: var(--sp-7);
         }
 
-        /* ===== 3D BACKGROUND LAYERS (same as main site) ===== */
-        #canvas3d {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 0; filter: blur(2px);
-        }
-        #canvasCardGizmo {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 11; pointer-events: none;
-        }
-        .cursor-light {
-            position: fixed; width: 2400px; height: 2400px; border-radius: 50%;
-            background: radial-gradient(circle,
-                color-mix(in srgb, var(--primary-color) 1.5%, transparent) 0%,
-                color-mix(in srgb, var(--primary-color) 0.8%, transparent) 35%,
-                color-mix(in srgb, var(--primary-color) 0.4%, transparent) 60%,
-                color-mix(in srgb, var(--primary-color) 0.1%, transparent) 80%,
-                transparent 100%);
-            pointer-events: none; z-index: 1;
-            transform: translate(-50%, -50%);
-            mix-blend-mode: screen; opacity: 0;
-            transition: opacity 0.4s ease; filter: blur(80px);
-        }
-        .vignette {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 2;
-            background: radial-gradient(ellipse at center, transparent 30%, var(--vignette-dark) 80%, var(--vignette-darker) 100%);
-        }
-        .fog-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1;
-            background: radial-gradient(ellipse at 30% 40%, var(--fog-1) 0%, transparent 50%),
-                        radial-gradient(ellipse at 70% 60%, var(--fog-2) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, var(--fog-3) 0%, transparent 50%);
-            opacity: .6;
-        }
-
-        /* ===== CV PAGE LAYOUT ===== */
-        .cv-page {
-            position: relative; z-index: 10;
-            max-width: 1400px; width: 100%;
+        /* ===== OUTER WRAPPER ===== */
+        .cv3-outer {
+            max-width: 1320px;
             margin: 0 auto;
-            padding: 6rem 4rem 4rem 4rem;
+            border: 2px solid var(--border);
+            background: transparent;
+            padding: var(--sp-7);
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-7);
         }
 
-        /* ===== HEADER (inside left column) ===== */
-        .cv-topbar {
-            margin-bottom: 1.2rem;
-            animation: fadeInDown 0.8s ease;
+        /* ===== NAV BAR ===== */
+        .cv3-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--sp-4) 0 var(--sp-6);
+            height: 68px;
+            border: 2px solid var(--border);
         }
-        .cv-identity {
-            display: flex; flex-direction: column;
-            justify-content: flex-start;
+        .cv3-nav-left {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
-        .cv-identity h1 {
-            font-size: 3.2rem; font-weight: 900;
-            text-transform: uppercase; letter-spacing: 5px;
-            background: var(--primary-color);
-            color: var(--text-contrast);
-            padding: 0.1rem 0.8rem; border-radius: 2px;
-            display: inline-block;
-            box-shadow: 0 2px 12px var(--shadow-standard);
+        .cv3-nav-right {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-5);
         }
-        .cv-identity .cv-role {
-            font-size: 1.2rem; font-weight: 300;
-            letter-spacing: 3px; text-transform: uppercase;
-            color: var(--text-header); margin-top: 0.5rem;
-            text-shadow: 0 3px 12px var(--shadow-standard);
-        }
-
-        /* Profile picture — in sidebar */
-        .cv-photo {
-            width: 100%; aspect-ratio: 5 / 6;
-            border-radius: 6px; overflow: hidden;
-            border: 2px solid var(--primary-border);
-            box-shadow: 0 8px 30px var(--shadow-strong), 0 0 20px var(--primary-transparent-light);
-            background: var(--primary-transparent-light);
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-        .cv-photo img {
-            width: 100%; height: 100%; object-fit: cover;
-        }
-        .cv-photo .placeholder-icon {
-            font-size: 3rem; color: var(--primary-border);
-        }
-
-        /* ===== TWO-COLUMN BODY ===== */
-        .cv-body {
-            display: flex; gap: 2.5rem;
-        }
-
-        /* --- LEFT: main content with timeline --- */
-        .cv-main {
-            flex: 1; min-width: 0;
-        }
-
-        /* --- RIGHT: sidebar with info & skills --- */
-        .cv-sidebar {
-            width: 260px; flex-shrink: 0;
-        }
-
-        /* ===== SIDEBAR BLOCKS ===== */
-        .cv-sidebar-block {
-            margin-bottom: 2rem;
-            animation: fadeInUp 0.6s ease backwards;
-        }
-        .cv-sidebar-block:nth-child(1) { animation-delay: 0.15s; }
-        .cv-sidebar-block:nth-child(2) { animation-delay: 0.25s; }
-        .cv-sidebar-block:nth-child(3) { animation-delay: 0.35s; }
-        .cv-sidebar-block:nth-child(4) { animation-delay: 0.45s; }
-
-        .cv-sidebar-title {
-            font-size: 0.9rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 2px;
-            color: var(--primary-color);
-            margin-bottom: 0.8rem;
-            display: flex; align-items: center; gap: 0.5rem;
-        }
-        .cv-sidebar-title i { font-size: 0.85rem; }
-
-        /* About-me info list */
-        .cv-info-list {
-            list-style: none;
-        }
-        .cv-info-list li {
-            display: flex; align-items: flex-start; gap: 0.6rem;
-            font-size: 0.84rem; color: var(--text);
-            padding: 0.4rem 0;
-            border-bottom: 1px solid color-mix(in srgb, var(--primary-color) 8%, transparent);
-        }
-        .cv-info-list li:last-child { border-bottom: none; }
-        .cv-info-list li i {
-            color: var(--primary-color); font-size: 0.85rem;
-            margin-top: 0.1rem; flex-shrink: 0; width: 18px; text-align: center;
-        }
-        .cv-info-list li a {
-            color: var(--text); text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        .cv-info-list li a:hover { color: var(--primary-color); }
-
-        .cv-info-label {
-            font-weight: 600; color: var(--text-header);
-            font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;
-            display: block; margin-bottom: 0.1rem;
-        }
-
-        /* ===== SKILL TAGS (sidebar) ===== */
-        .cv-skills {
-            display: flex; flex-wrap: wrap; gap: 0.4rem;
-        }
-        .cv-skill-tag {
-            padding: 0.3rem 0.7rem;
-            font-size: 0.74rem; font-weight: 600;
-            letter-spacing: 0.5px;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
-            border-radius: 20px;
-            color: var(--primary-color);
-            transition: all 0.3s ease;
-        }
-        .cv-skill-tag:hover {
-            border-color: var(--primary-border);
-            background: var(--primary-transparent-medium);
-            box-shadow: 0 0 10px var(--primary-transparent-light);
-        }
-
-        /* ===== SECTION BLOCK (with timeline) ===== */
-        .cv-section {
-            margin-bottom: 2.5rem;
-            position: relative;
-            padding-left: 44px; /* space for vertical timeline */
-            animation: fadeInUp 0.6s ease backwards;
-        }
-        .cv-section:nth-child(1) { animation-delay: 0.1s; }
-        .cv-section:nth-child(2) { animation-delay: 0.2s; }
-        .cv-section:nth-child(3) { animation-delay: 0.3s; }
-        .cv-section:nth-child(4) { animation-delay: 0.4s; }
-
-        /* Vertical timeline line — centered on dots at 12px from section left */
-        .cv-section::before {
-            content: '';
-            position: absolute; left: 11px; top: 0.65rem; bottom: 0;
-            width: 2px;
-            background: linear-gradient(to bottom, var(--primary-border) 0%, var(--primary-border-light) 70%, transparent 100%);
-        }
-
-        .cv-section-title {
-            font-size: 1.05rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 3px;
-            color: var(--primary-color);
-            margin-bottom: 1.2rem;
-            display: flex; align-items: center; gap: 0.6rem;
-            position: relative;
-        }
-        .cv-section-title i { font-size: 0.95rem; }
-
-        /* Horizontal tick from the vertical line to the section header */
-        .cv-section-title::before {
-            content: '';
-            position: absolute;
-            left: -32px; top: 50%;
-            width: 32px; height: 2px;
-            background: var(--primary-border);
-        }
-        /* Dot at the junction — 10px wide, centered at 12px from section left */
-        .cv-section-title::after {
-            content: '';
-            position: absolute;
-            left: -37px; top: 50%; transform: translateY(-50%);
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            border: none;
-            box-shadow: 0 0 6px var(--primary-glow);
-        }
-
-        /* ===== TIMELINE FIELD (date-bounded entry) ===== */
-        /*
-            LAYOUT: date floats left of timeline line.
-            Card: logo → title → description → projects (vertical stack)
-        */
-        .cv-field {
-            padding: 1.2rem 1.4rem;
-            margin-bottom: 1rem;
-            background: var(--primary-transparent-light);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--primary-border-light);
-            border-radius: 8px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-        }
-        .cv-field:hover {
-            border-color: var(--primary-border);
-            box-shadow: 0 4px 24px var(--shadow-light), 0 0 12px var(--primary-transparent-light);
-        }
-
-        /* Date range — inside card, above logo */
-        .cv-field-date {
-            font-size: 0.75rem; font-weight: 600;
-            color: var(--primary-color);
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-            line-height: 1.5;
-            margin-bottom: 0.8rem;
-        }
-
-        .cv-field--date-top-right {
-            padding-top: 1.2rem;
-        }
-        .cv-field--date-top-right .cv-field-date {
-            position: absolute;
-            top: 0.9rem;
-            left: -152px;
-            width: 104px;
-            margin-bottom: 0;
-            text-align: right;
-            line-height: 1.25;
-            white-space: normal;
-        }
-        .cv-field-date-line {
-            display: block;
-        }
-
-        /* Horizontal tick from timeline to the field card */
-        .cv-field::before {
-            content: '';
-            position: absolute;
-            left: -32px; top: 1.6rem;
-            width: 32px; height: 2px;
-            background: var(--primary-border-light);
-        }
-        /* Dot on timeline at field level — 8px wide, centered at 12px from section left */
-        .cv-field::after {
-            content: '';
-            position: absolute;
-            left: -36px; top: 1.6rem; transform: translateY(-50%);
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            border: none;
-            box-shadow: 0 0 4px var(--primary-glow);
-        }
-
-        /* Company logo — top of card, wide-rectangle friendly */
-        .cv-field-logo {
-            max-width: 160px; margin-bottom: 1rem;
-        }
-        .cv-field-logo img {
-            width: 100%; height: auto; object-fit: contain;
-            border-radius: 4px;
-        }
-        .cv-field-logo .placeholder-icon {
-            font-size: 1.4rem; color: var(--primary-border);
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
-            border-radius: 6px;
-            width: 52px; height: 52px;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .cv-field-title {
-            font-size: 1.1rem; font-weight: 700;
-            color: var(--text-header); margin-bottom: 0.2rem;
-        }
-        .cv-field-org {
-            font-size: 0.88rem; color: var(--text);
-            opacity: 0.8; margin-bottom: 0.5rem;
-        }
-        .cv-field-desc {
-            font-size: 0.85rem; color: var(--text);
-            line-height: 1.6;
-        }
-        .cv-field-desc ul {
-            margin: 0.4rem 0 0 1.2rem;
-            list-style: none;
-        }
-        .cv-field-desc ul li::before {
-            content: '▸'; color: var(--primary-color);
-            margin-right: 0.5rem;
-        }
-
-        /* ===== PROJECT MODULE (nestable inside cv-field-body) ===== */
-        .cv-project {
-            display: flex; gap: 1rem;
-            padding: 0.8rem;
-            margin-top: 0.8rem;
-            background: color-mix(in srgb, var(--background-dark) 60%, transparent);
-            border: 1px solid var(--primary-border-light);
-            border-radius: 6px;
+        .cv3-nav-menu {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
             cursor: pointer;
-            transition: all 0.3s ease;
         }
-        .cv-project:hover {
-            border-color: var(--primary-border);
-            background: color-mix(in srgb, var(--background-dark) 80%, transparent);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--shadow-standard);
-        }
-        .cv-project-thumb {
-            width: 96px; height: 96px; flex-shrink: 0;
-            border-radius: 4px; overflow: hidden;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+        .cv3-nav-toggle {
+            width: 36px; height: 36px;
+            border: 2px solid var(--border);
+            background: var(--dark);
+            color: var(--bg);
+            font-size: 0.85rem;
+            cursor: pointer;
             display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.2s;
         }
-        .cv-project-thumb img {
+        .cv3-nav-toggle:hover,
+        .cv3-nav-toggle.is-hovered { opacity: 0.7; }
+        .cv3-nav-toggle.is-active {
+            background: var(--bg);
+            color: var(--dark);
+        }
+
+        /* ===== BODY: two-column ===== */
+        .cv3-body {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        /* ===== MAIN (left) ===== */
+        .cv3-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-7);
+        }
+
+        /* ===== SECTION WRAPPER — grid: strip column + content column ===== */
+        .cv3-section {
+            display: grid;
+            grid-template-columns: var(--strip-w) 1fr;
+            border: 2px solid var(--border);
+            position: relative;
+        }
+        /* Solid dark fill for the entire strip column, full section height */
+        .cv3-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: var(--strip-w);
+            background: var(--dark);
+            z-index: 0;
+        }
+
+        /* Everything in column 2 */
+        .cv3-section > *:not(.cv3-strip),
+        .cv3-fields > * {
+            grid-column: 2;
+        }
+
+        /* Vertical strip — absolutely fills the dark left bar */
+        .cv3-strip {
+            position: absolute;
+            top: 0; bottom: 0; left: 0;
+            width: var(--strip-w);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--sp-3) 0;
+            color: var(--bg);
+            z-index: 1;
+        }
+        .cv3-strip svg {
+            width: 16px; height: 16px;
+            flex-shrink: 0;
+        }
+        .cv3-strip-num {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--bg);
+        }
+
+        /* Per-field date cell (one per field, stacked under number) */
+        .cv3-strip-date {
+            flex-direction: column;
+            gap: 2px;
+            padding: var(--sp-3) 2px;
+        }
+        .cv3-strip-date span {
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+            color: var(--bg);
+        }
+        .cv3-strip-date-sep {
+            width: 14px;
+            height: 1px;
+            background: color-mix(in srgb, var(--bg) 35%, transparent);
+        }
+
+        /* Section header bar (sits in column 2) */
+        .cv3-section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            padding: var(--sp-4) var(--sp-6);
+            border-bottom: 2px solid var(--border);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .cv3-section-header svg {
+            width: 15px; height: 15px;
+            flex-shrink: 0;
+        }
+        .cv3-section-content {
+            padding: var(--sp-6);
+        }
+        /* Wrapper that lets its children participate in the parent grid */
+        .cv3-fields {
+            display: contents;
+        }
+
+        /* ===== HERO SECTION (01) ===== */
+        .cv3-hero {
+            position: relative;
+            overflow: hidden;
+            grid-row: 1 / -1; /* span all rows so strip cells don't add height */
+        }
+        .cv3-hero-dot-grid {
+            position: absolute;
+            top: 0; left: 0;
+            width: 90px; height: 90px;
+            background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+            background-size: 10px 10px;
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        .cv3-hero-inner {
+            position: relative;
+            z-index: 2;
+            padding: var(--sp-6);
+            max-width: 100%;
+        }
+        .cv3-hero-role {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: var(--sp-2);
+        }
+        .cv3-hero-name {
+            font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+        .cv3-hero-tagline {
+            font-size: 0.86rem;
+            color: var(--muted);
+            line-height: 1.75;
+            max-width: 380px;
+            margin-bottom: var(--sp-6);
+        }
+        .cv3-hero-links {
+            display: flex;
+            gap: var(--sp-6);
+            flex-wrap: wrap;
+        }
+        .cv3-hero-link {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: var(--sp-1);
+            transition: opacity 0.2s;
+        }
+        .cv3-hero-link:hover,
+        .cv3-hero-link.is-hovered { opacity: 0.5; }
+
+        /* Hero photo — absolute right, fades left edge */
+        .cv3-hero-photo-wrap {
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            width: 42%;
+            overflow: hidden;
+        }
+        .cv3-hero-photo-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
+        .cv3-hero-photo-fade {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, var(--surface) 0%, transparent 55%);
+        }
+        .cv3-hero-photo-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--border) 6%, transparent);
+            font-size: 0.62rem; letter-spacing: 2px; font-weight: 700;
+            color: var(--muted);
+        }
+
+        /* ===== TIMELINE FIELDS ===== */
+        .cv3-field {
+            padding: var(--sp-6);
+            border-bottom: 2px solid var(--border);
+            position: relative;
+        }
+        .cv3-field:last-child { border-bottom: none; }
+
+        .cv3-field-date {
+            position: absolute;
+            top: var(--sp-4);
+            right: var(--sp-6);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .cv3-field-content {
+            min-width: 0;
+        }
+        .cv3-field-content {
+            flex: 1; min-width: 0;
+            padding: var(--sp-6) var(--sp-6);
+        }
+        .cv3-field-logo {
+            max-width: 130px;
+            margin-bottom: var(--sp-3);
+        }
+        .cv3-field-logo img {
+            width: 100%; height: auto;
+        }
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            border: 2px solid var(--border);
+            padding: var(--sp-1) var(--sp-3);
+            display: inline-block;
+        }
+        .cv3-field-title {
+            font-size: 1rem; font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--sp-1);
+        }
+        .cv3-field-title-role {
+            opacity: 0.5;
+            font-weight: 600;
+        }
+        .cv3-field-org {
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+            margin-bottom: var(--sp-3);
+        }
+        .cv3-field-desc {
+            font-size: 0.85rem;
+            line-height: 1.75;
+            color: var(--text);
+            margin-top: var(--sp-4);
+        }
+
+        /* ===== PROJECT CARDS ===== */
+        .cv3-project {
+            display: flex;
+            margin-top: var(--sp-4);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .cv3-project:hover,
+        .cv3-project.is-hovered {
+            background: var(--dark);
+            color: var(--bg);
+        }
+        .cv3-project:hover .cv3-project-name,
+        .cv3-project.is-hovered .cv3-project-name,
+        .cv3-project:hover .cv3-project-date,
+        .cv3-project.is-hovered .cv3-project-date,
+        .cv3-project:hover .cv3-project-desc,
+        .cv3-project.is-hovered .cv3-project-desc {
+            color: var(--bg);
+        }
+        .cv3-project:hover .cv3-project-thumb,
+        .cv3-project.is-hovered .cv3-project-thumb {
+            background: transparent;
+            border-right-color: var(--bg);
+        }
+        .cv3-project:hover .cv3-project-thumb-ph,
+        .cv3-project.is-hovered .cv3-project-thumb-ph {
+            color: var(--bg);
+        }
+        .cv3-project-thumb {
+            width: 220px; height: 140px; flex-shrink: 0;
+            border-right: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            background: color-mix(in srgb, var(--border) 5%, transparent);
+        }
+        .cv3-project-thumb img {
             width: 100%; height: 100%; object-fit: cover;
         }
-        .cv-project-thumb .placeholder-icon {
-            font-size: 1.8rem; color: var(--primary-border);
+        .cv3-project-thumb-ph {
+            font-size: 0.58rem; letter-spacing: 2px;
+            font-weight: 700; color: var(--muted);
         }
-        .cv-project-info { flex: 1; min-width: 0; }
+        .cv3-project-info {
+            flex: 1; padding: var(--sp-3) var(--sp-4);
+        }
+        .cv3-project-name {
+            font-size: 0.84rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            margin-bottom: var(--sp-1);
+        }
+        .cv3-project-date {
+            font-size: 0.66rem; font-weight: 700;
+            letter-spacing: 1.5px; color: var(--muted);
+            margin-bottom: var(--sp-2); display: block;
+        }
+        .cv3-project-desc {
+            font-size: 0.78rem; line-height: 1.6;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .cv3-project-tags {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+        .cv3-project-tag {
+            font-size: 0.5rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 1px 5px;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            color: var(--text);
+        }
+        .cv3-project:hover .cv3-project-tag,
+        .cv3-project.is-hovered .cv3-project-tag {
+            border-color: var(--bg);
+            color: var(--bg);
+        }
 
-        .cv-project-name {
-            font-size: 0.95rem; font-weight: 700;
-            color: var(--text-header); margin-bottom: 0.15rem;
-        }
-        .cv-project-date {
-            font-size: 0.75rem; color: var(--primary-color);
-            font-weight: 600; letter-spacing: 0.3px;
-        }
-        .cv-project-desc {
-            font-size: 0.82rem; color: var(--text);
-            line-height: 1.5; margin-top: 0.3rem;
-            display: -webkit-box; -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical; overflow: hidden;
+        /* ===== SIDEBAR — flush to outer right, full height ===== */
+        .cv3-sidebar {
+            width: 330px;
+            flex-shrink: 0;
+            align-self: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-7);
+            padding-left: var(--sp-7);
         }
 
-        /* ===== PROJECT POPUP OVERLAY ===== */
-        .cv-popup-overlay {
+        /* Sidebar cards — each is its own bordered card */
+        .cv3-sidebar-card {
+            border: 2px solid var(--border);
+        }
+
+        /* Profile photo — square */
+        .cv3-sidebar-photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+        .cv3-sidebar-photo img {
+            width: 100%; height: 100%;
+            object-fit: cover; object-position: 37.5% top;
+        }
+        .cv3-sidebar-photo-ph {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--border) 7%, transparent);
+            font-size: 0.62rem; letter-spacing: 2px;
+            font-weight: 700; color: var(--muted);
+        }
+
+        /* Sidebar cards */
+
+        .cv3-sidebar-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            padding: var(--sp-4) var(--sp-6);
+            font-size: 0.66rem; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase;
+            border-bottom: 2px solid var(--border);
+        }
+        .cv3-sidebar-card-header svg {
+            width: 16px; height: 16px;
+            flex-shrink: 0;
+        }
+
+        .cv3-sidebar-card-body {
+            padding: 24px;
+        }
+
+        /* About Me text */
+        .cv3-about-text {
+            font-size: 0.82rem;
+            line-height: 2;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 7;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .cv3-read-more {
+            font-size: 0.66rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            display: inline-flex; align-items: center; gap: var(--sp-2);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: var(--sp-1);
+            transition: opacity 0.2s;
+        }
+        .cv3-read-more:hover,
+        .cv3-read-more.is-hovered { opacity: 0.5; }
+
+        /* Contact & Info list */
+        .cv3-info-list { list-style: none; }
+        .cv3-info-item {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-4);
+            padding: 18px 24px;
+            margin: 0 -24px;
+            border-bottom: 2px solid var(--border);
+        }
+        .cv3-info-item:first-child { padding-top: 0; }
+        .cv3-info-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .cv3-info-icon {
+            width: 32px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; flex-shrink: 0;
+        }
+        .cv3-info-text { flex: 1; }
+        .cv3-info-label {
+            font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--muted);
+            display: block; margin-bottom: 3px;
+        }
+        .cv3-info-value {
+            font-size: 0.88rem; color: var(--text); font-weight: 500;
+        }
+        .cv3-info-value a {
+            border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+            transition: border-color 0.15s;
+        }
+        .cv3-info-value a:hover {
+            border-color: var(--border);
+        }
+
+        /* Skills */
+        .cv3-skills {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cv3-skill-tag {
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 8px 14px;
+            border: 2px solid var(--border);
+            transition: background 0.15s, color 0.15s;
+        }
+        .cv3-skill-tag:hover,
+        .cv3-skill-tag.is-hovered {
+            background: var(--dark);
+            color: var(--bg);
+        }
+
+        /* ===== POPUP OVERLAY ===== */
+        .cv3-popup-overlay {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(6px);
-            z-index: 1000; display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
             align-items: flex-start; justify-content: center;
             overflow-y: auto;
-            padding: 2rem;
+            padding: var(--sp-8) var(--sp-5);
             opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s;
         }
-        .cv-popup-overlay.active {
+        .cv3-popup-overlay.active {
             opacity: 1; pointer-events: auto;
         }
-        .cv-popup {
-            background: linear-gradient(135deg, var(--bg-bottom), var(--bg-middle));
-            border: 1px solid var(--primary-border);
-            border-radius: 12px;
-            max-width: 1120px; width: 96%;
-            max-height: none;
-            overflow: visible;
-            margin: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--primary-transparent-light);
-            transform: scale(0.92) translateY(20px);
-            transition: transform 0.35s ease;
+        .cv3-popup {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            max-width: 1500px; width: 100%;
             position: relative;
+            transform: translateY(20px);
+            transition: transform 0.25s;
+            margin: auto;
         }
-        .cv-popup-overlay.active .cv-popup {
-            transform: scale(1) translateY(0);
+        .cv3-popup-overlay.active .cv3-popup {
+            transform: translateY(0);
         }
-
-        /* Sci-fi corner accents on popup */
-        .cv-popup::before,
-        .cv-popup::after {
-            content: ''; position: absolute;
-            width: 18px; height: 18px;
-        }
-        .cv-popup::before {
-            top: -1px; left: -1px;
-            border-top: 2px solid var(--primary-border-strong);
-            border-left: 2px solid var(--primary-border-strong);
-        }
-        .cv-popup::after {
-            bottom: -1px; right: -1px;
-            border-bottom: 2px solid var(--primary-border-strong);
-            border-right: 2px solid var(--primary-border-strong);
-        }
-
-        .cv-popup-close {
-            position: absolute; top: 1rem; right: 1rem;
-            width: 36px; height: 36px; border-radius: 50%;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
-            color: var(--text); font-size: 1.1rem;
-            cursor: pointer; display: flex;
-            align-items: center; justify-content: center;
-            transition: all 0.3s ease; z-index: 2;
-        }
-        .cv-popup-close:hover {
-            background: var(--primary-transparent-heavy);
-            border-color: var(--primary-border-strong);
-            color: var(--primary-color);
-        }
-
-        .cv-popup-content {
-            display: flex; gap: 1.5rem;
-            padding: 2rem;
-        }
-        .cv-popup-image {
-            flex: 0 0 42%; min-width: 0;
-            border-radius: 8px; overflow: hidden;
-            background: var(--primary-transparent-light);
-            border: 1px solid var(--primary-border-light);
+        .cv3-popup-close {
+            position: absolute; top: var(--sp-3); right: var(--sp-3);
+            width: 32px; height: 32px;
+            border: 2px solid var(--border);
+            background: var(--dark);
+            color: var(--bg);
+            font-size: 0.8rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            aspect-ratio: 1 / 1;
-            min-height: 0;
+            z-index: 2; transition: opacity 0.2s;
         }
-        .cv-popup-image img {
-            width: 100%; height: 100%; object-fit: cover;
+        .cv3-popup-close:hover,
+        .cv3-popup-close.is-hovered { opacity: 0.7; }
+        .cv3-popup-content {
+            display: flex;
         }
-        .cv-popup-image .placeholder-icon {
-            font-size: 3rem; color: var(--primary-border);
+        .cv3-popup-image {
+            flex: 0 0 auto;
+            width: auto;
+            height: 600px;
+            aspect-ratio: 16 / 9;
+            border-right: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--border) 5%, transparent);
+            overflow: hidden;
         }
-        .cv-popup-details {
-            flex: 1; min-width: 0;
-            display: flex; flex-direction: column;
+        .cv3-popup-image img {
+            width: 100%; height: 100%; object-fit: contain;
         }
-        .cv-popup-org-logo {
-            margin-bottom: 14px;
-            max-width: 180px;
+        .cv3-popup-image-ph {
+            font-size: 0.62rem; letter-spacing: 2px;
+            font-weight: 700; color: var(--muted);
         }
-        .cv-popup-org-logo img {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-            display: block;
+        .cv3-popup-details {
+            flex: 1; padding: var(--sp-7);
         }
-        .cv-popup-title {
-            font-size: 1.5rem; font-weight: 800;
-            color: var(--text-header); margin-bottom: 0.3rem;
+        .cv3-popup-org-logo {
+            max-width: 140px; margin-bottom: var(--sp-4);
         }
-        .cv-popup-date {
-            font-size: 0.85rem; color: var(--primary-color);
-            font-weight: 600; margin-bottom: 1rem;
+        .cv3-popup-org-logo img {
+            width: 100%; height: auto;
         }
-        .cv-popup-desc {
-            font-size: 0.92rem; color: var(--text);
-            line-height: 1.7;
+        .cv3-popup-title {
+            font-size: 1.3rem; font-weight: 900;
+            letter-spacing: 0.5px; margin-bottom: 4px;
         }
-
-        /* ===== SCANLINE OVERLAY (subtle sci-fi effect) ===== */
-        .scanlines {
-            position: fixed; inset: 0;
-            pointer-events: none; z-index: 3;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 0, 0, 0.03) 2px,
-                rgba(0, 0, 0, 0.03) 4px
-            );
+        .cv3-popup-date {
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 2px; color: var(--muted);
+            text-transform: uppercase;
+            display: block; margin-bottom: var(--sp-4);
         }
-
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to   { opacity: 1; transform: translateY(0); }
+        .cv3-popup-desc {
+            font-size: 0.87rem; line-height: 1.8;
+            color: var(--text);
         }
 
         /* ===== RESPONSIVE ===== */
-        @media (max-width: 900px) {
-            .cv-body { flex-direction: column; }
-            .cv-sidebar { width: 100%; }
+        @media (max-width: 820px) {
+            .cv3-body { flex-direction: column; }
+            .cv3-sidebar { width: 100%; padding-left: 0; padding-top: var(--sp-6); }
+            .cv3-main { gap: var(--sp-4); }
+            .cv3-hero-inner { max-width: 100%; }
+            .cv3-hero-photo-wrap { display: none; }
         }
-        @media (max-width: 768px) {
-            .cv-page { padding: 5rem 1rem 3rem 1rem; }
-            .cv-topbar { text-align: center; }
-            .cv-identity h1 { font-size: 2rem; letter-spacing: 3px; }
-            .cv-identity .cv-role { font-size: 0.95rem; }
-            .cv-photo { width: 100%; }
-            /* Collapse timeline for mobile */
-            .cv-section { padding-left: 28px; }
-            .cv-section::before { left: 7px; }
-            .cv-section-title::before { left: -20px; width: 20px; }
-            .cv-section-title::after { left: -24px; }
-            .cv-field::before { left: -21px; width: 21px; }
-            .cv-field::after { left: -25px; }
-            .cv-field--date-top-right {
-                padding-top: 1.2rem;
-            }
-            .cv-field--date-top-right .cv-field-date {
-                position: absolute;
-                left: -118px;
-                width: 88px;
-                top: 0.95rem;
-                text-align: right;
-            }
-            .cv-project { flex-direction: column; }
-            .cv-project-thumb {
-                width: min(100%, 220px);
-                height: auto;
-                aspect-ratio: 1 / 1;
-            }
-            .cv-popup-content { flex-direction: column; }
-            .cv-popup-image {
-                width: 100%;
-                aspect-ratio: 1 / 1;
-                min-height: 0;
-            }
-            .cv-popup { width: 96%; max-height: none; }
-            #canvasCardGizmo { display: none; }
-        }
-        @media (max-width: 480px) {
-            .cv-identity h1 { font-size: 1.5rem; letter-spacing: 2px; }
-            .cv-section { padding-left: 20px; }
-            .cv-section::before { left: 5px; }
-            .cv-section-title::before { left: -20px; width: 14px; }
-            .cv-section-title::after { left: -24px; width: 8px; height: 8px; }
-            .cv-field::before { left: -20px; width: 14px; }
-            .cv-field::after { left: -25px; width: 6px; height: 6px; }
+        @media (max-width: 560px) {
+            body { padding: var(--sp-4); }
+            .cv3-outer { padding: var(--sp-4); }
+            .cv3-field-date-col { width: 90px; }
+            .cv3-hero-name { font-size: 2rem; }
+            .cv3-popup-content { flex-direction: column; }
+            .cv3-popup-image { flex: none; min-height: 260px; border-right: none; border-bottom: 2px solid var(--border); }
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas3d"></canvas>
-    <canvas id="canvasCardGizmo"></canvas>
-    <div class="fog-overlay"></div>
-    <div class="cursor-light" id="cursorLight"></div>
-    <div class="vignette"></div>
-    <div class="scanlines"></div>
 
-    <!-- ===== PROJECT POPUP (shared, filled by JS) ===== -->
-    <div class="cv-popup-overlay" id="cvPopupOverlay" onclick="closeProjectPopup(event)">
-        <div class="cv-popup">
-            <button class="cv-popup-close" onclick="closeProjectPopup(event, true)" aria-label="Close">
+    <div id="cv3NavShadowLayer" aria-hidden="true"></div>
+    <div id="cv3ShadowLayer" aria-hidden="true"></div>
+    <div id="cv3RenderRoot">
+
+    <!-- ===== POPUP ===== -->
+    <div class="cv3-popup-overlay" id="cv3PopupOverlay">
+        <div class="cv3-popup">
+            <button class="cv3-popup-close" id="cv3PopupClose" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
-            <div class="cv-popup-content">
-                <div class="cv-popup-image" id="popupImage">
-                    <i class="fas fa-image placeholder-icon"></i>
+            <div class="cv3-popup-content">
+                <div class="cv3-popup-image" id="cv3PopupImage">
+                    <span class="cv3-popup-image-ph">IMAGE</span>
                 </div>
-                <div class="cv-popup-details">
-                    <div class="cv-popup-org-logo" id="popupOrgLogo"></div>
-                    <h3 class="cv-popup-title" id="popupTitle"></h3>
-                    <span class="cv-popup-date" id="popupDate"></span>
-                    <p class="cv-popup-desc" id="popupDesc"></p>
+                <div class="cv3-popup-details">
+                    <div class="cv3-popup-org-logo" id="cv3PopupOrgLogo"></div>
+                    <h3 class="cv3-popup-title" id="cv3PopupTitle"></h3>
+                    <span class="cv3-popup-date" id="cv3PopupDate"></span>
+                    <p class="cv3-popup-desc" id="cv3PopupDesc"></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== CV CONTENT ===== -->
-    <div class="cv-page">
+    <!-- ===== PAGE ===== -->
+    <div class="cv3-outer">
 
-        <!-- ===== TWO-COLUMN LAYOUT (full height) ===== -->
-        <div class="cv-body">
+        <!-- NAV -->
+        <nav class="cv3-nav">
+            <div class="cv3-nav-left" id="cv3NavLabel">THOMAS HETLAND <span style="opacity:0.5">/ CV-PORTFOLIO</span></div>
+            <div class="cv3-nav-right">
+                <button class="cv3-nav-toggle is-active" id="cv3GlassToggle" title="Show Shadow Layer" aria-label="Toggle shadow layer" aria-pressed="false">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="8.2" cy="11.0" r="3.6" opacity="0.95"></circle>
+                        <circle cx="14.9" cy="8.2" r="2.4" opacity="0.75"></circle>
+                        <circle cx="14.8" cy="15.2" r="3.2" opacity="0.85"></circle>
+                    </svg>
+                </button>
+                <button class="cv3-nav-toggle" id="cv3DarkToggle" aria-label="Toggle dark mode">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
 
-            <!-- ===== LEFT: MAIN CONTENT with timeline ===== -->
-            <div class="cv-main">
+        <!-- BODY -->
+        <div class="cv3-body">
 
-                <!-- HEADER (left column only) -->
-                <div class="cv-topbar">
-                    <div class="cv-identity">
-                        <h1 id="cv1Name"></h1>
-                        <p class="cv-role" id="cv1Role"></p>
+            <!-- ========== MAIN COLUMN ========== -->
+            <main class="cv3-main" id="cv3Main">
+
+                <!-- 01: HERO (always static) -->
+                <section class="cv3-section" id="cv3-hero">
+                    <div class="cv3-strip">
+                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="16" height="16" aria-hidden="true">
+                            <circle cx="5" cy="5" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="19" cy="5" r="1.5"/>
+                            <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+                            <circle cx="5" cy="19" r="1.5"/><circle cx="12" cy="19" r="1.5"/><circle cx="19" cy="19" r="1.5"/>
+                        </svg>
+                        <span class="cv3-strip-num">01</span>
+                    </div>
+                    <div class="cv3-hero">
+                        <div class="cv3-hero-inner">
+                            <p class="cv3-hero-role" id="cv3HeroRole"></p>
+                            <h1 class="cv3-hero-name" id="cv3HeroName"></h1>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sections 02+ are generated dynamically from CV_DATA.sections -->
+
+            </main>
+
+            <!-- ========== SIDEBAR ========== -->
+            <aside class="cv3-sidebar">
+
+                <!-- Profile photo -->
+                <div class="cv3-sidebar-photo" id="cv3Photo">
+                    <div class="cv3-sidebar-photo-ph">PHOTO</div>
+                </div>
+
+                <!-- Contact & Info -->
+                <div class="cv3-sidebar-card">
+                    <div class="cv3-sidebar-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> CONTACT &amp; INFO
+                    </div>
+                    <div class="cv3-sidebar-card-body">
+                        <ul class="cv3-info-list" id="cv3ContactList"></ul>
                     </div>
                 </div>
 
-                <!-- SUMMARY -->
-                <div class="cv-section">
-                    <h2 class="cv-section-title"><i class="fas fa-user-circle"></i> Summary</h2>
-                    <p class="cv-field-desc" style="padding-left: 4px;" id="cv1Summary"></p>
+                <!-- Skills -->
+                <div class="cv3-sidebar-card">
+                    <div class="cv3-sidebar-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> SKILLS
+                    </div>
+                    <div class="cv3-sidebar-card-body">
+                        <div class="cv3-skills" id="cv3SkillsList"></div>
+                    </div>
                 </div>
 
-                <!-- EXPERIENCE -->
-                <div class="cv-section">
-                    <h2 class="cv-section-title"><i class="fas fa-briefcase"></i> Experience</h2>
-                    <div id="cv1ExperienceFields"></div>
-                </div>
+            </aside>
 
-                <!-- EDUCATION -->
-                <div class="cv-section">
-                    <h2 class="cv-section-title"><i class="fas fa-graduation-cap"></i> Education</h2>
-                    <div id="cv1EducationFields"></div>
-                </div>
+        </div><!-- /cv3-body -->
+    </div><!-- /cv3-outer -->
 
-                <!-- PROJECTS (standalone) -->
-                <div class="cv-section">
-                    <h2 class="cv-section-title"><i class="fas fa-rocket"></i> Projects</h2>
-                    <div id="cv1ProjectGroups"></div>
-                </div>
+    </div><!-- /cv3RenderRoot -->
 
-            </div><!-- /cv-main -->
-
-            <!-- ===== RIGHT: SIDEBAR ===== -->
-            <div class="cv-sidebar">
-
-                <!-- PROFILE PHOTO -->
-                <div class="cv-photo" id="cv1Photo">
-                    <i class="fas fa-user placeholder-icon"></i>
-                </div>
-
-                <!-- ABOUT ME -->
-                <div class="cv-sidebar-block">
-                    <h3 class="cv-sidebar-title"><i class="fas fa-address-card"></i> About Me</h3>
-                    <ul class="cv-info-list" id="cv1AboutList"></ul>
-                </div>
-
-                <!-- SKILLS -->
-                <div class="cv-sidebar-block">
-                    <h3 class="cv-sidebar-title"><i class="fas fa-code"></i> Skills</h3>
-                    <div class="cv-skills" id="cv1SkillsList"></div>
-                </div>
-
-            </div><!-- /cv-sidebar -->
-
-        </div><!-- /cv-body -->
-
-    </div><!-- /cv-page -->
-
-    <script src="./cv.js"></script>
+    <script src="cv.js"></script>
     <script>
-        function escapeHtml(value) {
-            return String(value ?? '')
+        /* ===== HELPERS ===== */
+        function escapeHtml(v) {
+            return String(v ?? '')
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
@@ -704,268 +838,307 @@
                 .replace(/'/g, '&#39;');
         }
 
-        function cv1IconForAboutLabel(label) {
-            const key = String(label || '').toLowerCase();
-            if (key.includes('location') || key.includes('address')) return 'fa-map-marker-alt';
-            if (key.includes('phone')) return 'fa-phone';
-            if (key.includes('email')) return 'fa-envelope';
-            if (key.includes('birth')) return 'fa-calendar';
-            if (key.includes('language')) return 'fa-language';
-            if (key.includes('social')) return 'fa-linkedin';
-            return 'fa-circle';
+        const _S  = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em" aria-hidden="true">${body}</svg>`;
+        const _SI = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">${body}</svg>`;
+
+        /* Strip icon lookup — add new keys here to support new icon types */
+        const SECTION_ICONS = {
+            'summary':    _SI('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>'),
+            'experience': _SI('<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
+            'education':  _SI('<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>'),
+            'projects':   _SI('<polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/>'),
+        };
+        const ABOUT_ICONS = {
+            'location':      _S('<path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'),
+            'phone':         _S('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.1 6.1l.91-1.85a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>'),
+            'email':         _S('<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'),
+            'date of birth': _S('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+            'language':      _S('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'),
+            'social':        _S('<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>')
+        };
+
+        function getAboutIcon(label) {
+            return ABOUT_ICONS[(label || '').toLowerCase()] || _S('<circle cx="12" cy="12" r="10"/>');
         }
 
-        function cv1RenderLogo(logo, fallbackIcon) {
-            if (logo && logo.src) {
+        function renderLogo(logo) {
+            if (!logo) return '';
+            if (logo.src) {
                 return `<img src="${escapeHtml(logo.src)}" alt="${escapeHtml(logo.alt || '')}">`;
             }
-            const iconClass = fallbackIcon || 'fa-building';
-            return `<i class="fas ${iconClass} placeholder-icon"></i>`;
+            if (logo.placeholder) {
+                return `<span class="cv3-field-logo-placeholder">${escapeHtml(String(logo.placeholder).toUpperCase())}</span>`;
+            }
+            return '';
         }
 
-        function cv1RenderProjectCards(projects, sectionLogo) {
-            const sectionLogoSrc = escapeHtml((sectionLogo && sectionLogo.src) || '');
-            const sectionLogoAlt = escapeHtml((sectionLogo && sectionLogo.alt) || '');
-            return (projects || []).map((project) => {
-                const title = escapeHtml(project.name);
-                const date = escapeHtml(project.date);
-                const summary = escapeHtml(project.summary);
-                const popupDesc = escapeHtml(project.popupDescription || project.summary);
-                const image = escapeHtml(project.image || '');
-                return `
-                    <div class="cv-project" onclick="openProjectPopup(this)"
-                         data-title="${title}"
-                         data-date="${date}"
-                         data-desc="${popupDesc}"
-                         data-img="${image}"
-                         data-org-logo="${sectionLogoSrc}"
-                         data-org-logo-alt="${sectionLogoAlt}">
-                        <div class="cv-project-thumb">
-                            <i class="fas fa-image placeholder-icon"></i>
+        function renderProjects(projects, orgLogo, parentPath) {
+            const logoSrc = escapeHtml((orgLogo && orgLogo.src) || '');
+            const logoAlt = escapeHtml((orgLogo && orgLogo.alt) || '');
+            const items = (projects || []).map((p, i) => {
+                const basePath = `${parentPath}.projects.${i}`;
+                const name     = escapeHtml(p.name || '');
+                const date     = escapeHtml(p.date || '');
+                const summary  = escapeHtml(p.summary || '');
+                const popupDesc = escapeHtml(p.popupDescription || p.summary || '');
+                const img      = escapeHtml(p.image || '');
+                const tags     = p.tags || [];
+                const tagsHtml = `<div class="cv3-project-tags" data-edit-list="${basePath}.tags">${tags.map((t, ti) => `<span class="cv3-project-tag" data-edit-item="${basePath}.tags.${ti}" data-edit-path="${basePath}.tags.${ti}">${escapeHtml(t)}</span>`).join('')}</div>`;
+                return `<div class="cv3-project"
+                             data-edit-item="${basePath}"
+                             data-title="${name}"
+                             data-date="${date}"
+                             data-desc="${popupDesc}"
+                             data-img="${img}"
+                             data-tags="${escapeHtml(JSON.stringify(tags))}"
+                             data-org-logo="${logoSrc}"
+                             data-org-logo-alt="${logoAlt}">
+                    <div class="cv3-project-thumb">
+                        ${img
+                            ? `<img src="${img}" alt="${name}">`
+                            : `<span class="cv3-project-thumb-ph">IMG</span>`}
+                        <span class="cv3-edit-thumb-path" data-edit-path="${basePath}.image" data-edit-type="image-src">${img || 'image path…'}</span>
+                    </div>
+                    <div class="cv3-project-info">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;">
+                            <h4 class="cv3-project-name" style="margin-bottom:0;" data-edit-path="${basePath}.name">${name}</h4>
+                            ${tagsHtml}
                         </div>
-                        <div class="cv-project-info">
-                            <h4 class="cv-project-name">${title}</h4>
-                            <span class="cv-project-date">${date}</span>
-                            <p class="cv-project-desc">${summary}</p>
-                        </div>
-                    </div>`;
-            }).join('');
-        }
-
-        function cv1RenderField(item, options) {
-            const opts = options || {};
-            const title = escapeHtml(item.title || '');
-            const org = escapeHtml(item.org || '');
-            const description = escapeHtml(item.description || '');
-            const date = escapeHtml(item.date || '');
-            const projectsHtml = cv1RenderProjectCards(item.projects || [], item.logo);
-            const fieldClass = opts.dateTopRight ? 'cv-field cv-field--date-top-right' : 'cv-field';
-            const dateParts = (item.date || '').split(' - ');
-            const dateHtml = opts.dateTopRight && dateParts.length === 2
-                ? `<span class="cv-field-date-line">${escapeHtml(dateParts[0])}</span><span class="cv-field-date-line">${escapeHtml(dateParts[1])}</span>`
-                : date;
-            return `
-                <div class="${fieldClass}">
-                    <span class="cv-field-date">${dateHtml}</span>
-                    <div class="cv-field-logo">${cv1RenderLogo(item.logo, opts.fallbackIcon)}</div>
-                    <h3 class="cv-field-title">${opts.combineTitleOrg && org ? `${title} — ${org}` : title}</h3>
-                    ${!opts.combineTitleOrg && org ? `<p class="cv-field-org">${org}</p>` : ''}
-                    <p class="cv-field-desc">${description}</p>
-                    ${projectsHtml}
+                        <span class="cv3-project-date" data-edit-path="${basePath}.date">${date}</span>
+                        <p class="cv3-project-desc" data-edit-path="${basePath}.summary">${summary}</p>
+                        <p class="cv3-project-popupdesc cv3-edit-only" data-edit-path="${basePath}.popupDescription" data-edit-type="multiline">${popupDesc}</p>
+                    </div>
                 </div>`;
+            }).join('');
+            return `<div class="cv3-projects-list" data-edit-list="${parentPath}.projects">${items}</div>`;
         }
 
-        function renderCv1FromData() {
+        function renderField(item, combineTitleOrg, path) {
+            const title        = escapeHtml(item.title || '');
+            const org          = escapeHtml(item.org || '');
+            const rawDesc      = item.description || '';
+            const descHtml     = Array.isArray(rawDesc)
+                ? `<p class="cv3-field-desc" data-edit-path="${path}.description" data-edit-type="multiline-array">${rawDesc.map(escapeHtml).join('<br>')}</p>`
+                : `<p class="cv3-field-desc" data-edit-path="${path}.description" data-edit-type="multiline">${escapeHtml(rawDesc)}</p>`;
+            const rawDate      = item.date || '';
+            const logoHtml     = renderLogo(item.logo);
+            const projectsHtml = item.projects !== undefined ? renderProjects(item.projects || [], item.logo, path) : '';
+            const titleInner = combineTitleOrg && org
+                ? `<span data-edit-path="${path}.org">${org}</span> <span class="cv3-field-title-role">- <span data-edit-path="${path}.title">${title}</span></span>`
+                : `<span data-edit-path="${path}.title">${title}</span>`;
+            const orgLine      = !combineTitleOrg && org
+                ? `<p class="cv3-field-org" data-edit-path="${path}.org">${org}</p>`
+                : '';
+
+            /* Split "Mar. 2023 - Jun. 2026" into start / end */
+            const dateParts = rawDate.split(/\s*[-–—]\s*/);
+            const dateStart = escapeHtml(dateParts[0] || rawDate);
+            const dateEnd   = escapeHtml(dateParts[1] || '');
+            const dateHtml  = `<div class="cv3-field-date" data-edit-path="${path}.date">${rawDate ? (dateStart + (dateEnd ? ` — ${dateEnd}` : '')) : ''}</div>`;
+
+            return `<div class="cv3-field" data-edit-item="${path}">
+                ${dateHtml}
+                <div class="cv3-field-logo">${logoHtml || ''}<span class="cv3-edit-logo-path cv3-edit-only" data-edit-path="${path}.logo.src" data-edit-type="image-src">${escapeHtml((item.logo && item.logo.src) || '')}</span></div>
+                <h3 class="cv3-field-title">${titleInner}</h3>
+                ${orgLine}
+                ${descHtml}
+                ${projectsHtml}
+            </div>`;
+        }
+
+        /* ===== DYNAMIC SECTION BUILDER ===== */
+        function renderSectionHtml(section, num, data, sectionIndex) {
+            const numStr  = String(num).padStart(2, '0');
+            const iconSvg = SECTION_ICONS[section.icon] || SECTION_ICONS['summary'];
+            const title   = escapeHtml(section.title || '');
+
+            let contentHtml = '';
+            if (section.type === 'summary') {
+                contentHtml = `<div class="cv3-section-content"><p class="cv3-field-desc" data-edit-path="summary" data-edit-type="multiline">${escapeHtml(data.summary || '')}</p></div>`;
+            } else if (section.type === 'fields') {
+                const items     = data[section.dataKey] || [];
+                const fieldsHtml = items.map((item, i) => renderField(item, !!section.combineTitleOrg, `${section.dataKey}.${i}`)).join('');
+                contentHtml = `<div class="cv3-fields" data-edit-list="${section.dataKey}">${fieldsHtml}</div>`;
+            }
+
+            return `<section class="cv3-section cv3-dynamic-section" data-edit-item="sections.${sectionIndex}">
+                <div class="cv3-strip">${iconSvg}<span class="cv3-strip-num">${numStr}</span></div>
+                <div class="cv3-section-header" data-edit-path="sections.${sectionIndex}.title">${title}</div>
+                ${contentHtml}
+            </section>`;
+        }
+
+        /* ===== RENDER ===== */
+        function renderCv3() {
             const data = window.CV_DATA;
-            if (!data) {
-                return;
+            if (!data) return;
+
+            /* Nav */
+            const navLabel = document.getElementById('cv3NavLabel');
+            if (navLabel && data.profile) {
+                navLabel.innerHTML = `<span data-edit-path="profile.name">${escapeHtml(data.profile.name || '')}</span> <span style="opacity:0.5">/ CV-PORTFOLIO</span>`;
             }
 
-            document.getElementById('cv1Name').textContent = (data.profile && data.profile.name) || '';
-            document.getElementById('cv1Role').textContent = (data.profile && data.profile.role) || '';
-            document.getElementById('cv1Summary').textContent = data.summary || '';
+            /* Hero */
+            const heroName = document.getElementById('cv3HeroName');
+            const heroRole = document.getElementById('cv3HeroRole');
+            if (heroName) { heroName.textContent = data.profile?.name || ''; heroName.setAttribute('data-edit-path', 'profile.name'); }
+            if (heroRole) { heroRole.textContent = data.profile?.role || ''; heroRole.setAttribute('data-edit-path', 'profile.role'); }
 
-            const photo = document.getElementById('cv1Photo');
-            if (photo && data.profile && data.profile.photo && data.profile.photo.src) {
-                photo.innerHTML = `<img src="${escapeHtml(data.profile.photo.src)}" alt="${escapeHtml(data.profile.photo.alt || '')}">`;
+            /* Hero photo */
+            const heroPhoto = document.getElementById('cv3HeroPhoto');
+            if (heroPhoto && data.profile?.photo?.src) {
+                heroPhoto.innerHTML = `<img src="${escapeHtml(data.profile.photo.src)}" alt="${escapeHtml(data.profile.photo.alt || '')}"><div class="cv3-hero-photo-fade"></div><span class="cv3-edit-photo-path cv3-edit-only" data-edit-path="profile.photo.src" data-edit-type="image-src">${escapeHtml(data.profile.photo.src)}</span>`;
             }
 
-            const aboutList = document.getElementById('cv1AboutList');
-            if (aboutList) {
-                aboutList.innerHTML = (data.about || []).map((item) => {
-                    const label = escapeHtml(item.label || '');
+            /* Sidebar photo */
+            const sidePhoto = document.getElementById('cv3Photo');
+            if (sidePhoto && data.profile?.photo?.src) {
+                sidePhoto.innerHTML = `<img src="${escapeHtml(data.profile.photo.src)}" alt="${escapeHtml(data.profile.photo.alt || '')}"><span class="cv3-edit-photo-path cv3-edit-only" data-edit-path="profile.photo.src" data-edit-type="image-src">${escapeHtml(data.profile.photo.src)}</span>`;
+            }
+
+            /* Dynamic sections (02+) from CV_DATA.sections — clear any previous render first */
+            const mainEl = document.getElementById('cv3Main');
+            if (mainEl && data.sections) {
+                mainEl.querySelectorAll('.cv3-dynamic-section').forEach(n => n.remove());
+                const hero = mainEl.querySelector('#cv3-hero');
+                const sectionsHtml = data.sections
+                    .map((section, i) => renderSectionHtml(section, i + 2, data, i))
+                    .join('');
+                if (hero) {
+                    hero.insertAdjacentHTML('afterend', sectionsHtml);
+                } else {
+                    mainEl.insertAdjacentHTML('beforeend', sectionsHtml);
+                }
+            }
+
+            /* Contact & Info — about array */
+            const contactList = document.getElementById('cv3ContactList');
+            if (contactList) {
+                contactList.setAttribute('data-edit-list', 'about');
+                contactList.innerHTML = (data.about || []).map((item, i) => {
+                    const label     = escapeHtml(item.label || '');
                     const valueText = escapeHtml(item.value || '');
+                    const iconHtml  = getAboutIcon(item.label || '');
+                    const hrefText  = escapeHtml(item.href || '');
                     const valueHtml = item.href
-                        ? `<a href="${escapeHtml(item.href)}"${item.target ? ` target="${escapeHtml(item.target)}" rel="noopener"` : ''}>${valueText}</a>`
-                        : valueText;
-                    const iconClass = cv1IconForAboutLabel(item.label);
-                    return `
-                        <li>
-                            <i class="fas ${iconClass}"></i>
-                            <div><span class="cv-info-label">${label}</span>${valueHtml}</div>
-                        </li>`;
+                        ? `<a href="${escapeHtml(item.href)}"${item.target ? ` target="${escapeHtml(item.target)}" rel="noopener noreferrer"` : ''} data-edit-path="about.${i}.value">${valueText}</a>`
+                        : `<span data-edit-path="about.${i}.value">${valueText}</span>`;
+                    return `<li class="cv3-info-item" data-edit-item="about.${i}">
+                        <div class="cv3-info-icon">${iconHtml}</div>
+                        <div class="cv3-info-text">
+                            <span class="cv3-info-label" data-edit-path="about.${i}.label">${label}</span>
+                            <span class="cv3-info-value">${valueHtml}</span>
+                            <span class="cv3-edit-href cv3-edit-only" data-edit-path="about.${i}.href" data-edit-type="href">${hrefText}</span>
+                        </div>
+                    </li>`;
                 }).join('');
             }
 
-            const skillsList = document.getElementById('cv1SkillsList');
-            if (skillsList) {
-                skillsList.innerHTML = (data.skills || []).map((skill) => `<span class="cv-skill-tag">${escapeHtml(skill)}</span>`).join('');
+            /* Skills */
+            const skillsEl = document.getElementById('cv3SkillsList');
+            if (skillsEl) {
+                skillsEl.setAttribute('data-edit-list', 'skills');
+                skillsEl.innerHTML = (data.skills || [])
+                    .map((s, i) => `<a class="cv3-skill-tag" href="/cvprojects?tag=${encodeURIComponent(s)}" data-edit-item="skills.${i}" data-edit-path="skills.${i}">${escapeHtml(s)}</a>`)
+                    .join('');
             }
 
-            const experienceFields = document.getElementById('cv1ExperienceFields');
-            if (experienceFields) {
-                experienceFields.innerHTML = (data.experience || []).map((item) => cv1RenderField(item, {
-                    combineTitleOrg: true,
-                    fallbackIcon: 'fa-building',
-                    dateTopRight: true
-                })).join('');
-            }
+            /* Notify editor (if loaded) so it can rebind controls */
+            if (window.cvEditor && window.cvEditor.onRender) window.cvEditor.onRender();
+        }
+        window.renderCv3 = renderCv3;
 
-            const educationFields = document.getElementById('cv1EducationFields');
-            if (educationFields) {
-                educationFields.innerHTML = (data.education || []).map((item) => cv1RenderField(item, {
-                    combineTitleOrg: false,
-                    fallbackIcon: 'fa-university',
-                    dateTopRight: true
-                })).join('');
-            }
+        /* ===== POPUP ===== */
+        function openPopup(el) {
+            document.getElementById('cv3PopupTitle').textContent = el.dataset.title || '';
+            document.getElementById('cv3PopupDate').textContent  = el.dataset.date  || '';
+            document.getElementById('cv3PopupDesc').textContent  = el.dataset.desc  || '';
 
-            const projectGroups = document.getElementById('cv1ProjectGroups');
-            if (projectGroups) {
-                projectGroups.innerHTML = (data.projects || []).map((item) => cv1RenderField(item, {
-                    combineTitleOrg: false,
-                    fallbackIcon: 'fa-rocket'
-                })).join('');
-            }
+            const imgEl = document.getElementById('cv3PopupImage');
+            imgEl.innerHTML = el.dataset.img
+                ? `<img src="${escapeHtml(el.dataset.img)}" alt="${escapeHtml(el.dataset.title || '')}">`
+                : '<span class="cv3-popup-image-ph">IMAGE</span>';
+
+            const logoEl = document.getElementById('cv3PopupOrgLogo');
+            logoEl.innerHTML = el.dataset.orgLogo
+                ? `<img src="${escapeHtml(el.dataset.orgLogo)}" alt="${escapeHtml(el.dataset.orgLogoAlt || '')}" style="max-width:140px;height:auto;">`
+                : '';
+
+            document.getElementById('cv3PopupOverlay').classList.add('active');
         }
 
-        renderCv1FromData();
-
-        /* ===== PROJECT POPUP LOGIC ===== */
-        function openProjectPopup(el) {
-            const overlay = document.getElementById('cvPopupOverlay');
-            const popupTitle = document.getElementById('popupTitle');
-            const popupDate = document.getElementById('popupDate');
-            const popupDesc = document.getElementById('popupDesc');
-            const popupImage = document.getElementById('popupImage');
-            const popupOrgLogo = document.getElementById('popupOrgLogo');
-
-            popupTitle.textContent = el.dataset.title || '';
-            popupDate.textContent = el.dataset.date || '';
-            popupDesc.textContent = el.dataset.desc || '';
-
-            const sectionLogoImg = el.closest('.cv-field') ? el.closest('.cv-field').querySelector('.cv-field-logo img') : null;
-            const orgLogoSrc = el.dataset.orgLogo || (sectionLogoImg ? sectionLogoImg.getAttribute('src') : '');
-            const orgLogoAlt = el.dataset.orgLogoAlt || (sectionLogoImg ? sectionLogoImg.getAttribute('alt') : '');
-            popupOrgLogo.innerHTML = '';
-            if (orgLogoSrc) {
-                const img = document.createElement('img');
-                img.src = orgLogoSrc;
-                img.alt = orgLogoAlt || 'Organization logo';
-                popupOrgLogo.appendChild(img);
-            }
-
-            // Image handling
-            const imgSrc = el.dataset.img;
-            if (imgSrc) {
-                popupImage.innerHTML = '<img src="' + encodeURI(imgSrc) + '" alt="' + (el.dataset.title || '') + '">';
-            } else {
-                popupImage.innerHTML = '<i class="fas fa-image placeholder-icon"></i>';
-            }
-
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+        function closePopup() {
+            document.getElementById('cv3PopupOverlay').classList.remove('active');
         }
 
-        function closeProjectPopup(e, force) {
-            const overlay = document.getElementById('cvPopupOverlay');
-            if (force || e.target === overlay) {
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
+        /* ===== INIT ===== */
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCv3();
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeProjectPopup(null, true);
-        });
+            /* Click delegation */
+            document.addEventListener('click', e => {
+                /* Skip project popup while editing */
+                if (document.body.classList.contains('cv-edit-mode')) {
+                    const overlay = document.getElementById('cv3PopupOverlay');
+                    if (e.target === overlay || e.target.closest('#cv3PopupClose')) closePopup();
+                    return;
+                }
+                const project = e.target.closest('.cv3-project');
+                if (project) { openPopup(project); return; }
 
-        /* ===== 3D BACKGROUND INIT (matches main site) ===== */
-        window.addEventListener('load', () => {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                             window.innerWidth <= 768;
-
-            // Core systems
-            const sceneManager = new SceneManager();
-            const cameraMovement = new CameraMovement();
-            const scene = sceneManager.getScene();
-            const camera = sceneManager.getCamera();
-
-            // Ocean background with scroll-based camera
-            const oceanBackground = new OceanBackground(scene, camera, {
-                enableScrollCameraMovement: true,
-                cameraMovement: cameraMovement,
-                sceneManager: sceneManager
+                const overlay = document.getElementById('cv3PopupOverlay');
+                if (e.target === overlay || e.target.closest('#cv3PopupClose')) closePopup();
             });
-            window.oceanBackground = oceanBackground;
-            const submarine = new Submarine(scene, camera);
-            const kelp = new Kelp(scene);
 
-            // Header logo
-            new Header({ homeUrl: '/', logoText: 'HETLAND' });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') closePopup();
+            });
 
-            // Camera parallax
-            cameraMovement.addCamera(camera, 0.5);
-
-            // Cursor light
-            const cursorLight = document.getElementById('cursorLight');
-            if (isMobile) {
-                cursorLight.style.opacity = '0';
-                let touchActive = false;
-                document.addEventListener('touchstart', (e) => {
-                    touchActive = true;
-                    cursorLight.style.opacity = '0.8';
-                    cursorLight.style.left = e.touches[0].clientX + 'px';
-                    cursorLight.style.top = e.touches[0].clientY + 'px';
-                });
-                document.addEventListener('touchmove', (e) => {
-                    if (touchActive) {
-                        cursorLight.style.left = e.touches[0].clientX + 'px';
-                        cursorLight.style.top = e.touches[0].clientY + 'px';
-                    }
-                });
-                document.addEventListener('touchend', () => {
-                    touchActive = false;
-                    setTimeout(() => { if (!touchActive) cursorLight.style.opacity = '0'; }, 500);
-                });
-            } else {
-                document.addEventListener('mousemove', (e) => {
-                    cursorLight.style.left = e.clientX + 'px';
-                    cursorLight.style.top = e.clientY + 'px';
-                    cursorLight.style.opacity = '1';
-                });
-                document.addEventListener('mouseleave', () => { cursorLight.style.opacity = '0'; });
-            }
-
-            // Animation loop
-            sceneManager.addSystem({
-                update: () => {
-                    try {
-                        const mousePos = cameraMovement.getMousePosition();
-                        if (!mousePos || typeof mousePos.x !== 'number') return;
-                        oceanBackground.updateMousePosition(mousePos.x, mousePos.y);
-                        oceanBackground.update();
-                        submarine.updateMousePosition(mousePos.x, mousePos.y);
-                        submarine.update();
-                        kelp.update();
-                        cameraMovement.update();
-                    } catch (err) {
-                        console.error('CV animation error:', err);
-                    }
+            /* Keyboard shortcut for color configurator */
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+                    e.preventDefault();
+                    toggleColorConfigurator();
                 }
             });
 
-            sceneManager.start();
+            /* Hide configurator on init */
+            setColorConfiguratorVisible(false);
+            setTimeout(() => setColorConfiguratorVisible(false), 0);
+            setTimeout(() => setColorConfiguratorVisible(false), 120);
         });
+
+        /* ===== COLOR CONFIGURATOR HELPERS ===== */
+        function setColorConfiguratorVisible(visible) {
+            const menu = document.getElementById('colorConfigMenu');
+            if (!menu) return;
+            menu.classList.toggle('show', !!visible);
+        }
+        function toggleColorConfigurator() {
+            const menu = document.getElementById('colorConfigMenu');
+            if (!menu) return;
+            menu.classList.toggle('show');
+        }
+    </script>
+    <script src="../services/cv3Layout.js"></script>
+    <script src="../services/cvEditor.js"></script>
+    <script src="../projects/StarCitizenTracker/color-config.js"></script>
+    <script>
+        /* Override Color Configurator reset defaults for CV3 */
+        (function () {
+            const CV3_DEFAULTS = { primary: '#e0dcd9', secondary: '#151312', accent: '#fbc25b' };
+            function applyDefaults() {
+                if (window.colorConfigMenu) {
+                    window.colorConfigMenu.originalColors = CV3_DEFAULTS;
+                }
+            }
+            if (window.colorConfigMenu) {
+                applyDefaults();
+            } else {
+                document.addEventListener('DOMContentLoaded', applyDefaults);
+            }
+        })();
     </script>
 </body>
 </html>
