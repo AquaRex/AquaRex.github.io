@@ -3,7 +3,7 @@ window.CV_DATA = {
         name: "Thomas Hetland",
         role: "IT, Designer & Developer",
         photo: {
-            src: "/assets/profile/profilepicture.png",
+            src: "/assets/profile/ProfilePicture.png",
             alt: "Thomas Hetland"
         }
     },
