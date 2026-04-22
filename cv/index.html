@@ -1050,7 +1050,10 @@
         window.renderCv3 = renderCv3;
 
         /* ===== POPUP ===== */
+        let currentPopupEl = null;
+
         function openPopup(el) {
+            currentPopupEl = el;
             document.getElementById('cv3PopupTitle').textContent = el.dataset.title || '';
             document.getElementById('cv3PopupDate').textContent  = el.dataset.date  || '';
             document.getElementById('cv3PopupDesc').textContent  = el.dataset.desc  || '';
@@ -1069,7 +1072,17 @@
         }
 
         function closePopup() {
+            currentPopupEl = null;
             document.getElementById('cv3PopupOverlay').classList.remove('active');
+        }
+
+        function navigatePopup(dir) {
+            if (!currentPopupEl) return;
+            const all = Array.from(document.querySelectorAll('.cv3-project'));
+            const idx = all.indexOf(currentPopupEl);
+            if (idx === -1 || all.length < 2) return;
+            const next = all[(idx + dir + all.length) % all.length];
+            openPopup(next);
         }
 
         /* ===== INIT ===== */
@@ -1092,7 +1105,11 @@
             });
 
             document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') closePopup();
+                if (e.key === 'Escape') { closePopup(); return; }
+                const overlay = document.getElementById('cv3PopupOverlay');
+                if (!overlay.classList.contains('active')) return;
+                if (e.key === 'ArrowRight') { e.preventDefault(); navigatePopup(1); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); navigatePopup(-1); }
             });
 
             /* Keyboard shortcut for color configurator */

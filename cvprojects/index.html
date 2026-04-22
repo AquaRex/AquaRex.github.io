@@ -606,22 +606,27 @@
             function renderFilters() {
                 const el = document.getElementById('cvpFilterTags');
                 el.innerHTML = allTags.map(t =>
-                    `<button class="cvp-filter-tag${t === activeTag ? ' is-active' : ''}" data-tag="${esc(t)}">${esc(t)}</button>`
+                    `<button class="cvp-filter-tag${tagEq(t, activeTag) ? ' is-active' : ''}" data-tag="${esc(t)}">${esc(t)}</button>`
                 ).join('');
                 document.getElementById('cvpFilterClear').classList.toggle('visible', !!activeTag);
             }
 
             /* ===== APPLY FILTER ===== */
+            function tagEq(a, b) {
+                return (a || '').toLowerCase() === (b || '').toLowerCase();
+            }
+
             function applyFilter() {
                 document.querySelectorAll('.cv3-project').forEach(card => {
                     const tags = JSON.parse(card.dataset.tags || '[]');
-                    card.classList.toggle('is-hidden', !!activeTag && !tags.includes(activeTag));
+                    const match = !activeTag || tags.some(t => tagEq(t, activeTag));
+                    card.classList.toggle('is-hidden', !match);
                 });
                 document.querySelectorAll('.cv3-project-tag').forEach(el => {
-                    el.classList.toggle('is-active-filter', el.dataset.tag === activeTag);
+                    el.classList.toggle('is-active-filter', tagEq(el.dataset.tag, activeTag));
                 });
                 document.querySelectorAll('.cvp-filter-tag').forEach(el => {
-                    el.classList.toggle('is-active', el.dataset.tag === activeTag);
+                    el.classList.toggle('is-active', tagEq(el.dataset.tag, activeTag));
                 });
 
                 /* show/hide per-section no-results message */
@@ -638,7 +643,10 @@
             }
 
             /* ===== POPUP ===== */
+            let currentPopupEl = null;
+
             function openPopup(el) {
+                currentPopupEl = el;
                 document.getElementById('cvpPopupTitle').textContent = el.dataset.title || '';
                 document.getElementById('cvpPopupDate').textContent  = el.dataset.date  || '';
                 document.getElementById('cvpPopupDesc').textContent  = el.dataset.desc  || '';
@@ -653,13 +661,29 @@
                 document.getElementById('cvpPopupOverlay').classList.add('active');
             }
 
+            function closePopup() {
+                currentPopupEl = null;
+                document.getElementById('cvpPopupOverlay').classList.remove('active');
+            }
+
+            function navigatePopup(dir) {
+                if (!currentPopupEl) return;
+                /* Only navigate among visible (filtered) projects */
+                const all = Array.from(document.querySelectorAll('.cv3-project'))
+                    .filter(p => p.offsetParent !== null);
+                const idx = all.indexOf(currentPopupEl);
+                if (idx === -1 || all.length < 2) return;
+                const next = all[(idx + dir + all.length) % all.length];
+                openPopup(next);
+            }
+
             /* ===== EVENTS ===== */
             document.addEventListener('click', e => {
                 /* filter tag on a card */
                 const cardTag = e.target.closest('.cv3-project-tag');
                 if (cardTag) {
                     e.stopPropagation();
-                    activeTag = cardTag.dataset.tag === activeTag ? null : cardTag.dataset.tag;
+                    activeTag = tagEq(cardTag.dataset.tag, activeTag) ? null : cardTag.dataset.tag;
                     applyFilter(); renderFilters(); return;
                 }
                 /* open project popup */
@@ -669,7 +693,7 @@
                 /* sidebar filter button */
                 const filterBtn = e.target.closest('.cvp-filter-tag');
                 if (filterBtn) {
-                    activeTag = filterBtn.dataset.tag === activeTag ? null : filterBtn.dataset.tag;
+                    activeTag = tagEq(filterBtn.dataset.tag, activeTag) ? null : filterBtn.dataset.tag;
                     applyFilter(); renderFilters(); return;
                 }
                 /* clear button */
@@ -679,8 +703,16 @@
                 /* close popup */
                 const overlay = document.getElementById('cvpPopupOverlay');
                 if (e.target === overlay || e.target.closest('#cvpPopupClose')) {
-                    overlay.classList.remove('active');
+                    closePopup();
                 }
+            });
+
+            document.addEventListener('keydown', e => {
+                const overlay = document.getElementById('cvpPopupOverlay');
+                if (!overlay.classList.contains('active')) return;
+                if (e.key === 'Escape') { closePopup(); }
+                else if (e.key === 'ArrowRight') { e.preventDefault(); navigatePopup(1); }
+                else if (e.key === 'ArrowLeft')  { e.preventDefault(); navigatePopup(-1); }
             });
 
             /* ===== DARK MODE & SHADOW LAYER are handled by services/cvLayout.js ===== */
