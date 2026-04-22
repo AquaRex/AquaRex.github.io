@@ -883,7 +883,7 @@
                 const popupDesc = escapeHtml(p.popupDescription || p.summary || '');
                 const img      = escapeHtml(p.image || '');
                 const tags     = p.tags || [];
-                const tagsHtml = `<div class="cv3-project-tags" data-edit-list="${basePath}.tags">${tags.map((t, ti) => `<span class="cv3-project-tag" data-edit-item="${basePath}.tags.${ti}" data-edit-path="${basePath}.tags.${ti}">${escapeHtml(t)}</span>`).join('')}</div>`;
+                const tagsHtml = `<div class="cv3-project-tags" data-edit-list="${basePath}.tags">${tags.map((t, ti) => `<span class="cv3-project-tag" data-edit-item="${basePath}.tags.${ti}"><span class="cv3-project-tag-text" data-edit-path="${basePath}.tags.${ti}">${escapeHtml(t)}</span></span>`).join('')}</div>`;
                 return `<div class="cv3-project"
                              data-edit-item="${basePath}"
                              data-title="${name}"
@@ -1040,7 +1040,7 @@
             if (skillsEl) {
                 skillsEl.setAttribute('data-edit-list', 'skills');
                 skillsEl.innerHTML = (data.skills || [])
-                    .map((s, i) => `<a class="cv3-skill-tag" href="/cvprojects?tag=${encodeURIComponent(s)}" data-edit-item="skills.${i}" data-edit-path="skills.${i}">${escapeHtml(s)}</a>`)
+                    .map((s, i) => `<a class="cv3-skill-tag" href="/cvprojects?tag=${encodeURIComponent(s)}" data-edit-item="skills.${i}"><span class="cv3-skill-tag-text" data-edit-path="skills.${i}">${escapeHtml(s)}</span></a>`)
                     .join('');
             }
 

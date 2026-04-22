@@ -305,9 +305,11 @@
         originalData = JSON.parse(JSON.stringify(window.CV_DATA || {}));
         editMode = true;
         dirty = false;
+        if (saveBtn) saveBtn.disabled = false;
         document.body.classList.add('cv-edit-mode');
         bindEditableElements(document);
         injectAddButtons();
+        injectReorderHandles();
         refreshBar();
         showStatus('Edit mode: click any text to edit. Changes commit to GitHub on Save.', 'info');
     }
@@ -326,7 +328,7 @@
     }
 
     function removeEditControls() {
-        document.querySelectorAll('.cv-edit-add-btn, .cv-edit-del-btn').forEach(n => n.remove());
+        document.querySelectorAll('.cv-edit-add-btn, .cv-edit-del-btn, .cv-edit-move-btn').forEach(n => n.remove());
         document.querySelectorAll('[data-edit-list]').forEach(n => { n.__cvEditAddBound = false; });
         document.querySelectorAll('[data-edit-path]').forEach(n => {
             n.removeAttribute('contenteditable');
@@ -517,6 +519,54 @@
     }
 
     /* ================================================================
+       REORDER (up / down buttons)
+       ================================================================ */
+    function injectReorderHandles() {
+        document.querySelectorAll('[data-edit-list]').forEach(container => {
+            const listPath = container.getAttribute('data-edit-list');
+            const items = container.querySelectorAll(`:scope > [data-edit-item^="${listPath}."]`);
+            const arr = getByPath(window.CV_DATA, listPath) || [];
+            items.forEach((item) => {
+                if (item.querySelector(':scope > .cv-edit-move-up, :scope > .cv-edit-move-down')) return;
+                const idx = getItemIndex(item, listPath);
+                const upBtn = el('button', {
+                    class: 'cv-edit-move-btn cv-edit-move-up',
+                    title: 'Move up',
+                    text: '\u2191',
+                    onclick: (e) => { e.stopPropagation(); moveItem(listPath, idx, idx - 1); }
+                });
+                const downBtn = el('button', {
+                    class: 'cv-edit-move-btn cv-edit-move-down',
+                    title: 'Move down',
+                    text: '\u2193',
+                    onclick: (e) => { e.stopPropagation(); moveItem(listPath, idx, idx + 1); }
+                });
+                if (idx === 0) upBtn.disabled = true;
+                if (idx === arr.length - 1) downBtn.disabled = true;
+                item.appendChild(upBtn);
+                item.appendChild(downBtn);
+            });
+        });
+    }
+
+    function moveItem(listPath, fromIdx, toIdx) {
+        const arr = getByPath(window.CV_DATA, listPath);
+        if (!Array.isArray(arr)) return;
+        if (toIdx < 0 || toIdx >= arr.length || fromIdx === toIdx) return;
+        const [moved] = arr.splice(fromIdx, 1);
+        arr.splice(toIdx, 0, moved);
+        markDirty();
+        window.renderCv3();
+    }
+
+    function getItemIndex(node, listPath) {
+        const ref = node.getAttribute('data-edit-item');
+        const m = ref && ref.match(new RegExp('^' + escapeReg(listPath) + '\\.(\\d+)$'));
+        return m ? parseInt(m[1], 10) : -1;
+    }
+    function escapeReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+    /* ================================================================
        SAVE / CANCEL
        ================================================================ */
     async function saveChanges() {
@@ -549,11 +599,21 @@
             if (!editMode) return;
             bindEditableElements(document);
             injectAddButtons();
+            injectReorderHandles();
         }
     };
 
     function init() {
         buildBar();
+        // Suppress link navigation in edit mode for any <a> inside an editable item
+        document.addEventListener('click', (e) => {
+            if (!editMode) return;
+            const a = e.target.closest && e.target.closest('a');
+            if (!a) return;
+            if (a.closest('[data-edit-item], [data-edit-path], [data-edit-list]')) {
+                e.preventDefault();
+            }
+        }, true);
     }
 
     if (document.readyState === 'loading') {

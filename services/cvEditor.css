@@ -349,14 +349,78 @@ body.cv-edit-mode .cv3-skill-tag .cv-edit-del-btn {
     top: 2px; right: 2px;
 }
 
-/* Disable navigation clicks on skills/about links in edit mode */
-body.cv-edit-mode .cv3-skill-tag,
-body.cv-edit-mode .cv3-info-value a {
-    pointer-events: none;
-}
-body.cv-edit-mode .cv3-skill-tag [data-edit-path],
+/* Disable navigation clicks on contact links in edit mode (skills handled below) */
 body.cv-edit-mode .cv3-info-value a {
     pointer-events: auto;
+}
+
+/* Skills: re-enable pointer events on the tag itself so click-to-edit works.
+   Navigation is suppressed by the editor's click handler (preventDefault). */
+body.cv-edit-mode .cv3-skill-tag {
+    pointer-events: auto;
+    cursor: text;
+}
+body.cv-edit-mode .cv3-skill-tag .cv-edit-del-btn { pointer-events: auto; }
+
+/* Reorder buttons */
+.cv-edit-move-btn {
+    position: absolute;
+    width: 22px; height: 22px;
+    background: #fff;
+    color: #111;
+    border: 2px solid #111;
+    font-size: 0.75rem;
+    font-weight: 900;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    padding: 0;
+}
+.cv-edit-move-btn:hover { background: var(--accent-color, #d6ff39); }
+.cv-edit-move-btn[disabled] {
+    opacity: 0.25;
+    cursor: not-allowed;
+    background: #fff;
+}
+.cv-edit-move-up   { top: 4px; right: 56px; }
+.cv-edit-move-down { top: 4px; right: 30px; }
+
+/* Skill tags get smaller buttons */
+body.cv-edit-mode .cv3-skill-tag .cv-edit-move-btn {
+    width: 16px; height: 16px;
+    font-size: 0.6rem;
+    top: 2px;
+}
+body.cv-edit-mode .cv3-skill-tag .cv-edit-move-up   { right: 38px; }
+body.cv-edit-mode .cv3-skill-tag .cv-edit-move-down { right: 20px; }
+body.cv-edit-mode .cv3-skill-tag[data-edit-item] {
+    padding-right: 60px;
+}
+
+/* Tags inside projects also get small buttons */
+body.cv-edit-mode .cv3-project-tag[data-edit-item] {
+    position: relative;
+    padding-right: 60px;
+}
+body.cv-edit-mode .cv3-project-tag .cv-edit-move-btn {
+    width: 16px; height: 16px;
+    font-size: 0.6rem;
+    top: 2px;
+}
+body.cv-edit-mode .cv3-project-tag .cv-edit-move-up   { right: 38px; }
+body.cv-edit-mode .cv3-project-tag .cv-edit-move-down { right: 20px; }
+body.cv-edit-mode .cv3-project-tag .cv-edit-del-btn {
+    width: 16px; height: 16px;
+    font-size: 0.6rem;
+    top: 2px; right: 2px;
+}
+
+/* Contact list items get inline-positioned buttons too */
+body.cv-edit-mode .cv3-info-item[data-edit-item] {
+    padding-right: 80px;
 }
 
 /* Don't open project popup when clicking-to-edit inside a project */
