@@ -7,7 +7,7 @@
     <title>CV - Thomas Hetland</title>
     <link rel="stylesheet" href="../projects/StarCitizenTracker/color-config.css">
     <link rel="stylesheet" href="../services/cvLayout.css">
-    <link rel="stylesheet" href="../services/cvEditor.css">
+    <!-- editor styles are injected at runtime by services/dataEditor.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ===== COLOR SYSTEM ===== */
@@ -875,9 +875,9 @@
 
         <!-- NAV -->
         <nav class="cv3-nav">
-            <div class="cv3-nav-left" id="cv3NavLabel">THOMAS HETLAND <span style="opacity:0.5">/ CV-PORTFOLIO</span></div>
+            <div class="cv3-nav-left" id="cv3NavLabel"><a href="/" style="text-decoration:none;color:inherit;">THOMAS HETLAND</a> <span style="opacity:0.5">/ CV-PORTFOLIO</span></div>
             <div class="cv3-nav-right">
-                <a class="cv3-nav-toggle" href="../cvprojects/" title="Projects" aria-label="Projects">
+                <a class="cv3-nav-toggle" href="../projects/" title="Projects" aria-label="Projects">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true">
                         <line x1="4" y1="6" x2="20" y2="6"></line>
                         <line x1="4" y1="12" x2="20" y2="12"></line>
@@ -973,6 +973,7 @@
     </div><!-- /cv3RenderRoot -->
 
     <script src="cv.js"></script>
+    <script src="../projects/projects.js"></script>
     <script>
         /* ===== HELPERS ===== */
         function escapeHtml(v) {
@@ -1238,7 +1239,7 @@
             if (skillsEl) {
                 skillsEl.setAttribute('data-edit-list', 'skills');
                 skillsEl.innerHTML = (data.skills || [])
-                    .map((s, i) => `<a class="cv3-skill-tag" href="/cvprojects?tag=${encodeURIComponent(s)}" data-edit-item="skills.${i}"><span class="cv3-skill-tag-text" data-edit-path="skills.${i}">${escapeHtml(s)}</span></a>`)
+                    .map((s, i) => `<a class="cv3-skill-tag" href="/projects/?tags=${encodeURIComponent(s)}" data-edit-item="skills.${i}"><span class="cv3-skill-tag-text" data-edit-path="skills.${i}">${escapeHtml(s)}</span></a>`)
                     .join('');
             }
 
@@ -1355,6 +1356,8 @@
         }
     </script>
     <script src="../services/cvLayout.js"></script>
+    <script src="../services/dataEditor.js"></script>
+    <script src="../services/projectEditor.js"></script>
     <script src="../services/cvEditor.js"></script>
     <script src="../projects/StarCitizenTracker/color-config.js"></script>
     <script>

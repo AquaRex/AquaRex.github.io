@@ -57,8 +57,6 @@
 #cv3ShadowLayer .cv3-popup-title,
 #cv3ShadowLayer .cv3-popup-date,
 #cv3ShadowLayer .cv3-popup-desc,
-#cv3ShadowLayer .cvp-filter-tag,
-#cv3ShadowLayer .cvp-filter-clear,
 #cv3ShadowLayer .cvp-no-results {
     filter: blur(var(--cv3-shadow-text-blur));
 }
