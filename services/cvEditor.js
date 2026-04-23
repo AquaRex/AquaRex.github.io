@@ -24,8 +24,11 @@
     /* ---------- styles ---------- */
     const style = document.createElement('style');
     style.textContent = `
-        /* Hide legacy inline edit affordances baked into the renderer. */
+        /* Hide legacy inline edit affordances baked into the renderer.
+           (Default-hidden in cv/index.html too, for the production case where
+           this localhost-only file isn't loaded.) */
         .cv3-edit-only { display: none !important; }
+        body.cv-edit-mode .cv3-edit-only { display: revert !important; }
 
         /* Hide DataEditor's generic per-item pills on the CV page. */
         body .de-edit-btn.de-pos-fixed { display: none !important; }

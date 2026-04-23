@@ -10,6 +10,11 @@
     <!-- editor styles are injected at runtime by services/dataEditor.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Edit-only affordances — hidden by default; revealed by services/cvEditor.js
+           (localhost only) when the body has .cv-edit-mode. */
+        .cv3-edit-only { display: none !important; }
+        body.cv-edit-mode .cv3-edit-only { display: revert !important; }
+
         /* ===== COLOR SYSTEM ===== */
         :root {
             /* Base colors — overridable by the Color Configurator */
