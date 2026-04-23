@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects — Thomas Hetland</title>
+    <link rel="stylesheet" href="../services/cvLayout.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== COLOR SYSTEM (mirrors CV3) ===== */
+        :root {
+            --color-light:  #e0dcd9;
+            --color-dark:   #151312;
+            --accent-color: #fbc25b;
+
+            --primary-color:   var(--color-light);
+            --secondary-color: var(--color-dark);
+
+            --bg:      var(--color-light);
+            --surface: color-mix(in srgb, var(--color-light) 82%, white);
+            --dark:    var(--color-dark);
+            --text:    var(--color-dark);
+            --muted:   color-mix(in srgb, var(--color-dark) 45%, var(--color-light));
+            --border:  var(--color-dark);
+            --strip-w: 52px;
+
+            --sp-1:  4px;  --sp-2:  8px;  --sp-3: 12px;
+            --sp-4: 16px;  --sp-5: 20px;  --sp-6: 24px;
+            --sp-7: 32px;  --sp-8: 40px;
+        }
+        body.dark-mode {
+            --primary-color:   var(--color-dark);
+            --secondary-color: var(--color-light);
+            --bg:      var(--color-dark);
+            --surface: color-mix(in srgb, var(--color-dark) 82%, black);
+            --dark:    var(--color-light);
+            --text:    var(--color-light);
+            --muted:   color-mix(in srgb, var(--color-light) 45%, var(--color-dark));
+            --border:  var(--color-light);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        a { color: inherit; text-decoration: none; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: var(--sp-7);
+        }
+
+        /* ===== OUTER WRAPPER ===== */
+        .cv3-outer {
+            max-width: 1320px;
+            margin: 0 auto;
+            border: 2px solid var(--border);
+            padding: var(--sp-7);
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-7);
+        }
+
+        /* ===== NAV ===== */
+        .cv3-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--sp-4) 0 var(--sp-6);
+            height: 68px;
+            border: 2px solid var(--border);
+        }
+        .cv3-nav-left {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .cv3-nav-right {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-5);
+        }
+        .cv3-nav-toggle {
+            width: 36px; height: 36px;
+            border: 2px solid var(--border);
+            background: var(--dark);
+            color: var(--bg);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.2s;
+        }
+        .cv3-nav-toggle:hover { opacity: 0.7; }
+        .cv3-nav-toggle.is-active {
+            background: var(--bg);
+            color: var(--dark);
+        }
+        .cv3-nav-back {
+            width: 36px; height: 36px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s, color 0.15s;
+        }
+        .cv3-nav-back:hover {
+            background: var(--dark);
+            color: var(--bg);
+        }
+
+        /* ===== BODY ===== */
+        .cv3-body {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        /* ===== MAIN ===== */
+        .cv3-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-7);
+        }
+
+        /* ===== SECTION WRAPPER ===== */
+        .cv3-section {
+            display: grid;
+            grid-template-columns: var(--strip-w) 1fr;
+            border: 2px solid var(--border);
+            position: relative;
+        }
+        .cv3-section::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 0;
+            width: var(--strip-w);
+            background: var(--dark);
+            z-index: 0;
+        }
+        .cv3-section > *:not(.cv3-strip) {
+            grid-column: 2;
+        }
+
+        /* ===== STRIP ===== */
+        .cv3-strip {
+            position: absolute;
+            top: 0; bottom: 0; left: 0;
+            width: var(--strip-w);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--sp-3) 0;
+            color: var(--bg);
+            z-index: 1;
+        }
+        .cv3-strip svg, .cv3-strip i { width: 16px; height: 16px; flex-shrink: 0; font-size: 14px; }
+        .cv3-strip-num {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--bg);
+        }
+
+        /* ===== SECTION HEADER ===== */
+        .cv3-section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            padding: var(--sp-4) var(--sp-6);
+            border-bottom: 2px solid var(--border);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .cv3-section-header svg, .cv3-section-header i {
+            width: 15px; height: 15px; flex-shrink: 0; font-size: 13px;
+        }
+
+        /* ===== PROJECT LIST (per-section) ===== */
+        .cvp-projects {
+            padding: var(--sp-6);
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-6);
+        }
+        .cvp-no-results {
+            padding: var(--sp-6);
+            font-size: 0.66rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* Project card: simple bordered box (no strip per project) */
+        .cv3-project {
+            display: flex;
+            border: 2px solid var(--border);
+            position: relative;
+            cursor: pointer;
+            color: inherit;
+            text-decoration: none;
+            min-height: 280px;
+            transition: background 0.15s;
+        }
+        .cv3-project:hover, .cv3-project.is-hovered {
+            background: var(--dark);
+            color: var(--bg);
+        }
+        .cv3-project-thumb {
+            width: 440px; flex-shrink: 0;
+            align-self: stretch;
+            border-right: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            background: color-mix(in srgb, var(--border) 5%, transparent);
+        }
+        .cv3-project-thumb img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .cv3-project:hover .cv3-project-thumb img,
+        .cv3-project.is-hovered .cv3-project-thumb img {
+            transform: scale(1.04);
+        }
+        .cv3-project:hover .cv3-project-thumb img,
+        .cv3-project.is-hovered .cv3-project-thumb img {
+            transform: scale(1.04);
+        }
+        .cv3-project-thumb-ph {
+            font-size: 0.58rem; letter-spacing: 2px;
+            font-weight: 700; color: var(--muted);
+        }
+        .cv3-project:hover .cv3-project-thumb,
+        .cv3-project.is-hovered .cv3-project-thumb { border-right-color: var(--bg); }
+        .cv3-project:hover .cv3-project-thumb-ph,
+        .cv3-project.is-hovered .cv3-project-thumb-ph { color: var(--bg); }
+
+        .cv3-project-info { flex: 1; padding: var(--sp-5) var(--sp-6); display: flex; flex-direction: column; }
+        .cv3-project-name {
+            font-size: 1rem; font-weight: 800;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            margin-bottom: 0;
+        }
+        .cv3-project-date {
+            font-size: 0.66rem; font-weight: 700;
+            letter-spacing: 1.5px; color: var(--muted);
+            margin-bottom: var(--sp-2); display: block;
+        }
+        .cv3-project-desc {
+            font-size: 0.82rem; line-height: 1.7; color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .cv3-project-info > .cv3-project-tags { margin-top: auto; }
+        .cv3-project:hover .cv3-project-name,
+        .cv3-project:hover .cv3-project-date,
+        .cv3-project:hover .cv3-project-desc,
+        .cv3-project.is-hovered .cv3-project-name,
+        .cv3-project.is-hovered .cv3-project-date,
+        .cv3-project.is-hovered .cv3-project-desc { color: var(--bg); }
+
+        /* status pill — distinct from tags, sits inline before tags */
+        .cv3-project-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.55rem; font-weight: 800;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 3px 8px;
+            border: 1px solid var(--accent-color);
+            background: var(--accent-color);
+            color: var(--dark);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+            margin-right: var(--sp-4);
+        }
+        .cv3-project-status[data-status-tag="Development"] {
+            background: transparent;
+            color: var(--accent-color);
+        }
+        .cv3-project-status[data-status-tag="Cancelled"],
+        .cv3-project-status[data-status-tag="Archived"] {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--muted);
+        }
+        .cv3-project:hover .cv3-project-status,
+        .cv3-project.is-hovered .cv3-project-status { opacity: 0.92; }
+
+        /* project tags */
+        .cv3-project-tags {
+            display: flex; flex-direction: row;
+            flex-wrap: wrap; gap: 4px; justify-content: flex-start;
+            margin-top: var(--sp-4);
+        }
+        .cv3-project-tag {
+            font-size: 0.5rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 1px 5px;
+            border: 1px solid var(--border);
+            white-space: nowrap; color: var(--text);
+            cursor: pointer; transition: background 0.1s;
+        }
+        .cv3-project-tag.is-active-filter {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: var(--dark);
+        }
+        .cv3-project:hover .cv3-project-tag,
+        .cv3-project.is-hovered .cv3-project-tag { border-color: var(--bg); color: var(--bg); }
+        .cv3-project:hover .cv3-project-tag.is-active-filter,
+        .cv3-project.is-hovered .cv3-project-tag.is-active-filter {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: var(--dark);
+        }
+
+        .cv3-project.is-hidden { display: none; }
+
+        /* ===== SIDEBAR ===== */
+        .cv3-sidebar {
+            width: 330px;
+            flex-shrink: 0;
+            align-self: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-7);
+            padding-left: var(--sp-7);
+        }
+        .cv3-sidebar-card { border: 2px solid var(--border); }
+        .cv3-sidebar-card-header {
+            display: grid;
+            grid-template-columns: var(--strip-w) 1fr;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 0;
+        }
+        .cv3-sidebar-card-header > svg,
+        .cv3-sidebar-card-header > i {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            padding: var(--sp-4);
+            background: var(--dark);
+            color: var(--bg);
+            align-self: stretch;
+            justify-self: start;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .cv3-sidebar-card-header-text {
+            padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-6);
+        }
+        .cv3-sidebar-card-body { padding: var(--sp-6); }
+
+        /* search input */
+        .cvp-search-input {
+            width: 100%;
+            padding: var(--sp-3) var(--sp-4);
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            outline: none;
+        }
+        .cvp-search-input::placeholder {
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.62rem;
+        }
+        .cvp-search-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* filter buttons (tags + status share style) */
+        .cvp-filter-tags {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cvp-filter-tag {
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 8px 14px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            background: transparent; color: var(--text);
+            text-align: left;
+            font-family: inherit;
+        }
+        .cvp-filter-tag:hover { background: color-mix(in srgb, var(--dark) 10%, transparent); }
+        .cvp-filter-tag.is-active {
+            background: var(--dark);
+            color: var(--bg);
+        }
+        .cvp-filter-clear {
+            font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 6px 14px;
+            border: 2px solid var(--accent-color);
+            cursor: pointer;
+            background: transparent;
+            color: var(--accent-color);
+            transition: background 0.15s, color 0.15s;
+            display: none;
+            font-family: inherit;
+            margin-top: var(--sp-3);
+        }
+        .cvp-filter-clear.visible { display: block; }
+        .cvp-filter-clear:hover { background: var(--accent-color); color: var(--dark); }
+
+        /* ===== POPUP ===== */
+        .cv3-popup-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start; justify-content: center;
+            overflow-y: auto;
+            padding: var(--sp-8) var(--sp-5);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s;
+        }
+        .cv3-popup-overlay.active { opacity: 1; pointer-events: auto; }
+        .cv3-popup {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            max-width: 1500px; width: 100%;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.25s;
+            margin: auto;
+        }
+        .cv3-popup-overlay.active .cv3-popup { transform: translateY(0); }
+        .cv3-popup-close {
+            position: absolute; top: var(--sp-3); right: var(--sp-3);
+            width: 32px; height: 32px;
+            border: 2px solid var(--border);
+            background: var(--dark); color: var(--bg);
+            font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; transition: opacity 0.2s;
+        }
+        .cv3-popup-close:hover { opacity: 0.7; }
+        .cv3-popup-content { display: flex; }
+        .cv3-popup-image {
+            flex: 0 0 auto;
+            width: auto;
+            height: 600px;
+            aspect-ratio: 16 / 9;
+            border-right: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--border) 5%, transparent);
+            overflow: hidden;
+        }
+        .cv3-popup-image img { width: 100%; height: 100%; object-fit: contain; }
+        .cv3-popup-image-ph {
+            font-size: 0.62rem; letter-spacing: 2px;
+            font-weight: 700; color: var(--muted);
+        }
+        .cv3-popup-details { flex: 1; padding: var(--sp-7); }
+        .cv3-popup-title {
+            font-size: 1.3rem; font-weight: 900;
+            letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .cv3-popup-date {
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 2px; color: var(--muted);
+            text-transform: uppercase;
+            display: block; margin-bottom: var(--sp-4);
+        }
+        .cv3-popup-desc { font-size: 0.87rem; line-height: 1.8; color: var(--text); }
+        .cv3-popup-link-btn {
+            display: inline-block;
+            margin-top: var(--sp-5);
+            padding: var(--sp-3) var(--sp-5);
+            background: var(--dark);
+            color: var(--bg);
+            border: 2px solid var(--border);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: opacity 0.2s, background 0.2s;
+        }
+        .cv3-popup-link-btn:hover {
+            background: var(--accent-color, var(--dark));
+            color: var(--dark);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 820px) {
+            .cv3-body { flex-direction: column; }
+            .cv3-sidebar { width: 100%; padding-left: 0; padding-top: var(--sp-6); }
+        }
+        @media (max-width: 560px) {
+            body { padding: var(--sp-4); }
+            .cv3-outer { padding: var(--sp-4); gap: var(--sp-4); }
+            .cv3-popup-content { flex-direction: column; }
+            .cv3-popup-image { flex: none; min-height: 260px; border-right: none; border-bottom: 2px solid var(--border); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cv3NavShadowLayer" aria-hidden="true"></div>
+    <div id="cv3ShadowLayer" aria-hidden="true"></div>
+    <div id="cv3RenderRoot">
+
+    <!-- PAGE -->
+    <div class="cv3-outer">
+
+        <!-- NAV -->
+        <nav class="cv3-nav">
+            <div class="cv3-nav-left">THOMAS HETLAND <span style="opacity:0.5">/ ALL PROJECTS</span></div>
+            <div class="cv3-nav-right">
+                <a href="/" class="cv3-nav-back" title="Home" aria-label="Home">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                </a>
+                <button class="cv3-nav-toggle is-active" id="cv3GlassToggle" title="Show Shadow Layer" aria-label="Toggle shadow layer" aria-pressed="false">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="8.2" cy="11.0" r="3.6" opacity="0.95"></circle>
+                        <circle cx="14.9" cy="8.2" r="2.4" opacity="0.75"></circle>
+                        <circle cx="14.8" cy="15.2" r="3.2" opacity="0.85"></circle>
+                    </svg>
+                </button>
+                <button class="cv3-nav-toggle" id="cv3DarkToggle" aria-label="Toggle dark mode">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
+        <!-- BODY -->
+        <div class="cv3-body">
+
+            <!-- MAIN -->
+            <main class="cv3-main" id="cvpMain"></main>
+
+            <!-- SIDEBAR -->
+            <aside class="cv3-sidebar">
+
+                <!-- SEARCH -->
+                <div class="cv3-sidebar-card">
+                    <div class="cv3-sidebar-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <span class="cv3-sidebar-card-header-text">SEARCH</span>
+                    </div>
+                    <div class="cv3-sidebar-card-body">
+                        <input type="text" class="cvp-search-input" id="cvpSearch" placeholder="Title, description, tags…">
+                    </div>
+                </div>
+
+                <!-- FILTER BY COMPANY -->
+                <div class="cv3-sidebar-card">
+                    <div class="cv3-sidebar-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                        <span class="cv3-sidebar-card-header-text">FILTER BY COMPANY</span>
+                    </div>
+                    <div class="cv3-sidebar-card-body">
+                        <div class="cvp-filter-tags" id="cvpFilterCompany"></div>
+                    </div>
+                </div>
+
+                <!-- FILTER BY TAG -->
+                <div class="cv3-sidebar-card">
+                    <div class="cv3-sidebar-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        <span class="cv3-sidebar-card-header-text">FILTER BY TAG</span>
+                    </div>
+                    <div class="cv3-sidebar-card-body">
+                        <div class="cvp-filter-tags" id="cvpFilterTags"></div>
+                    </div>
+                </div>
+
+                <!-- FILTER BY STATUS -->
+                <div class="cv3-sidebar-card">
+                    <div class="cv3-sidebar-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        <span class="cv3-sidebar-card-header-text">FILTER BY STATUS</span>
+                    </div>
+                    <div class="cv3-sidebar-card-body">
+                        <div class="cvp-filter-tags" id="cvpFilterStatus"></div>
+                        <button class="cvp-filter-clear" id="cvpFilterClear">Clear All Filters</button>
+                    </div>
+                </div>
+
+            </aside>
+
+        </div><!-- /cv3-body -->
+    </div><!-- /cv3-outer -->
+
+    </div><!-- /cv3RenderRoot -->
+
+    <script src="../cv/cv.js"></script>
+    <script src="../services/cvLayout.js"></script>
+    <script>
+        (function () {
+            /* ===== EXTRA SIDE-PROJECTS (not in cv.js) ===== */
+            const EXTRA_SIDE_PROJECTS = [
+                {
+                    name: 'Unity Asset: NoFolderInspection',
+                    summary: 'No Folder Inspection prevents the Inspector from showing folders when they are selected by locking the inspector before it is updated, unlocking again if you select anything other than a folder.',
+                    tags: ['Engine Tools', 'Unity', 'C#'],
+                    date: '2025-10-02',
+                    status: 'Published',
+                    image: '/assets/images/projects/unityasset_nofolderinspection.webp',
+                    link: { url: 'https://assetstore.unity.com/packages/tools/utilities/no-folder-inspection-305876', label: 'View on Asset Store', showOnCard: true },
+                },
+                {
+                    name: 'Unpublished Unity Assets',
+                    summary: 'A collection of Unity Editor tools and utilities currently in development. Browse upcoming assets including editor extensions, workflow tools, and productivity utilities.',
+                    tags: ['Engine Tools', 'Unity', 'C#'],
+                    date: '2026-02-09',
+                    status: 'Development',
+                    image: '/assets/images/projects/unpublishedunityassets.webp',
+                    link: { url: '/projects/UnpublishedUnityAssets/', label: 'Browse', showOnCard: true },
+                },
+            ];
+
+            /* ===== HELPERS ===== */
+            function esc(v) {
+                return String(v ?? '')
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+                    .replace(/'/g,'&#39;');
+            }
+            function formatDate(d) {
+                if (!d) return '';
+                const dt = new Date(d);
+                if (!isNaN(dt.getTime())) {
+                    return dt.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase();
+                }
+                return d;
+            }
+            function projectUrl(p) {
+                const overrides = {
+                    'tiny voters': '/projects/TinyVoters/',
+                };
+                const key = (p.name || '').toLowerCase();
+                if (overrides[key]) return overrides[key];
+                if (p && p.link && typeof p.link === 'object' && p.link.url) return p.link.url;
+                if (typeof p.link === 'string') return p.link;
+                return '';
+            }
+            function projectStatus(p) {
+                return p.status || 'Published';
+            }
+
+            /* ===== BUILD GROUPS BY COMPANY ===== */
+            const data = window.CV_DATA || {};
+            const groups = [];
+
+            (data.experience || []).forEach(exp => {
+                if ((exp.projects || []).length) {
+                    groups.push({
+                        company:  exp.org || exp.title || 'Experience',
+                        logo:     exp.logo || null,
+                        type:     'experience',
+                        projects: exp.projects.map(p => ({ ...p, _company: exp.org || exp.title })),
+                    });
+                }
+            });
+            (data.projects || []).forEach(group => {
+                const merged = [...(group.projects || [])];
+                const isSide = (group.title || '').toLowerCase().includes('side');
+                if (isSide) merged.push(...EXTRA_SIDE_PROJECTS);
+                if (merged.length) {
+                    groups.push({
+                        company:  group.title || 'Projects',
+                        logo:     group.logo || null,
+                        type:     'projects',
+                        projects: merged.map(p => ({ ...p, _company: group.title })),
+                    });
+                }
+            });
+            // If CV_DATA missing entirely, still add side projects
+            if (groups.length === 0) {
+                groups.push({
+                    company: 'Side-Projects',
+                    logo: null,
+                    type: 'projects',
+                    projects: EXTRA_SIDE_PROJECTS.map(p => ({ ...p, _company: 'Side-Projects' })),
+                });
+            }
+
+            const allProjectsFlat = groups.flatMap(g => g.projects);
+
+            /* ===== STATE ===== */
+            const _initialParams = new URLSearchParams(location.search);
+            const _initialTags     = (_initialParams.get('tags') || _initialParams.get('tag') || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            const _initialStatuses = (_initialParams.get('status') || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            const _initialCompanies = (_initialParams.get('company') || '')
+                .split(',').map(s => s.trim()).filter(Boolean);
+            const activeTags      = new Set(_initialTags.map(s => s.toLowerCase()));
+            const activeStatuses  = new Set(_initialStatuses.map(s => s.toLowerCase()));
+            const activeCompanies = new Set(_initialCompanies.map(s => s.toLowerCase()));
+            let searchQuery = (_initialParams.get('q') || '').trim();
+
+            /* ===== UNIQUE TAGS / STATUSES / COMPANIES ===== */
+            const allTags      = [...new Set(allProjectsFlat.flatMap(p => p.tags || []))].sort();
+            const allStatuses  = [...new Set(allProjectsFlat.map(projectStatus).filter(Boolean))].sort();
+            const allCompanies = groups.map(g => g.company);
+
+            /* ===== ICONS ===== */
+            const _SI = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">${body}</svg>`;
+            const ICONS = {
+                experience: _SI('<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
+                projects:   _SI('<polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/>'),
+            };
+
+            /* ===== RENDER SECTIONS (one per company) ===== */
+            function renderSections() {
+                const main = document.getElementById('cvpMain');
+                main.innerHTML = groups.map((group, gi) => {
+                    const num  = String(gi + 1).padStart(2, '0');
+                    const icon = ICONS[group.type] || ICONS.projects;
+                    const cardsHtml = group.projects.map(p => {
+                        const name    = esc(p.name || '');
+                        const date    = esc(formatDate(p.date));
+                        const summary = esc(p.summary || '');
+                        const img     = esc(p.image || '');
+                        const linkUrl = esc(projectUrl(p));
+                        const status  = esc(projectStatus(p));
+                        const company = esc(p._company || '');
+                        const tags    = p.tags || [];
+                        const tagsHtml = `<div class="cv3-project-tags">${tags.map(t =>
+                            `<span class="cv3-project-tag${activeTags.has((t||'').toLowerCase()) ? ' is-active-filter' : ''}" data-tag="${esc(t)}">${esc(t)}</span>`
+                        ).join('')}</div>`;
+                        const isExternal = linkUrl && /^https?:\/\//.test(linkUrl);
+                        return `<a class="cv3-project" href="${linkUrl || '#'}"${isExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}
+                                    data-tags='${esc(JSON.stringify(tags))}'
+                                    data-status="${status}"
+                                    data-company="${company}"
+                                    data-search="${esc((name + ' ' + summary + ' ' + tags.join(' ')).toLowerCase())}">
+                            <div class="cv3-project-thumb">
+                                ${img ? `<img src="${img}" alt="${name}">` : '<span class="cv3-project-thumb-ph">IMG</span>'}
+                            </div>
+                            <div class="cv3-project-info">
+                                <h4 class="cv3-project-name">${name}</h4>
+                                <span class="cv3-project-date"><span class="cv3-project-status" data-status-tag="${status}">${status}</span>${date}</span>
+                                <p class="cv3-project-desc">${summary}</p>
+                                ${tagsHtml}
+                            </div>
+                        </a>`;
+                    }).join('');
+
+                    return `<section class="cv3-section" data-company="${esc(group.company)}">
+                        <div class="cv3-strip">
+                            ${icon}
+                            <span class="cv3-strip-num">${num}</span>
+                        </div>
+                        <div class="cv3-section-header">${icon} ${esc(group.company)}</div>
+                        <div class="cvp-projects">
+                            ${cardsHtml}
+                            <p class="cvp-no-results" style="display:none;">No projects match this filter</p>
+                        </div>
+                    </section>`;
+                }).join('');
+            }
+
+            /* ===== RENDER FILTERS ===== */
+            function renderFilters() {
+                document.getElementById('cvpFilterCompany').innerHTML = allCompanies.map(c =>
+                    `<button class="cvp-filter-tag${activeCompanies.has(c.toLowerCase()) ? ' is-active' : ''}" data-company="${esc(c)}">${esc(c)}</button>`
+                ).join('');
+                document.getElementById('cvpFilterTags').innerHTML = allTags.map(t =>
+                    `<button class="cvp-filter-tag${activeTags.has((t||'').toLowerCase()) ? ' is-active' : ''}" data-tag="${esc(t)}">${esc(t)}</button>`
+                ).join('');
+                document.getElementById('cvpFilterStatus').innerHTML = allStatuses.map(s =>
+                    `<button class="cvp-filter-tag${activeStatuses.has((s||'').toLowerCase()) ? ' is-active' : ''}" data-status="${esc(s)}">${esc(s)}</button>`
+                ).join('');
+
+                const hasFilter = activeTags.size + activeStatuses.size + activeCompanies.size > 0 || !!searchQuery;
+                document.getElementById('cvpFilterClear').classList.toggle('visible', hasFilter);
+            }
+
+            /* ===== APPLY FILTER ===== */
+            function applyFilter() {
+                const hasTag     = activeTags.size > 0;
+                const hasStatus  = activeStatuses.size > 0;
+                const hasCompany = activeCompanies.size > 0;
+                const q          = searchQuery.toLowerCase();
+
+                document.querySelectorAll('.cv3-project').forEach(card => {
+                    const tags    = JSON.parse(card.dataset.tags || '[]').map(t => (t||'').toLowerCase());
+                    const status  = (card.dataset.status  || '').toLowerCase();
+                    const company = (card.dataset.company || '').toLowerCase();
+                    const search  = card.dataset.search || '';
+                    const tagOk     = !hasTag     || tags.some(t => activeTags.has(t));
+                    const statusOk  = !hasStatus  || activeStatuses.has(status);
+                    const companyOk = !hasCompany || activeCompanies.has(company);
+                    const searchOk  = !q || search.includes(q);
+                    card.classList.toggle('is-hidden', !(tagOk && statusOk && companyOk && searchOk));
+                });
+
+                document.querySelectorAll('.cv3-project-tag').forEach(el => {
+                    el.classList.toggle('is-active-filter', activeTags.has((el.dataset.tag||'').toLowerCase()));
+                });
+                document.querySelectorAll('.cvp-filter-tag[data-tag]').forEach(el => {
+                    el.classList.toggle('is-active', activeTags.has((el.dataset.tag||'').toLowerCase()));
+                });
+                document.querySelectorAll('.cvp-filter-tag[data-status]').forEach(el => {
+                    el.classList.toggle('is-active', activeStatuses.has((el.dataset.status||'').toLowerCase()));
+                });
+                document.querySelectorAll('.cvp-filter-tag[data-company]').forEach(el => {
+                    el.classList.toggle('is-active', activeCompanies.has((el.dataset.company||'').toLowerCase()));
+                });
+
+                /* per-section no-results + hide empty sections */
+                document.querySelectorAll('.cv3-section').forEach(sec => {
+                    const cards = [...sec.querySelectorAll('.cv3-project')];
+                    const visible = cards.some(c => !c.classList.contains('is-hidden'));
+                    const no = sec.querySelector('.cvp-no-results');
+                    if (no) no.style.display = (cards.length && !visible) ? 'block' : 'none';
+                    sec.style.display = visible ? '' : 'none';
+                });
+
+                const hasFilter = hasTag || hasStatus || hasCompany || !!searchQuery;
+                document.getElementById('cvpFilterClear').classList.toggle('visible', hasFilter);
+
+                /* persist URL */
+                const url = new URL(location.href);
+                url.searchParams.delete('tag');
+                if (activeTags.size)      url.searchParams.set('tags', [...activeTags].join(','));
+                else                       url.searchParams.delete('tags');
+                if (activeStatuses.size)  url.searchParams.set('status', [...activeStatuses].join(','));
+                else                       url.searchParams.delete('status');
+                if (activeCompanies.size) url.searchParams.set('company', [...activeCompanies].join(','));
+                else                       url.searchParams.delete('company');
+                if (searchQuery)          url.searchParams.set('q', searchQuery);
+                else                       url.searchParams.delete('q');
+                history.replaceState(null, '', url);
+            }
+
+            function toggle(set, value) {
+                const k = (value || '').toLowerCase();
+                if (!k) return;
+                if (set.has(k)) set.delete(k); else set.add(k);
+            }
+
+            /* ===== EVENTS ===== */
+            document.addEventListener('click', e => {
+                const cardStatus = e.target.closest('.cv3-project-status');
+                if (cardStatus) {
+                    e.preventDefault(); e.stopPropagation();
+                    toggle(activeStatuses, cardStatus.dataset.statusTag);
+                    applyFilter(); renderFilters(); return;
+                }
+                const cardTag = e.target.closest('.cv3-project-tag');
+                if (cardTag) {
+                    e.preventDefault(); e.stopPropagation();
+                    toggle(activeTags, cardTag.dataset.tag);
+                    applyFilter(); renderFilters(); return;
+                }
+                const tagBtn = e.target.closest('.cvp-filter-tag[data-tag]');
+                if (tagBtn) { toggle(activeTags, tagBtn.dataset.tag); applyFilter(); renderFilters(); return; }
+                const statusBtn = e.target.closest('.cvp-filter-tag[data-status]');
+                if (statusBtn) { toggle(activeStatuses, statusBtn.dataset.status); applyFilter(); renderFilters(); return; }
+                const companyBtn = e.target.closest('.cvp-filter-tag[data-company]');
+                if (companyBtn) { toggle(activeCompanies, companyBtn.dataset.company); applyFilter(); renderFilters(); return; }
+                if (e.target.closest('#cvpFilterClear')) {
+                    activeTags.clear(); activeStatuses.clear(); activeCompanies.clear();
+                    searchQuery = '';
+                    document.getElementById('cvpSearch').value = '';
+                    applyFilter(); renderFilters(); return;
+                }
+            });
+
+            /* ===== SEARCH ===== */
+            const searchInput = document.getElementById('cvpSearch');
+            searchInput.value = searchQuery;
+            searchInput.addEventListener('input', e => {
+                searchQuery = e.target.value.trim();
+                applyFilter();
+            });
+
+            /* ===== INIT ===== */
+            renderSections();
+            renderFilters();
+            applyFilter();
+        })();
+    </script>
+</body>
+</html>
