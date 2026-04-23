@@ -54,7 +54,7 @@ window.CV_DATA = {
     ],
     "experience": [
         {
-            "date": "Mar. 2023 - Jun. 2026",
+            "date": "MAR. 2022 — JUN. 2026",
             "title": "Developer",
             "org": "Nagelld",
             "description": "At Nagelld, we are a small team, meaning everyone has to master every part of developing a software or Simulator. I have mostly been programming for Unreal Engine & Unity. But also modelled, developed textures, audio, designed UI etc. Projects are mostly self-managed, with direct customer contact. I'm familiar with Azure, and Meta's AppLab for development with Meta's Quest VR headset. Using Git for source-control. Here are some of the projects I've developed primarily:",
