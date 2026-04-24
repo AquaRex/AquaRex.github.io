@@ -197,6 +197,29 @@
             background: color-mix(in srgb, var(--de-bg) 85%, var(--de-accent));
         }
         .de-field textarea { resize: vertical; min-height: 80px; }
+        .de-field select {
+            background: var(--de-bg);
+            color: var(--de-text);
+            border: 2px solid var(--de-border);
+            border-radius: 0;
+            padding: 8px 10px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            outline: none;
+            cursor: pointer;
+        }
+        .de-field .de-select-custom {
+            margin-top: 6px;
+            background: var(--de-bg);
+            color: var(--de-text);
+            border: 2px dashed var(--de-border);
+            border-radius: 0;
+            padding: 6px 8px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.8rem;
+            outline: none;
+        }
 
         .de-checkbox {
             display: flex; align-items: center; gap: var(--sp-2, 8px);
@@ -261,6 +284,8 @@
         .de-btn:hover { background: var(--de-dark); color: var(--de-bg); }
         .de-btn-primary { background: var(--de-dark); color: var(--de-bg); }
         .de-btn-primary:hover { background: var(--de-accent); color: var(--de-dark); }
+        .de-btn-danger { background: #b3261e; color: #fff; border-color: #b3261e; margin-right: auto; }
+        .de-btn-danger:hover { background: #8c1d18; border-color: #8c1d18; }
         .de-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         @media (max-width: 640px) {
@@ -707,6 +732,34 @@
                 <textarea data-key="${escapeAttr(f.key)}" rows="${f.rows || 4}" placeholder="${escapeAttr(f.placeholder || '')}">${escapeHtml(v ?? '')}</textarea>
             </div>`;
         }
+        if (f.type === 'select') {
+            const options = Array.isArray(f.options) ? f.options : [];
+            const current = v == null ? '' : String(v);
+            const seen = new Set();
+            const opts = [];
+            if (f.placeholder) {
+                opts.push(`<option value="" ${current ? '' : 'selected'} disabled>${escapeHtml(f.placeholder)}</option>`);
+            }
+            options.forEach(opt => {
+                const value = typeof opt === 'object' ? String(opt.value ?? '') : String(opt);
+                const label = typeof opt === 'object' ? String(opt.label ?? value) : String(opt);
+                if (seen.has(value)) return;
+                seen.add(value);
+                opts.push(`<option value="${escapeAttr(value)}"${value === current ? ' selected' : ''}>${escapeHtml(label)}</option>`);
+            });
+            // If allowCustom, include the current value even if not in the option list.
+            if (f.allowCustom && current && !seen.has(current)) {
+                opts.unshift(`<option value="${escapeAttr(current)}" selected>${escapeHtml(current)}</option>`);
+            }
+            const customHtml = f.allowCustom
+                ? `<input type="text" class="de-select-custom" data-for="${escapeAttr(f.key)}" placeholder="${escapeAttr(f.customPlaceholder || 'Or type a new value…')}" value="">`
+                : '';
+            return `<div class="${cls}">
+                <label>${escapeHtml(f.label)}</label>
+                <select data-key="${escapeAttr(f.key)}">${opts.join('')}</select>
+                ${customHtml}
+            </div>`;
+        }
         if (f.type === 'tags') {
             const selected = Array.isArray(v) ? v.slice() : (v ? String(v).split(',').map(t => t.trim()).filter(Boolean) : []);
             const suggestions = Array.isArray(f.suggestions) ? f.suggestions : [];
@@ -755,12 +808,21 @@
         if (type === 'rows') {
             return readRowsWidget(el);
         }
+        if (el.tagName === 'SELECT') {
+            const custom = el.parentElement && el.parentElement.querySelector(`.de-select-custom[data-for="${el.getAttribute('data-key')}"]`);
+            const customVal = custom && custom.value.trim();
+            return customVal || el.value;
+        }
         return el.value;
     }
 
-    function openModal({ title, subtitle, fields, onSave, reloadOnSave = true, onReload } = {}) {
+    function openModal({ title, subtitle, fields, onSave, reloadOnSave = true, onReload, extraButtons } = {}) {
         if (modalOpen) return;
         modalOpen = true;
+
+        const extraBtnsHtml = (Array.isArray(extraButtons) ? extraButtons : [])
+            .map((b, i) => `<button class="de-btn de-extra ${b.danger ? 'de-btn-danger' : ''}" type="button" data-extra="${i}">${escapeHtml(b.label || 'Action')}</button>`)
+            .join('');
 
         const overlay = document.createElement('div');
         overlay.className = 'de-overlay';
@@ -777,6 +839,7 @@
                     ${(fields || []).map(renderField).join('')}
                 </div>
                 <div class="de-modal-foot">
+                    ${extraBtnsHtml}
                     <span class="de-status"></span>
                     <button class="de-btn de-cancel" type="button">Cancel</button>
                     <button class="de-btn de-btn-primary de-save" type="button">Save</button>
@@ -800,6 +863,38 @@
 
         const statusEl = overlay.querySelector('.de-status');
         const saveBtn = overlay.querySelector('.de-save');
+
+        // Wire extra buttons (e.g. Delete). They run their handler and then,
+        // unless { keepOpen: true } is returned, close the modal and refresh.
+        overlay.querySelectorAll('.de-extra').forEach((btn) => {
+            const cfg = extraButtons[+btn.dataset.extra];
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                statusEl.classList.remove('is-error', 'is-ok');
+                statusEl.textContent = 'Working…';
+                try {
+                    const result = await cfg.onClick();
+                    if (result && result.keepOpen) {
+                        statusEl.textContent = '';
+                        btn.disabled = false;
+                        return;
+                    }
+                    statusEl.classList.add('is-ok');
+                    if (reloadOnSave) {
+                        statusEl.textContent = 'Done · Reloading';
+                        setTimeout(() => location.reload(), 200);
+                    } else {
+                        statusEl.textContent = 'Done';
+                        if (onReload) { try { await onReload(); } catch (_) {} }
+                        setTimeout(close, 200);
+                    }
+                } catch (err) {
+                    statusEl.classList.add('is-error');
+                    statusEl.textContent = 'Failed: ' + (err && err.message ? err.message : err);
+                    btn.disabled = false;
+                }
+            });
+        });
 
         saveBtn.addEventListener('click', async () => {
             saveBtn.disabled = true;

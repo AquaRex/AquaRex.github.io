@@ -37,12 +37,17 @@
     /* ---------- open project editor for an entry ---------- */
     function editProject(entry) {
         const link = entry.link || {};
+        const companies = knownCompanies();
+        // Make sure the entry's current company appears in the dropdown.
+        if (entry.company && !companies.includes(entry.company)) {
+            companies.unshift(entry.company);
+        }
         DE.openModal({
             title:    'Edit Project',
             subtitle: `${entry.company || ''} · ${entry.name || ''}`,
             fields: [
                 { key: 'name',                label: 'Name',                       type: 'text',     value: entry.name },
-                { key: 'company',             label: 'Company',                    type: 'text',     value: entry.company },
+                { key: 'company',             label: 'Company',                    type: 'select',   value: entry.company, options: companies, allowCustom: true, customPlaceholder: 'Or type a new company…' },
                 { key: 'date',                label: 'Date',                       type: 'text',     value: entry.date,        placeholder: 'YYYY-MM-DD or freeform' },
                 { key: 'status',              label: 'Status',                     type: 'text',     value: entry.status,      placeholder: 'Published / Development / ...' },
                 { key: 'image',               label: 'Image (path or URL)',        type: 'text',     value: entry.image,       full: true },
@@ -69,6 +74,102 @@
     // Expose so cvEditor can delegate.
     window.ProjectEditor = { editProject, findEntry };
 
+    /* ---------- known companies (from PROJECTS_DATA + CV) ---------- */
+    function knownCompanies() {
+        const set = new Set();
+        (window.PROJECTS_DATA || []).forEach(p => {
+            if (p.company) set.add(String(p.company).trim());
+        });
+        const cv = window.CV_DATA || {};
+        (cv.experience || []).forEach(e => { if (e.org)   set.add(String(e.org).trim()); });
+        (cv.projects   || []).forEach(g => { if (g.title) set.add(String(g.title).trim()); });
+        return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b));
+    }
+
+    /* ---------- create a brand-new project entry ---------- */
+    function createNewProject() {
+        const companies = knownCompanies();
+        const draft = {
+            name: '',
+            company: companies[0] || '',
+            date: '',
+            status: 'Development',
+            image: '',
+            tags: [],
+            summary: '',
+            popupDescription: '',
+            link: { url: '', label: '', showOnCard: false },
+            showOnCv: true,
+        };
+        DE.openModal({
+            title:    'New Project',
+            subtitle: 'Add a new entry to PROJECTS_DATA',
+            fields: [
+                { key: 'name',                label: 'Name',                       type: 'text',     value: draft.name },
+                { key: 'company',             label: 'Company',                    type: 'select',   value: draft.company, options: companies, allowCustom: true, customPlaceholder: 'Or type a new company…' },
+                { key: 'date',                label: 'Date',                       type: 'text',     value: draft.date,   placeholder: 'YYYY-MM-DD or freeform' },
+                { key: 'status',              label: 'Status',                     type: 'text',     value: draft.status, placeholder: 'Published / Development / ...' },
+                { key: 'image',               label: 'Image (path or URL)',        type: 'text',     value: draft.image,  full: true },
+                { key: 'tags',                label: 'Tags',                       type: 'tags',     value: draft.tags,   full: true, suggestions: knownTags() },
+                { key: 'summary',             label: 'Summary (card description)', type: 'textarea', value: draft.summary, full: true, rows: 3 },
+                { key: 'popupDescription',    label: 'Popup / Detail Description', type: 'textarea', value: draft.popupDescription, full: true, rows: 6 },
+                { key: 'link.url',            label: 'Link URL',                   type: 'text',     value: draft.link.url },
+                { key: 'link.label',          label: 'Link Label',                 type: 'text',     value: draft.link.label },
+                { key: 'link.showOnCard',     label: 'Show link on card',          type: 'bool',     value: draft.link.showOnCard },
+                { key: 'showOnCv',            label: 'Show on CV',                 type: 'bool',     value: draft.showOnCv },
+            ],
+            onSave: async (values) => {
+                const entry = {};
+                Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
+                if (!entry.name || !String(entry.name).trim()) {
+                    throw new Error('Name is required');
+                }
+                if (!entry.company || !String(entry.company).trim()) {
+                    throw new Error('Company is required');
+                }
+                ['date', 'status'].forEach(k => { if (entry[k] === '') delete entry[k]; });
+                if (entry.link && !entry.link.url && !entry.link.label && entry.link.showOnCard === false) {
+                    delete entry.link;
+                }
+                if (entry.showOnCv === true) delete entry.showOnCv;
+
+                window.PROJECTS_DATA = window.PROJECTS_DATA || [];
+                // Guard against duplicates.
+                if (findEntry(entry.company, entry.name)) {
+                    throw new Error(`A project named "${entry.name}" already exists under "${entry.company}".`);
+                }
+                window.PROJECTS_DATA.push(entry);
+                await DE.saveJson('/__save', { projects: window.PROJECTS_DATA });
+                // Reload so all renderers (gallery, filters, CV) pick up the new entry.
+                location.reload();
+            },
+        });
+    }
+
+    /* ---------- floating "+ New Project" button (edit mode only) ---------- */
+    function ensureAddButton() {
+        if (window.PROJECT_REF && window.PROJECT_REF.company && window.PROJECT_REF.name) return;
+        if (!hasGalleryTargets()) return;
+        if (document.querySelector('.de-add-project-btn')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'de-edit-toggle de-add-project-btn';
+        btn.textContent = '+ New Project';
+        btn.style.right = '160px';
+        btn.style.background = 'var(--de-bg, #fff)';
+        btn.style.color = 'var(--de-dark, #111)';
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            createNewProject();
+        });
+        // Only show while edit mode is active.
+        const sync = () => {
+            btn.style.display = document.body.classList.contains('de-edit-mode') ? '' : 'none';
+        };
+        sync();
+        new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        document.body.appendChild(btn);
+    }
     /* ---------- attach "Edit" pill to gallery cards ---------- */
     function attachGalleryButtons() {
         document.querySelectorAll('a.cv3-project[data-name][data-company]').forEach(card => {
@@ -134,10 +235,12 @@
     function init() {
         if (!window.PROJECTS_DATA) return;
         ensureToggle();
+        ensureAddButton();
         attachGalleryButtons();
         attachDetailButton();
         const mo = new MutationObserver(() => {
             ensureToggle();
+            ensureAddButton();
             attachGalleryButtons();
             attachDetailButton();
         });

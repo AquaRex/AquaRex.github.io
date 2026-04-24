@@ -84,6 +84,19 @@
             background: var(--accent-color, #fbc25b);
             border-style: solid;
         }
+        .cv-add-company-inline {
+            margin: 0 var(--sp-5, 20px) var(--sp-4, 16px);
+            width: auto;
+            padding: 6px 14px;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+        }
+        .cv-entry-pill {
+            position: absolute;
+            bottom: 8px; right: 8px;
+            margin-left: 0;
+            z-index: 3;
+        }
 
         /* Project reorder pills — top-left inside each .cv3-project. */
         .cv3-project { position: relative; }
@@ -272,61 +285,143 @@
         if (sec.type === 'fields' && sec.dataKey) {
             fields.push({ key: '__dataKey', label: 'Data Key', type: 'text',
                 value: sec.dataKey, placeholder: 'experience | education | projects' });
-            const entries = window.CV_DATA[sec.dataKey] || [];
-            fields.push({
-                key: '__entries', label: `${sec.dataKey} entries`, type: 'rows', full: true,
-                value: entries.map(e => ({
-                    date:  e.date  || '',
-                    title: e.title || '',
-                    org:   e.org   || '',
-                    description: descToString(e.description),
-                    logoSrc: (e.logo && e.logo.src) || '',
-                })),
-                addLabel: 'Add Entry',
-                columns: [
-                    { key: 'date',        label: 'Date',  type: 'text' },
-                    { key: 'title',       label: 'Title', type: 'text' },
-                    { key: 'org',         label: 'Org',   type: 'text', full: true },
-                    { key: 'description', label: 'Description', type: 'textarea', rows: 3, full: true },
-                    { key: 'logoSrc',     label: 'Logo URL', type: 'text', full: true },
-                ],
-            });
         }
 
         DE.openModal({
             title: `Edit Section: ${sec.title || sec.dataKey || ''}`,
-            subtitle: `sections.${idx}`,
+            subtitle: `sections.${idx} — section settings only. Edit individual companies via their own Edit pill.`,
             reloadOnSave: false,
             fields,
             onSave: async (vals) => {
                 sec.title = vals.__title;
                 if (vals.__icon) sec.icon = vals.__icon; else delete sec.icon;
                 sec.type = vals.__type || 'fields';
-                if (sec.type === 'fields') {
-                    if (vals.__dataKey) sec.dataKey = vals.__dataKey;
-                    const dk = sec.dataKey;
-                    if (dk && Array.isArray(vals.__entries)) {
-                        const original = window.CV_DATA[dk] || [];
-                        const out = vals.__entries.map((r, i) => {
-                            const orig = original[i] || {};
-                            const entry = {
-                                date:  r.date,
-                                title: r.title,
-                                org:   r.org,
-                                description: stringToDesc(orig.description, r.description || ''),
-                            };
-                            if (r.logoSrc) entry.logo = { src: r.logoSrc };
-                            // Preserve untouched extras (e.g. projects) when the row index aligns.
-                            if (orig.projects) entry.projects = orig.projects;
-                            return entry;
-                        });
-                        window.CV_DATA[dk] = out;
-                    }
+                if (sec.type === 'fields' && vals.__dataKey) {
+                    sec.dataKey = vals.__dataKey;
                 }
                 await saveCv();
             },
             onReload: refreshCv,
             extraButtons: [],
+        });
+    }
+
+    /* --- Edit a single company entry --- */
+    function openEntryModal(dataKey, idx) {
+        const arr = window.CV_DATA[dataKey];
+        const entry = arr && arr[idx];
+        if (!entry) return;
+
+        DE.openModal({
+            title: `Edit: ${entry.org || entry.title || '(unnamed)'}`,
+            subtitle: `${dataKey}.${idx}`,
+            reloadOnSave: false,
+            fields: [
+                { key: 'date',        label: 'Date',          type: 'text',     value: entry.date  || '', placeholder: 'YYYY or YYYY-MM or freeform' },
+                { key: 'title',       label: 'Title / Role',  type: 'text',     value: entry.title || '' },
+                { key: 'org',         label: 'Company / Org', type: 'text',     value: entry.org   || '', full: true },
+                { key: 'description', label: 'Description',   type: 'textarea', value: descToString(entry.description), full: true, rows: 4 },
+                { key: 'logoSrc',     label: 'Logo URL',      type: 'text',     value: (entry.logo && entry.logo.src) || '', full: true },
+            ],
+            onSave: async (vals) => {
+                entry.date  = vals.date  || '';
+                entry.title = vals.title || '';
+                entry.org   = vals.org   || '';
+                entry.description = stringToDesc(entry.description, vals.description || '');
+                if (vals.logoSrc) entry.logo = Object.assign({}, entry.logo, { src: vals.logoSrc });
+                else delete entry.logo;
+                await saveCv();
+            },
+            onReload: refreshCv,
+            extraButtons: [
+                {
+                    label: 'Delete',
+                    danger: true,
+                    onClick: async () => {
+                        const name = entry.org || entry.title || '(unnamed)';
+                        if (!confirm(`Delete "${name}" from ${dataKey}? Projects under this company stay in PROJECTS_DATA.`)) {
+                            return { keepOpen: true };
+                        }
+                        arr.splice(idx, 1);
+                        await saveCv();
+                    },
+                },
+            ],
+        });
+    }
+
+
+    /* --- Add new company (quick add: prepend an entry to a fields section) --- */
+    function listFieldsSections() {
+        const out = [];
+        const sections = window.CV_DATA.sections || [];
+        sections.forEach((sec, i) => {
+            if (sec.type !== 'fields' || !sec.dataKey) return;
+            if (!Array.isArray(window.CV_DATA[sec.dataKey])) return;
+            out.push({
+                value: sec.dataKey,
+                label: `${sec.title || sec.dataKey} (${sec.dataKey})`,
+                index: i,
+            });
+        });
+        return out;
+    }
+
+    function openAddCompanyModal(presetDataKey) {
+        const targets = listFieldsSections();
+        if (!targets.length) {
+            alert('No "fields" sections exist yet. Create one first via "+ Add Section".');
+            return;
+        }
+        const initial = (presetDataKey && targets.find(t => t.value === presetDataKey))
+            ? presetDataKey
+            : targets[0].value;
+        const sectionField = (targets.length === 1 || presetDataKey)
+            ? { key: 'section', label: 'Section', type: 'text',
+                value: (targets.find(t => t.value === initial) || targets[0]).label,
+                placeholder: '' }
+            : { key: 'section', label: 'Add to section', type: 'select',
+                value: initial,
+                options: targets.map(t => ({ value: t.value, label: t.label })) };
+        DE.openModal({
+            title: 'Add Company',
+            subtitle: 'Adds a new entry. Becomes selectable in the project Company dropdown.',
+            reloadOnSave: false,
+            fields: [
+                sectionField,
+                { key: 'org',         label: 'Company / Org Name', type: 'text',     value: '' },
+                { key: 'title',       label: 'Title / Role',       type: 'text',     value: '' },
+                { key: 'date',        label: 'Date',               type: 'text',     value: '', placeholder: 'YYYY or YYYY-MM or freeform' },
+                { key: 'description', label: 'Description',        type: 'textarea', value: '', full: true, rows: 3 },
+                { key: 'logoSrc',     label: 'Logo URL',           type: 'text',     value: '', full: true },
+            ],
+            onSave: async (vals) => {
+                // If the section field is read-only text (preset/single), the
+                // value is the human label — fall back to the resolved initial.
+                const dk = (presetDataKey || targets.length === 1)
+                    ? initial
+                    : vals.section;
+                if (!Array.isArray(window.CV_DATA[dk])) window.CV_DATA[dk] = [];
+                if (!vals.org || !String(vals.org).trim()) {
+                    throw new Error('Company / Org Name is required');
+                }
+                const exists = window.CV_DATA[dk].some(e =>
+                    (e.org || e.title || '').toLowerCase() === String(vals.org).trim().toLowerCase()
+                );
+                if (exists) {
+                    throw new Error(`"${vals.org}" already exists in ${dk}`);
+                }
+                const entry = {
+                    date:  vals.date || '',
+                    title: vals.title || '',
+                    org:   String(vals.org).trim(),
+                    description: stringToDesc(undefined, vals.description || ''),
+                };
+                if (vals.logoSrc) entry.logo = { src: vals.logoSrc };
+                window.CV_DATA[dk].unshift(entry);
+                await saveCv();
+            },
+            onReload: refreshCv,
         });
     }
 
@@ -454,6 +549,34 @@
             wrapper.appendChild(delBtn);
 
             sectionEl.appendChild(wrapper);
+
+            // Per-entry "Edit" pill on each company card inside this section.
+            if (sec.type === 'fields' && sec.dataKey && Array.isArray(window.CV_DATA[sec.dataKey])) {
+                sectionEl.querySelectorAll('.cv3-field[data-edit-item]').forEach(fieldEl => {
+                    const fpath = fieldEl.getAttribute('data-edit-item') || '';
+                    const fm = fpath.match(new RegExp(`^${sec.dataKey}\\.(\\d+)$`));
+                    if (!fm) return;
+                    const ei = +fm[1];
+                    if (fieldEl.querySelector(':scope > .cv-entry-pill')) return;
+                    const editEntry = pill('Edit', () => openEntryModal(sec.dataKey, ei));
+                    editEntry.classList.add('cv-entry-pill');
+                    fieldEl.appendChild(editEntry);
+                });
+            }
+
+            // Per-section "+ Add Company" button at the bottom of `fields`
+            // sections backed by an array — adds a new entry directly to that section.
+            if (sec.type === 'fields' && sec.dataKey && Array.isArray(window.CV_DATA[sec.dataKey])) {
+                const addEntry = document.createElement('button');
+                addEntry.type = 'button';
+                addEntry.className = 'cv-add-section cv-add-company-inline';
+                addEntry.textContent = '+ Add Company';
+                addEntry.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openAddCompanyModal(sec.dataKey);
+                });
+                sectionEl.appendChild(addEntry);
+            }
         });
 
         // Add Section button at bottom of main
