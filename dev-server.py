@@ -28,6 +28,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 PROJECTS_FILE = ROOT / "projects" / "projects.js"
 CV_FILE = ROOT / "cv" / "cv.js"
+PROJECT_IMAGES_DIR = ROOT / "assets" / "images" / "projects"
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif"}
 
 FILE_HEADER = """\
 /* =================================================================
@@ -117,6 +119,35 @@ class DevHandler(SimpleHTTPRequestHandler):
     # Serve from project root regardless of cwd.
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
+
+    def do_GET(self):  # noqa: N802 (stdlib naming)
+        # Auto-regenerate manifest.json for project image folders so
+        # dropping a new image into /assets/images/projects/<slug>/
+        # is immediately picked up locally and committed for prod.
+        path = self.path.split("?", 1)[0].split("#", 1)[0]
+        prefix = "/assets/images/projects/"
+        if path.startswith(prefix) and path.endswith("/manifest.json"):
+            slug = path[len(prefix):-len("/manifest.json")]
+            if slug and "/" not in slug and ".." not in slug:
+                self._regenerate_manifest(slug)
+        return super().do_GET()
+
+    def _regenerate_manifest(self, slug: str) -> None:
+        folder = PROJECT_IMAGES_DIR / slug
+        if not folder.is_dir():
+            return
+        try:
+            files = sorted(
+                p.name for p in folder.iterdir()
+                if p.is_file()
+                and p.suffix.lower() in IMAGE_EXTENSIONS
+                and not p.name.startswith(".")
+            )
+            (folder / "manifest.json").write_text(
+                json.dumps(files, indent=2) + "\n", encoding="utf-8"
+            )
+        except OSError:
+            pass
 
     def _send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload).encode("utf-8")

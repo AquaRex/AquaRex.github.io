@@ -789,6 +789,22 @@
             background: var(--accent-color, var(--dark));
             color: var(--dark);
         }
+        .cv3-popup-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--sp-3);
+            align-items: center;
+        }
+        .cv3-popup-actions .cv3-popup-link-btn { margin-top: var(--sp-5); }
+        .cv3-popup-readmore {
+            background: transparent;
+            color: var(--text);
+        }
+        .cv3-popup-readmore:hover,
+        .cv3-popup-readmore.is-hovered {
+            background: var(--dark);
+            color: var(--bg);
+        }
         .cv3-project-link-edit {
             display: flex; flex-direction: column; gap: 4px;
             margin-top: var(--sp-3);
@@ -869,7 +885,10 @@
                     <h3 class="cv3-popup-title" id="cv3PopupTitle"></h3>
                     <span class="cv3-popup-date" id="cv3PopupDate"></span>
                     <p class="cv3-popup-desc" id="cv3PopupDesc"></p>
-                    <a class="cv3-popup-link-btn" id="cv3PopupLink" target="_blank" rel="noopener noreferrer" style="display:none"></a>
+                    <div class="cv3-popup-actions">
+                        <a class="cv3-popup-link-btn cv3-popup-readmore" id="cv3PopupReadMore" style="display:none">Read more</a>
+                        <a class="cv3-popup-link-btn" id="cv3PopupLink" target="_blank" rel="noopener noreferrer" style="display:none"></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1032,10 +1051,16 @@
             return '';
         }
 
-        function renderProjects(projects, orgLogo, parentPath) {
+        function projectDetailSlug(s) {
+            return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+        }
+
+        function renderProjects(projects, orgLogo, parentPath, companyName) {
             const isEdit = document.body.classList.contains('cv-edit-mode');
             const logoSrc = escapeHtml((orgLogo && orgLogo.src) || '');
             const logoAlt = escapeHtml((orgLogo && orgLogo.alt) || '');
+            const company = escapeHtml(companyName || '');
+            const companySlug = projectDetailSlug(companyName);
             const items = (projects || []).map((p, i) => {
                 const showOnCv = p.showOnCv !== false; // default true
                 if (!isEdit && !showOnCv) return '';
@@ -1049,6 +1074,9 @@
                 const linkUrl   = escapeHtml((p.link && p.link.url) || '');
                 const showOnCard = !!(p.link && p.link.showOnCard);
                 const tags     = p.tags || [];
+                const detailUrl = (companySlug && p.name)
+                    ? `/projects/${companySlug}/${projectDetailSlug(p.name)}/`
+                    : '';
                 const tagsHtml = `<div class="cv3-project-tags" data-edit-list="${basePath}.tags">${tags.map((t, ti) => `<span class="cv3-project-tag" data-edit-item="${basePath}.tags.${ti}"><span class="cv3-project-tag-text" data-edit-path="${basePath}.tags.${ti}">${escapeHtml(t)}</span></span>`).join('')}</div>`;
                 const cardBtnHtml = (showOnCard && linkUrl)
                     ? `<a class="cv3-project-link-btn" href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkLabel || 'Visit project'}</a>`
@@ -1064,7 +1092,9 @@
                              data-org-logo="${logoSrc}"
                              data-org-logo-alt="${logoAlt}"
                              data-link-label="${linkLabel}"
-                             data-link-url="${linkUrl}">
+                             data-link-url="${linkUrl}"
+                             data-company="${company}"
+                             data-detail-url="${escapeHtml(detailUrl)}">
                     <div class="cv3-project-thumb">
                         ${img
                             ? `<img src="${img}" alt="${name}">`
@@ -1111,7 +1141,7 @@
                 : `<p class="cv3-field-desc" data-edit-path="${path}.description" data-edit-type="multiline">${escapeHtml(rawDesc)}</p>`;
             const rawDate      = item.date || '';
             const logoHtml     = renderLogo(item.logo);
-            const projectsHtml = item.projects !== undefined ? renderProjects(item.projects || [], item.logo, path) : '';
+            const projectsHtml = item.projects !== undefined ? renderProjects(item.projects || [], item.logo, path, item.org || item.title || '') : '';
             const titleInner = combineTitleOrg && org
                 ? `<span data-edit-path="${path}.org">${org}</span> <span class="cv3-field-title-role">- <span data-edit-path="${path}.title">${title}</span></span>`
                 : `<span data-edit-path="${path}.title">${title}</span>`;
@@ -1283,6 +1313,18 @@
                 linkEl.removeAttribute('href');
                 linkEl.textContent = '';
                 linkEl.style.display = 'none';
+            }
+
+            const readMoreEl = document.getElementById('cv3PopupReadMore');
+            const detailUrl = (el.dataset.detailUrl || '').trim();
+            if (readMoreEl) {
+                if (detailUrl) {
+                    readMoreEl.href = detailUrl;
+                    readMoreEl.style.display = '';
+                } else {
+                    readMoreEl.removeAttribute('href');
+                    readMoreEl.style.display = 'none';
+                }
             }
 
             document.getElementById('cv3PopupOverlay').classList.add('active');

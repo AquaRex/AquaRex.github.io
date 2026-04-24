@@ -50,6 +50,7 @@
         link:     _SI('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'),
         company:  _SI('<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>'),
         related:  _SI('<polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/>'),
+        media:    _SI('<rect x="3" y="3" width="18" height="14" rx="2" ry="2"/><circle cx="9" cy="9" r="1.5"/><polyline points="21,13 16,8 7,17"/><line x1="3" y1="21" x2="21" y2="21"/>'),
     };
 
     /* ===== RENDER ===== */
@@ -138,14 +139,22 @@
                     </div>
                 </section>
 
+                <section class="cv3-section pd-media-section" id="pdMediaSection" hidden>
+                    <div class="cv3-strip">${ICONS.media}<span class="cv3-strip-num">03</span></div>
+                    <div class="cv3-section-header">${ICONS.media} MEDIA</div>
+                    <div class="cv3-section-content">
+                        <div class="pd-media" id="pdMediaGrid"></div>
+                    </div>
+                </section>
+
                 <section class="cv3-section">
-                    <div class="cv3-strip">${ICONS.tags}<span class="cv3-strip-num">03</span></div>
+                    <div class="cv3-strip">${ICONS.tags}<span class="cv3-strip-num">04</span></div>
                     <div class="cv3-section-header">${ICONS.tags} TECHNOLOGIES</div>
                     <div class="cv3-section-content">${tagsHtml}</div>
                 </section>
 
                 <section class="cv3-section">
-                    <div class="cv3-strip">${ICONS.link}<span class="cv3-strip-num">04</span></div>
+                    <div class="cv3-strip">${ICONS.link}<span class="cv3-strip-num">05</span></div>
                     <div class="cv3-section-header">${ICONS.link} LINKS</div>
                     <div class="cv3-section-content">${linksHtml}</div>
                 </section>
@@ -224,6 +233,95 @@
             </div>`;
 
         document.title = `${project.name} — ${group.company} — Thomas Hetland`;
+
+        loadMedia(slugify(project.name));
+    }
+
+    function loadMedia(projectSlug) {
+        const section = document.getElementById('pdMediaSection');
+        const grid    = document.getElementById('pdMediaGrid');
+        if (!section || !grid || !projectSlug) return;
+
+        const folder = `/assets/images/projects/${projectSlug}/`;
+        const url    = `${folder}manifest.json`;
+
+        fetch(url, { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                const files = Array.isArray(data) ? data
+                            : (data && Array.isArray(data.images)) ? data.images
+                            : [];
+                const sorted = files
+                    .map(f => String(f || '').trim())
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+                if (!sorted.length) return;
+                grid.innerHTML = sorted.map((name, i) => {
+                    const src = folder + name;
+                    return `<a class="pd-media-item" href="${esc(src)}" data-index="${i}">
+                        <img src="${esc(src)}" alt="${esc(name)}" loading="lazy">
+                    </a>`;
+                }).join('');
+                section.hidden = false;
+                installLightbox(grid, sorted.map(n => folder + n));
+            })
+            .catch(() => { /* no media — leave hidden */ });
+    }
+
+    function installLightbox(grid, sources) {
+        let overlay = document.getElementById('pdLightbox');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'pdLightbox';
+            overlay.className = 'pd-lightbox';
+            overlay.innerHTML = `
+                <button class="pd-lightbox-btn pd-lightbox-close" type="button" aria-label="Close">&times;</button>
+                <button class="pd-lightbox-btn pd-lightbox-prev" type="button" aria-label="Previous">&#8592;</button>
+                <button class="pd-lightbox-btn pd-lightbox-next" type="button" aria-label="Next">&#8594;</button>
+                <img class="pd-lightbox-img" alt="">
+                <div class="pd-lightbox-counter"></div>`;
+            document.body.appendChild(overlay);
+        }
+        const imgEl     = overlay.querySelector('.pd-lightbox-img');
+        const counterEl = overlay.querySelector('.pd-lightbox-counter');
+        const closeBtn  = overlay.querySelector('.pd-lightbox-close');
+        const prevBtn   = overlay.querySelector('.pd-lightbox-prev');
+        const nextBtn   = overlay.querySelector('.pd-lightbox-next');
+
+        let index = 0;
+        function show(i) {
+            if (!sources.length) return;
+            index = ((i % sources.length) + sources.length) % sources.length;
+            imgEl.src = sources[index];
+            counterEl.textContent = `${index + 1} / ${sources.length}`;
+        }
+        function open(i) {
+            show(i);
+            overlay.classList.add('is-open');
+            document.addEventListener('keydown', onKey);
+        }
+        function close() {
+            overlay.classList.remove('is-open');
+            imgEl.removeAttribute('src');
+            document.removeEventListener('keydown', onKey);
+        }
+        function onKey(e) {
+            if (e.key === 'Escape')      close();
+            else if (e.key === 'ArrowLeft')  show(index - 1);
+            else if (e.key === 'ArrowRight') show(index + 1);
+        }
+
+        closeBtn.onclick = close;
+        prevBtn.onclick  = (e) => { e.stopPropagation(); show(index - 1); };
+        nextBtn.onclick  = (e) => { e.stopPropagation(); show(index + 1); };
+        overlay.onclick  = (e) => { if (e.target === overlay) close(); };
+
+        grid.querySelectorAll('.pd-media-item').forEach(a => {
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                open(parseInt(a.dataset.index, 10) || 0);
+            });
+        });
     }
 
     function projectDetailUrlFor(company, project) {
