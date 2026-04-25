@@ -80,7 +80,6 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Boat Simulator Quest",
-        "date": "",
         "summary": "Reworked the Boat Simulator from Unreal to Unity for mobile VR — added networking, hand-tracking, and physical control support.",
         "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.",
         "image": "/assets/images/cvprojects/nagelld_boatsimquest.jpeg",

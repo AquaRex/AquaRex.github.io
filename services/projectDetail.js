@@ -88,21 +88,10 @@
         const date        = esc(project.date || '');
         const status      = esc(project.status || 'Published');
         const companyName = esc(group.company);
-        const linkObj     = (project.link && typeof project.link === 'object') ? project.link : null;
-        const linkUrl     = linkObj ? linkObj.url : (typeof project.link === 'string' ? project.link : '');
-        const linkLabel   = linkObj ? (linkObj.label || 'Visit') : 'Visit';
 
         const tagsHtml = tags.length
             ? `<div class="pd-tags">${tags.map(t => `<span class="pd-tag">${esc(t)}</span>`).join('')}</div>`
             : '<p style="color:var(--muted);font-size:0.8rem;">No tags</p>';
-
-        const linksHtml = linkUrl
-            ? `<div class="pd-links">
-                   <a class="pd-link-btn" href="${esc(linkUrl)}" target="_blank" rel="noopener noreferrer">
-                       ${ICONS.link} ${esc(linkLabel)}
-                   </a>
-               </div>`
-            : '<p style="color:var(--muted);font-size:0.8rem;">No external link.</p>';
 
         // Sibling projects (within same group)
         const siblings = (group.projects || []).filter(p =>
@@ -151,12 +140,6 @@
                     <div class="cv3-strip">${ICONS.tags}<span class="cv3-strip-num">04</span></div>
                     <div class="cv3-section-header">${ICONS.tags} TECHNOLOGIES</div>
                     <div class="cv3-section-content">${tagsHtml}</div>
-                </section>
-
-                <section class="cv3-section">
-                    <div class="cv3-strip">${ICONS.link}<span class="cv3-strip-num">05</span></div>
-                    <div class="cv3-section-header">${ICONS.link} LINKS</div>
-                    <div class="cv3-section-content">${linksHtml}</div>
                 </section>
             </main>`;
 
