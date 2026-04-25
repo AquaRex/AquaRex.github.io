@@ -15,6 +15,14 @@
         .cv3-edit-only { display: none !important; }
         body.cv-edit-mode .cv3-edit-only { display: revert !important; }
 
+        /* CV project cards are read-only on the CV (projects are edited from
+           /projects/). Suppress all edit chrome inside them so toggling Edit
+           Mode doesn't reflow the cards or leak path text. */
+        .cv3-projects-list .cv3-edit-only,
+        body.cv-edit-mode .cv3-projects-list .cv3-edit-only {
+            display: none !important;
+        }
+
         /* ===== COLOR SYSTEM ===== */
         :root {
             /* Base colors — overridable by the Color Configurator */
@@ -1128,6 +1136,10 @@
 
         function renderField(item, combineTitleOrg, path) {
             const isEdit = document.body.classList.contains('cv-edit-mode');
+            // Hide entire company/section entry if explicitly opted out (cv.js: "showOnCv": false)
+            if (!isEdit && item && item.showOnCv === false) {
+                return '';
+            }
             // Hide field if it has a projects array and all projects are hidden in CV
             if (!isEdit && Array.isArray(item.projects) && item.projects.length > 0
                 && item.projects.every(p => p && p.showOnCv === false)) {

@@ -98,11 +98,12 @@
             z-index: 3;
         }
 
-        /* Project reorder pills — top-left inside each .cv3-project. */
+        /* Project reorder pills — top-right inside each .cv3-project so they
+           don't sit on top of the thumbnail. */
         .cv3-project { position: relative; }
         .cv-proj-reorder {
             position: absolute;
-            top: 6px; left: 6px;
+            top: 6px; right: 6px;
             z-index: 4;
             display: flex; gap: 4px;
         }
@@ -132,6 +133,9 @@
             return str.split('\n').map(s => s.trim()).filter(Boolean);
         }
         return str;
+    }
+    function companySlug(name) {
+        return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     }
     function knownTagPool(extra) {
         const set = new Set();
@@ -188,7 +192,7 @@
             fields: [
                 { key: 'name', label: 'Name', type: 'text', value: p.name || '' },
                 { key: 'role', label: 'Role', type: 'text', value: p.role || '' },
-                { key: 'photo.src', label: 'Photo URL', type: 'text', full: true, value: photo.src || '' },
+                { key: 'photo.src', label: 'Photo', type: 'image', full: true, value: photo.src || '', targetDir: 'assets/profile', filename: 'ProfilePicture.{ext}' },
                 { key: 'photo.alt', label: 'Photo Alt', type: 'text', full: true, value: photo.alt || '' },
             ],
             onSave: async (vals) => {
@@ -321,7 +325,7 @@
                 { key: 'title',       label: 'Title / Role',  type: 'text',     value: entry.title || '' },
                 { key: 'org',         label: 'Company / Org', type: 'text',     value: entry.org   || '', full: true },
                 { key: 'description', label: 'Description',   type: 'textarea', value: descToString(entry.description), full: true, rows: 4 },
-                { key: 'logoSrc',     label: 'Logo URL',      type: 'text',     value: (entry.logo && entry.logo.src) || '', full: true },
+                { key: 'logoSrc',     label: 'Logo',          type: 'image',    value: (entry.logo && entry.logo.src) || '', full: true, targetDir: 'assets/logos', filename: `${companySlug(entry.org || entry.title) || 'logo'}_logo.{ext}` },
             ],
             onSave: async (vals) => {
                 entry.date  = vals.date  || '';
@@ -393,7 +397,7 @@
                 { key: 'title',       label: 'Title / Role',       type: 'text',     value: '' },
                 { key: 'date',        label: 'Date',               type: 'text',     value: '', placeholder: 'YYYY or YYYY-MM or freeform' },
                 { key: 'description', label: 'Description',        type: 'textarea', value: '', full: true, rows: 3 },
-                { key: 'logoSrc',     label: 'Logo URL',           type: 'text',     value: '', full: true },
+                { key: 'logoSrc',     label: 'Logo',               type: 'image',    value: '', full: true, targetDir: 'assets/logos', filename: 'logo.{ext}' },
             ],
             onSave: async (vals) => {
                 // If the section field is read-only text (preset/single), the

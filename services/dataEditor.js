@@ -433,6 +433,130 @@
             text-transform: uppercase;
             padding: var(--sp-3, 12px) 0;
         }
+
+        /* ===== Image upload widgets ===== */
+        .de-image {
+            display: flex;
+            gap: 14px;
+            align-items: stretch;
+        }
+        .de-image-drop {
+            flex: 0 0 140px;
+            min-height: 120px;
+            border: 2px dashed var(--de-border);
+            background: var(--de-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            text-align: center;
+        }
+        .de-image-drop.is-dragover { border-color: var(--de-accent); background: #fff8e6; }
+        .de-image-drop.is-uploading { opacity: 0.55; }
+        .de-image-drop img {
+            max-width: 100%;
+            max-height: 140px;
+            object-fit: contain;
+            display: block;
+        }
+        .de-image-drop-hint {
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--de-muted);
+            padding: 6px;
+            line-height: 1.3;
+        }
+        .de-image-side {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .de-image-side input[type="text"] {
+            width: 100%;
+            background: var(--de-bg);
+            color: var(--de-text);
+            border: 2px solid var(--de-border);
+            border-radius: 0;
+            padding: 8px 10px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.75rem;
+        }
+        .de-image-side-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .de-image-side-row .de-row-btn { min-width: auto; }
+        .de-image-status {
+            font-size: 0.65rem;
+            color: var(--de-muted);
+            min-height: 1em;
+        }
+        .de-image-status.is-error { color: #c0392b; }
+
+        .de-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .de-gallery-drop {
+            border: 2px dashed var(--de-border);
+            background: var(--de-bg);
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--de-muted);
+        }
+        .de-gallery-drop.is-dragover { border-color: var(--de-accent); background: #fff8e6; }
+        .de-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 8px;
+        }
+        .de-gallery-tile {
+            position: relative;
+            border: 2px solid var(--de-border);
+            background: var(--de-bg);
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .de-gallery-tile img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+        .de-gallery-tile-name {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 3px 4px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     `;
     let stylesInjected = false;
     function injectStyles() {
@@ -659,6 +783,231 @@
         return [];
     }
 
+    /* ---------- image upload widgets ---------- */
+
+    // Read a File as base64 (without the data: prefix).
+    function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => {
+                const s = String(r.result || '');
+                const i = s.indexOf(',');
+                resolve(i >= 0 ? s.slice(i + 1) : s);
+            };
+            r.onerror = () => reject(r.error || new Error('read failed'));
+            r.readAsDataURL(file);
+        });
+    }
+
+    // POST a file to /__upload-image. Returns the saved web path.
+    async function uploadImage({ file, targetDir, filenameTemplate }) {
+        if (!file) throw new Error('no file');
+        if (!targetDir) throw new Error('no target dir');
+        const dataBase64 = await readFileAsBase64(file);
+        const original = String(file.name || 'image');
+        const dot = original.lastIndexOf('.');
+        const baseExt = dot >= 0 ? original.slice(dot + 1).toLowerCase() : 'jpg';
+        let filename = original;
+        if (filenameTemplate) {
+            // {ext} replaced with actual extension.
+            filename = filenameTemplate.replace(/\{ext\}/gi, baseExt);
+            if (!/\.[a-z0-9]+$/i.test(filename)) {
+                filename = `${filename}.${baseExt}`;
+            }
+        }
+        const res = await fetch('/__upload-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetDir, filename, dataBase64 }),
+        });
+        let json = null;
+        try { json = await res.json(); } catch (_) {}
+        if (!res.ok || !json || !json.ok) {
+            throw new Error((json && json.error) || `upload failed (${res.status})`);
+        }
+        return json.path;
+    }
+
+    function setupImageWidget(root) {
+        const drop      = root.querySelector('[data-role="drop"]');
+        const input     = root.querySelector('input[type="text"][data-key]');
+        const status    = root.querySelector('[data-role="status"]');
+        const pickBtn   = root.querySelector('[data-role="pick"]');
+        const clearBtn  = root.querySelector('[data-role="clear"]');
+        const targetDir = root.getAttribute('data-target-dir') || '';
+        const tpl       = root.getAttribute('data-filename-template') || '';
+        if (!drop || !input) return;
+
+        const setPath = (path) => {
+            input.value = path || '';
+            drop.innerHTML = path
+                ? `<img alt="" src="${escapeAttr(path)}">`
+                : `<div class="de-image-drop-hint">Drop image<br>or click</div>`;
+        };
+        const setStatus = (text, isError) => {
+            if (!status) return;
+            status.textContent = text || '';
+            status.classList.toggle('is-error', !!isError);
+        };
+
+        // Sync preview when the user types a new path manually.
+        input.addEventListener('change', () => setPath(input.value.trim()));
+        input.addEventListener('blur',   () => setPath(input.value.trim()));
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => { setPath(''); setStatus(''); });
+        }
+
+        // Hidden file picker reused for click + "Choose…".
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+        root.appendChild(fileInput);
+        const openPicker = () => fileInput.click();
+        if (pickBtn) pickBtn.addEventListener('click', openPicker);
+        drop.addEventListener('click', (e) => {
+            if (e.target.closest('img,button,input')) return;
+            openPicker();
+        });
+        drop.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
+        });
+
+        const handleFile = async (file) => {
+            if (!file) return;
+            if (!targetDir) {
+                setStatus('No target directory configured for this field.', true);
+                return;
+            }
+            drop.classList.add('is-uploading');
+            setStatus('Uploading…');
+            try {
+                const path = await uploadImage({ file, targetDir, filenameTemplate: tpl });
+                setPath(path);
+                setStatus('Saved · ' + path);
+            } catch (err) {
+                setStatus(err && err.message ? err.message : String(err), true);
+            } finally {
+                drop.classList.remove('is-uploading');
+            }
+        };
+
+        fileInput.addEventListener('change', () => {
+            const f = fileInput.files && fileInput.files[0];
+            if (f) handleFile(f);
+            fileInput.value = '';
+        });
+
+        ['dragenter', 'dragover'].forEach(ev => {
+            drop.addEventListener(ev, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                drop.classList.add('is-dragover');
+            });
+        });
+        ['dragleave', 'dragend'].forEach(ev => {
+            drop.addEventListener(ev, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                drop.classList.remove('is-dragover');
+            });
+        });
+        drop.addEventListener('drop', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            drop.classList.remove('is-dragover');
+            const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (f) handleFile(f);
+        });
+    }
+
+    function setupGalleryWidget(root) {
+        const drop      = root.querySelector('[data-role="drop"]');
+        const grid      = root.querySelector('[data-role="grid"]');
+        const status    = root.querySelector('[data-role="status"]');
+        const targetDir = root.getAttribute('data-target-dir') || '';
+        if (!drop || !grid) return;
+
+        const setStatus = (text, isError) => {
+            if (!status) return;
+            status.textContent = text || '';
+            status.classList.toggle('is-error', !!isError);
+        };
+
+        const refresh = async () => {
+            grid.innerHTML = '';
+            if (!targetDir) return;
+            try {
+                const res = await fetch('/' + targetDir.replace(/^\/+/, '') + '/manifest.json', { cache: 'no-store' });
+                if (!res.ok) return;
+                const list = await res.json();
+                if (!Array.isArray(list)) return;
+                list.forEach(name => {
+                    const url = '/' + targetDir.replace(/^\/+/, '').replace(/\/$/, '') + '/' + name;
+                    const tile = document.createElement('div');
+                    tile.className = 'de-gallery-tile';
+                    tile.innerHTML = `<img alt="" src="${escapeAttr(url)}"><span class="de-gallery-tile-name">${escapeHtml(name)}</span>`;
+                    grid.appendChild(tile);
+                });
+            } catch (_) {}
+        };
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        root.appendChild(fileInput);
+        drop.addEventListener('click', () => fileInput.click());
+        drop.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+        });
+
+        const handleFiles = async (files) => {
+            if (!files || !files.length) return;
+            if (!targetDir) {
+                setStatus('No target directory configured for this gallery.', true);
+                return;
+            }
+            const list = Array.from(files);
+            let done = 0, failed = 0;
+            for (const f of list) {
+                setStatus(`Uploading ${done + 1}/${list.length}…`);
+                try { await uploadImage({ file: f, targetDir }); done++; }
+                catch (_) { failed++; }
+            }
+            setStatus(failed
+                ? `Uploaded ${done}, ${failed} failed.`
+                : `Uploaded ${done} image${done === 1 ? '' : 's'}.`,
+                failed > 0);
+            await refresh();
+        };
+
+        fileInput.addEventListener('change', () => {
+            handleFiles(fileInput.files);
+            fileInput.value = '';
+        });
+
+        ['dragenter', 'dragover'].forEach(ev => {
+            drop.addEventListener(ev, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                drop.classList.add('is-dragover');
+            });
+        });
+        ['dragleave', 'dragend'].forEach(ev => {
+            drop.addEventListener(ev, (e) => {
+                e.preventDefault(); e.stopPropagation();
+                drop.classList.remove('is-dragover');
+            });
+        });
+        drop.addEventListener('drop', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            drop.classList.remove('is-dragover');
+            const files = e.dataTransfer && e.dataTransfer.files;
+            if (files && files.length) handleFiles(files);
+        });
+
+        refresh();
+    }
+
     /* ---------- edit button factory ---------- */
     function makeEditButton({ label = 'Edit', floating = false, onClick } = {}) {
         const btn = document.createElement('button');
@@ -791,6 +1140,48 @@
                 </div>
             </div>`;
         }
+        if (f.type === 'image') {
+            // Single-image drop zone with a synced text path input.
+            const targetDir   = f.targetDir || '';
+            const filenameTpl = f.filename  || '';
+            const current     = v == null ? '' : String(v);
+            return `<div class="${cls}">
+                <label>${escapeHtml(f.label)}</label>
+                <div class="de-image" data-value-type="image"
+                     data-target-dir="${escapeAttr(targetDir)}"
+                     data-filename-template="${escapeAttr(filenameTpl)}">
+                    <div class="de-image-drop" data-role="drop" tabindex="0">
+                        ${current
+                            ? `<img alt="" src="${escapeAttr(current)}">`
+                            : `<div class="de-image-drop-hint">Drop image<br>or click</div>`}
+                    </div>
+                    <div class="de-image-side">
+                        <input type="text" data-key="${escapeAttr(f.key)}" value="${escapeAttr(current)}" placeholder="${escapeAttr(f.placeholder || '/assets/...')}">
+                        <div class="de-image-side-row">
+                            <button type="button" class="de-row-btn" data-role="pick">Choose…</button>
+                            <button type="button" class="de-row-btn is-danger" data-role="clear">Clear</button>
+                        </div>
+                        <div class="de-image-status" data-role="status"></div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        if (f.type === 'image-gallery') {
+            // Multi-image upload area for a fixed folder. Does not store a
+            // value into the form payload — drops just upload to disk.
+            const targetDir = f.targetDir || '';
+            return `<div class="de-field de-full">
+                <label>${escapeHtml(f.label)}</label>
+                <div class="de-gallery" data-value-type="gallery"
+                     data-target-dir="${escapeAttr(targetDir)}">
+                    <div class="de-gallery-drop" data-role="drop" tabindex="0">
+                        Drop images here, or click to choose
+                    </div>
+                    <div class="de-gallery-grid" data-role="grid"></div>
+                    <div class="de-image-status" data-role="status"></div>
+                </div>
+            </div>`;
+        }
         // default: text
         return `<div class="${cls}">
             <label>${escapeHtml(f.label)}</label>
@@ -849,6 +1240,8 @@
         document.body.appendChild(overlay);
         overlay.querySelectorAll('.de-tags').forEach(setupTagsWidget);
         overlay.querySelectorAll('.de-rows').forEach(setupRowsWidget);
+        overlay.querySelectorAll('.de-image').forEach(setupImageWidget);
+        overlay.querySelectorAll('.de-gallery').forEach(setupGalleryWidget);
 
         const close = () => {
             modalOpen = false;
@@ -952,5 +1345,6 @@
         setPath,
         getPath,
         saveJson,
+        uploadImage,
     };
 })();

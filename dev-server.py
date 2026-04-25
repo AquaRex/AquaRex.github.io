@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import json
 import sys
+import re
+import base64
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -30,6 +32,14 @@ PROJECTS_FILE = ROOT / "projects" / "projects.js"
 CV_FILE = ROOT / "cv" / "cv.js"
 PROJECT_IMAGES_DIR = ROOT / "assets" / "images" / "projects"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif"}
+
+# Directories under ROOT that the upload endpoint is allowed to write into.
+UPLOAD_ALLOWED_PREFIXES = (
+    "assets/images/",
+    "assets/logos/",
+    "assets/profile/",
+)
+MAX_UPLOAD_BYTES = 30_000_000  # 30 MB
 
 FILE_HEADER = """\
 /* =================================================================
@@ -163,6 +173,8 @@ class DevHandler(SimpleHTTPRequestHandler):
             return self._handle_save_projects()
         if self.path == "/__save-cv":
             return self._handle_save_cv()
+        if self.path == "/__upload-image":
+            return self._handle_upload_image()
         self._send_json(404, {"ok": False, "error": "not found"})
 
     def _read_loopback_json(self) -> dict | None:
@@ -171,6 +183,21 @@ class DevHandler(SimpleHTTPRequestHandler):
             return None
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0 or length > 5_000_000:
+            self._send_json(400, {"ok": False, "error": "bad length"})
+            return None
+        try:
+            return json.loads(self.rfile.read(length).decode("utf-8"))
+        except Exception as exc:  # noqa: BLE001
+            self._send_json(400, {"ok": False, "error": f"bad json: {exc}"})
+            return None
+
+    def _read_loopback_json_large(self) -> dict | None:
+        """Same as _read_loopback_json but with the upload size cap."""
+        if self.client_address[0] not in ("127.0.0.1", "::1"):
+            self._send_json(403, {"ok": False, "error": "loopback only"})
+            return None
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0 or length > MAX_UPLOAD_BYTES:
             self._send_json(400, {"ok": False, "error": "bad length"})
             return None
         try:
@@ -211,6 +238,71 @@ class DevHandler(SimpleHTTPRequestHandler):
             self._send_json(400, {"ok": False, "error": str(exc)})
             return
         self._send_json(200, {"ok": True})
+
+    def _handle_upload_image(self):
+        data = self._read_loopback_json_large()
+        if data is None:
+            return
+        try:
+            target_dir = str(data.get("targetDir") or "").strip().lstrip("/")
+            filename   = str(data.get("filename")  or "").strip()
+            data_b64   = data.get("dataBase64")
+            if not target_dir or not filename or not isinstance(data_b64, str):
+                raise ValueError("targetDir, filename and dataBase64 required")
+            if ".." in target_dir.split("/"):
+                raise ValueError("targetDir may not contain ..")
+            if not any(target_dir.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+                raise ValueError(
+                    "targetDir must start with one of: "
+                    + ", ".join(UPLOAD_ALLOWED_PREFIXES)
+                )
+
+            # Sanitise filename: keep alnum, dot, dash, underscore. Collapse
+            # everything else to '-'. Force a single extension that we allow.
+            name = re.sub(r"[^A-Za-z0-9._-]+", "-", filename).strip("-._")
+            if not name:
+                raise ValueError("invalid filename")
+            stem, dot, ext = name.rpartition(".")
+            if not dot:
+                raise ValueError("filename must include extension")
+            ext = "." + ext.lower()
+            if ext not in IMAGE_EXTENSIONS:
+                raise ValueError(f"extension {ext} not allowed")
+            if not stem:
+                raise ValueError("filename stem required")
+
+            folder = (ROOT / target_dir).resolve()
+            # Make sure we stay strictly under ROOT (defence in depth — the
+            # prefix check above already prevents escape).
+            if ROOT not in folder.parents and folder != ROOT:
+                raise ValueError("targetDir escapes workspace")
+            folder.mkdir(parents=True, exist_ok=True)
+
+            # Decode payload (allow data: URLs by stripping the prefix).
+            if "," in data_b64 and data_b64.lstrip().startswith("data:"):
+                data_b64 = data_b64.split(",", 1)[1]
+            try:
+                blob = base64.b64decode(data_b64, validate=True)
+            except Exception as exc:  # noqa: BLE001
+                raise ValueError(f"bad base64: {exc}") from exc
+            if not blob:
+                raise ValueError("empty file")
+            if len(blob) > MAX_UPLOAD_BYTES:
+                raise ValueError("file too large")
+
+            # Resolve a non-colliding filename.
+            candidate = folder / f"{stem}{ext}"
+            i = 2
+            while candidate.exists():
+                candidate = folder / f"{stem}-{i}{ext}"
+                i += 1
+            candidate.write_bytes(blob)
+
+            web_path = "/" + str(candidate.relative_to(ROOT)).replace("\\", "/")
+        except Exception as exc:  # noqa: BLE001
+            self._send_json(400, {"ok": False, "error": str(exc)})
+            return
+        self._send_json(200, {"ok": True, "path": web_path})
 
     def end_headers(self):
         # Disable caching so edits show up on reload immediately.

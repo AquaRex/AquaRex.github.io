@@ -34,6 +34,11 @@
         return [...set].sort((a, b) => a.localeCompare(b));
     }
 
+    /* ---------- match the slug rule used by projectDetail.js ---------- */
+    function projectSlug(name) {
+        return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
     /* ---------- open project editor for an entry ---------- */
     function editProject(entry) {
         const link = entry.link || {};
@@ -42,15 +47,19 @@
         if (entry.company && !companies.includes(entry.company)) {
             companies.unshift(entry.company);
         }
+        const slug = projectSlug(entry.name);
+        const heroDir   = slug ? `assets/images/projects/${slug}` : 'assets/images/projects';
+        const mediaDir  = heroDir;
         DE.openModal({
             title:    'Edit Project',
             subtitle: `${entry.company || ''} · ${entry.name || ''}`,
             fields: [
                 { key: 'name',                label: 'Name',                       type: 'text',     value: entry.name },
-                { key: 'company',             label: 'Company',                    type: 'select',   value: entry.company, options: companies, allowCustom: true, customPlaceholder: 'Or type a new company…' },
+                { key: 'company',             label: 'Company',                    type: 'select',   value: entry.company, options: companies },
                 { key: 'date',                label: 'Date',                       type: 'text',     value: entry.date,        placeholder: 'YYYY-MM-DD or freeform' },
                 { key: 'status',              label: 'Status',                     type: 'text',     value: entry.status,      placeholder: 'Published / Development / ...' },
-                { key: 'image',               label: 'Image (path or URL)',        type: 'text',     value: entry.image,       full: true },
+                { key: 'image',               label: 'Hero Image',                 type: 'image',    value: entry.image,       full: true, targetDir: heroDir, filename: `${slug || 'hero'}.{ext}` },
+                { key: '__media',             label: 'Media gallery',              type: 'image-gallery', full: true, targetDir: mediaDir },
                 { key: 'tags',                label: 'Tags',                       type: 'tags',     value: entry.tags || [],  full: true, suggestions: knownTags() },
                 { key: 'summary',             label: 'Summary (card description)', type: 'textarea', value: entry.summary,     full: true, rows: 3 },
                 { key: 'popupDescription',    label: 'Popup / Detail Description', type: 'textarea', value: entry.popupDescription, full: true, rows: 6 },
@@ -60,6 +69,8 @@
                 { key: 'showOnCv',            label: 'Show on CV',                 type: 'bool',     value: entry.showOnCv !== false },
             ],
             onSave: async (values) => {
+                // Strip transient gallery key — it's not part of the data.
+                delete values.__media;
                 Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
                 // Trim empty optional fields
                 ['date', 'status'].forEach(k => { if (entry[k] === '') delete entry[k]; });
@@ -74,15 +85,30 @@
     // Expose so cvEditor can delegate.
     window.ProjectEditor = { editProject, findEntry };
 
-    /* ---------- known companies (from PROJECTS_DATA + CV) ---------- */
+    /* ---------- known companies (defined in cv.js) ----------
+       Companies are managed exclusively from the CV. We collect the
+       org name from every entry in any `fields`-type CV section
+       (Experience, Education, ...) plus the title of every group in
+       cv.projects (e.g. "Side-Projects"). Existing PROJECTS_DATA
+       company strings are folded in too so legacy entries stay
+       editable, but no new company can be created from here. */
     function knownCompanies() {
         const set = new Set();
+        const cv = window.CV_DATA || {};
+        const sections = Array.isArray(cv.sections) ? cv.sections : [];
+        sections.forEach(sec => {
+            if (!sec || sec.type !== 'fields' || !sec.dataKey) return;
+            const arr = cv[sec.dataKey];
+            if (!Array.isArray(arr)) return;
+            arr.forEach(item => {
+                const name = (item && (item.org || item.title)) || '';
+                if (name) set.add(String(name).trim());
+            });
+        });
+        (cv.projects || []).forEach(g => { if (g && g.title) set.add(String(g.title).trim()); });
         (window.PROJECTS_DATA || []).forEach(p => {
             if (p.company) set.add(String(p.company).trim());
         });
-        const cv = window.CV_DATA || {};
-        (cv.experience || []).forEach(e => { if (e.org)   set.add(String(e.org).trim()); });
-        (cv.projects   || []).forEach(g => { if (g.title) set.add(String(g.title).trim()); });
         return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b));
     }
 
@@ -106,7 +132,7 @@
             subtitle: 'Add a new entry to PROJECTS_DATA',
             fields: [
                 { key: 'name',                label: 'Name',                       type: 'text',     value: draft.name },
-                { key: 'company',             label: 'Company',                    type: 'select',   value: draft.company, options: companies, allowCustom: true, customPlaceholder: 'Or type a new company…' },
+                { key: 'company',             label: 'Company',                    type: 'select',   value: draft.company, options: companies },
                 { key: 'date',                label: 'Date',                       type: 'text',     value: draft.date,   placeholder: 'YYYY-MM-DD or freeform' },
                 { key: 'status',              label: 'Status',                     type: 'text',     value: draft.status, placeholder: 'Published / Development / ...' },
                 { key: 'image',               label: 'Image (path or URL)',        type: 'text',     value: draft.image,  full: true },
