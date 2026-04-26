@@ -38,6 +38,12 @@
     function projectSlug(name) {
         return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     }
+    function folderSlug(company, name) {
+        const c = projectSlug(company);
+        const n = projectSlug(name);
+        if (c && n) return `${c}_${n}`;
+        return c || n;
+    }
 
     /* ---------- open project editor for an entry ---------- */
     function editProject(entry) {
@@ -47,7 +53,7 @@
         if (entry.company && !companies.includes(entry.company)) {
             companies.unshift(entry.company);
         }
-        const slug = projectSlug(entry.name);
+        const slug = folderSlug(entry.company, entry.name);
         const heroDir   = slug ? `assets/images/projects/${slug}` : 'assets/images/projects';
         const mediaDir  = heroDir;
         DE.openModal({

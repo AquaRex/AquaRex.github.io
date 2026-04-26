@@ -217,7 +217,8 @@
 
         document.title = `${project.name} — ${group.company} — Thomas Hetland`;
 
-        loadMedia(slugify(project.name));
+        const folderName = [slugify(group.company), slugify(project.name)].filter(Boolean).join('_');
+        loadMedia(folderName);
     }
 
     function loadMedia(projectSlug) {
