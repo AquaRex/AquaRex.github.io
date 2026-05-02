@@ -175,6 +175,10 @@ class DevHandler(SimpleHTTPRequestHandler):
             return self._handle_save_cv()
         if self.path == "/__upload-image":
             return self._handle_upload_image()
+        if self.path == "/__delete-image":
+            return self._handle_delete_image()
+        if self.path == "/__save-gallery":
+            return self._handle_save_gallery()
         self._send_json(404, {"ok": False, "error": "not found"})
 
     def _read_loopback_json(self) -> dict | None:
@@ -303,6 +307,112 @@ class DevHandler(SimpleHTTPRequestHandler):
             self._send_json(400, {"ok": False, "error": str(exc)})
             return
         self._send_json(200, {"ok": True, "path": web_path})
+
+    def _resolve_allowed_dir(self, target_dir: str) -> Path:
+        """Validate target_dir against allowlist and return resolved Path."""
+        target_dir = target_dir.strip().lstrip("/")
+        if not target_dir:
+            raise ValueError("targetDir required")
+        if ".." in target_dir.split("/"):
+            raise ValueError("targetDir may not contain ..")
+        if not any(target_dir.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+            raise ValueError(
+                "targetDir must start with one of: "
+                + ", ".join(UPLOAD_ALLOWED_PREFIXES)
+            )
+        folder = (ROOT / target_dir).resolve()
+        if ROOT not in folder.parents and folder != ROOT:
+            raise ValueError("targetDir escapes workspace")
+        return folder
+
+    def _safe_image_name(self, name: str) -> str:
+        """Validate a filename refers to a single image file in a folder.
+
+        Used for delete/gallery-save where the name must match a file
+        that already exists on disk — so we MUST preserve the literal
+        name (spaces, casing, etc.) rather than rewriting it.
+        """
+        clean = str(name or "").strip()
+        if not clean or "/" in clean or "\\" in clean or clean in (".", ".."):
+            raise ValueError(f"invalid filename: {name!r}")
+        if "\x00" in clean:
+            raise ValueError(f"invalid filename: {name!r}")
+        ext = Path(clean).suffix.lower()
+        if ext not in IMAGE_EXTENSIONS:
+            raise ValueError(f"extension {ext} not allowed")
+        return clean
+
+    def _handle_delete_image(self):
+        data = self._read_loopback_json()
+        if data is None:
+            return
+        try:
+            folder = self._resolve_allowed_dir(str(data.get("targetDir") or ""))
+            name   = self._safe_image_name(str(data.get("filename") or ""))
+            target = folder / name
+            if not target.is_file():
+                raise ValueError("file not found")
+            # Defence in depth — make sure the resolved path is inside folder.
+            if folder not in target.resolve().parents:
+                raise ValueError("path escapes target dir")
+            target.unlink()
+            # Drop entry from gallery.json if present.
+            gallery_path = folder / "gallery.json"
+            if gallery_path.is_file():
+                try:
+                    items = json.loads(gallery_path.read_text(encoding="utf-8"))
+                    if isinstance(items, list):
+                        items = [
+                            it for it in items
+                            if not (isinstance(it, dict) and it.get("name") == name)
+                        ]
+                        gallery_path.write_text(
+                            json.dumps(items, indent=2, ensure_ascii=False) + "\n",
+                            encoding="utf-8",
+                        )
+                except (OSError, ValueError):
+                    pass
+        except Exception as exc:  # noqa: BLE001
+            self._send_json(400, {"ok": False, "error": str(exc)})
+            return
+        self._send_json(200, {"ok": True})
+
+    def _handle_save_gallery(self):
+        data = self._read_loopback_json()
+        if data is None:
+            return
+        try:
+            folder = self._resolve_allowed_dir(str(data.get("targetDir") or ""))
+            items_in = data.get("items")
+            if not isinstance(items_in, list):
+                raise ValueError("items must be a list")
+            existing = {
+                p.name for p in folder.iterdir()
+                if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS
+            }
+            seen: set[str] = set()
+            cleaned: list[dict] = []
+            for it in items_in:
+                if not isinstance(it, dict):
+                    raise ValueError("each item must be an object")
+                name = self._safe_image_name(str(it.get("name") or ""))
+                if name not in existing:
+                    raise ValueError(f"unknown file: {name}")
+                if name in seen:
+                    raise ValueError(f"duplicate file: {name}")
+                seen.add(name)
+                caption = str(it.get("caption") or "")
+                if len(caption) > 500:
+                    raise ValueError("caption too long")
+                cleaned.append({"name": name, "caption": caption})
+            (folder / "gallery.json").write_text(
+                json.dumps(cleaned, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except Exception as exc:  # noqa: BLE001
+            self._send_json(400, {"ok": False, "error": str(exc)})
+            return
+        self._send_json(200, {"ok": True, "count": len(cleaned)})
 
     def end_headers(self):
         # Disable caching so edits show up on reload immediately.

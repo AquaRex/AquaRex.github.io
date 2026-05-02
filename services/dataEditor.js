@@ -523,18 +523,30 @@
         .de-gallery-drop.is-dragover { border-color: var(--de-accent); background: #fff8e6; }
         .de-gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
         }
         .de-gallery-tile {
             position: relative;
             border: 2px solid var(--de-border);
             background: var(--de-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            cursor: grab;
+            user-select: none;
+            transition: opacity 0.15s, border-color 0.15s, transform 0.15s;
+        }
+        .de-gallery-tile.is-dragging { opacity: 0.4; cursor: grabbing; }
+        .de-gallery-tile.is-drop-target { border-color: var(--de-accent); transform: translateY(-2px); }
+        .de-gallery-tile-img {
+            position: relative;
             aspect-ratio: 1 / 1;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            background: #000;
         }
         .de-gallery-tile img {
             max-width: 100%;
@@ -542,20 +554,73 @@
             object-fit: cover;
             width: 100%;
             height: 100%;
+            pointer-events: none;
         }
         .de-gallery-tile-name {
-            position: absolute;
-            left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.55);
-            color: #fff;
+            display: block;
             font-size: 0.55rem;
             font-weight: 700;
-            letter-spacing: 1px;
-            padding: 3px 4px;
-            text-align: center;
+            letter-spacing: 0.5px;
+            padding: 4px 6px;
+            color: var(--de-muted);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            border-top: 1px solid var(--de-border);
+        }
+        .de-gallery-tile-caption {
+            width: 100%;
+            border: none;
+            border-top: 1px solid var(--de-border);
+            padding: 6px 8px;
+            font-size: 0.7rem;
+            font-family: inherit;
+            background: transparent;
+            color: inherit;
+            outline: none;
+            cursor: text;
+        }
+        .de-gallery-tile-caption:focus { background: #fff8e6; }
+        .de-gallery-del {
+            position: absolute;
+            top: 4px; right: 4px;
+            width: 22px; height: 22px;
+            border: none;
+            background: rgba(0,0,0,0.65);
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: background 0.15s;
+        }
+        .de-gallery-del:hover { background: #c0392b; }
+        .de-gallery-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 8px;
+            flex-wrap: wrap;
+        }
+        .de-gallery-save {
+            border: 2px solid var(--de-border);
+            background: var(--de-accent, #f6c244);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+        .de-gallery-save[disabled] { opacity: 0.4; cursor: not-allowed; }
+        .de-gallery-hint {
+            font-size: 0.65rem;
+            color: var(--de-muted);
         }
     `;
     let stylesInjected = false;
@@ -932,22 +997,175 @@
             status.classList.toggle('is-error', !!isError);
         };
 
+        // In-memory model: [{ name, caption }] in display order.
+        let items = [];
+        let dirty = false;
+
+        const dirBase = () => '/' + targetDir.replace(/^\/+/, '').replace(/\/$/, '');
+        const urlFor  = (name) => `${dirBase()}/${name}`;
+
+        function markDirty(d) {
+            dirty = d;
+        }
+
+        function renderTiles() {
+            grid.innerHTML = items.map((it, i) => `
+                <div class="de-gallery-tile" data-index="${i}" data-name="${escapeAttr(it.name)}">
+                    <button type="button" class="de-gallery-del" data-role="del" title="Remove">&times;</button>
+                    <div class="de-gallery-tile-img" draggable="true" data-role="drag" title="Drag to reorder">
+                        <img alt="" src="${escapeAttr(urlFor(it.name))}" draggable="false">
+                    </div>
+                    <span class="de-gallery-tile-name" title="${escapeAttr(it.name)}">${escapeHtml(it.name)}</span>
+                    <input class="de-gallery-tile-caption"
+                           data-role="caption"
+                           type="text"
+                           placeholder="Caption (shown on click)"
+                           value="${escapeAttr(it.caption || '')}">
+                </div>
+            `).join('');
+            wireTiles();
+        }
+
+        function wireTiles() {
+            grid.querySelectorAll('.de-gallery-tile').forEach(tile => {
+                const idx = parseInt(tile.dataset.index, 10);
+
+                tile.querySelector('[data-role="del"]').addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const name = tile.dataset.name;
+                    if (!confirm(`Remove "${name}"?`)) return;
+                    deleteImage(name);
+                });
+
+                const cap = tile.querySelector('[data-role="caption"]');
+                cap.addEventListener('input', () => {
+                    items[idx].caption = cap.value;
+                    markDirty(true);
+                });
+
+                tile.addEventListener('dragstart', (e) => {
+                    if (!e.target.closest('[data-role="drag"]')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    tile.classList.add('is-dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', String(idx));
+                });
+                tile.addEventListener('dragend', () => tile.classList.remove('is-dragging'));
+                tile.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    tile.classList.add('is-drop-target');
+                });
+                tile.addEventListener('dragleave', () => tile.classList.remove('is-drop-target'));
+                tile.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    tile.classList.remove('is-drop-target');
+                    const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                    const to   = idx;
+                    if (Number.isNaN(from) || from === to) return;
+                    const moved = items.splice(from, 1)[0];
+                    items.splice(to, 0, moved);
+                    markDirty(true);
+                    renderTiles();
+                });
+            });
+        }
+
+        async function deleteImage(name) {
+            setStatus(`Deleting ${name}…`);
+            try {
+                const res = await fetch('/__delete-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetDir, filename: name }),
+                });
+                const j = await res.json().catch(() => ({}));
+                if (!res.ok || !j.ok) throw new Error((j && j.error) || `HTTP ${res.status}`);
+                items = items.filter(it => it.name !== name);
+                renderTiles();
+                markDirty(false);
+                setStatus(`Removed ${name}.`);
+            } catch (err) {
+                setStatus(err && err.message ? err.message : String(err), true);
+            }
+        }
+
+        async function saveOrder() {
+            // Pull live captions out of the DOM so we never send stale model data.
+            const liveItems = Array.from(grid.querySelectorAll('.de-gallery-tile')).map(tile => {
+                const name = tile.dataset.name;
+                const capEl = tile.querySelector('[data-role="caption"]');
+                return { name, caption: capEl ? capEl.value : '' };
+            });
+            // Sync back into the in-memory model so subsequent edits start from truth.
+            items = liveItems.map(it => ({ ...it }));
+            if (!liveItems.length) { markDirty(false); return; }
+            setStatus('Saving order & captions…');
+            const res = await fetch('/__save-gallery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetDir, items: liveItems }),
+            });
+            const j = await res.json().catch(() => ({}));
+            if (!res.ok || !j.ok) {
+                const msg = (j && j.error) || `HTTP ${res.status}`;
+                setStatus('Gallery save failed: ' + msg, true);
+                throw new Error('gallery save: ' + msg);
+            }
+            markDirty(false);
+            setStatus('Gallery saved.');
+        }
+
+        // Expose for modal's main Save flow to flush before reloading.
+        root._saveGallery = saveOrder;
+        root._isGalleryDirty = () => dirty;
+
+        // Inject hint row (once). Captions/order persist via the modal's main Save.
+        if (!root.querySelector('.de-gallery-actions')) {
+            const bar = document.createElement('div');
+            bar.className = 'de-gallery-actions';
+            bar.innerHTML = `<span class="de-gallery-hint">Drag tiles to reorder · type captions inline · click × to remove · saved with the project</span>`;
+            root.appendChild(bar);
+        }
+
         const refresh = async () => {
+            items = [];
             grid.innerHTML = '';
             if (!targetDir) return;
+            const base = dirBase();
             try {
-                const res = await fetch('/' + targetDir.replace(/^\/+/, '') + '/manifest.json', { cache: 'no-store' });
-                if (!res.ok) return;
-                const list = await res.json();
-                if (!Array.isArray(list)) return;
-                list.forEach(name => {
-                    const url = '/' + targetDir.replace(/^\/+/, '').replace(/\/$/, '') + '/' + name;
-                    const tile = document.createElement('div');
-                    tile.className = 'de-gallery-tile';
-                    tile.innerHTML = `<img alt="" src="${escapeAttr(url)}"><span class="de-gallery-tile-name">${escapeHtml(name)}</span>`;
-                    grid.appendChild(tile);
-                });
-            } catch (_) {}
+                // Prefer gallery.json (order + captions). Fall back to manifest.json.
+                let res = await fetch(`${base}/gallery.json`, { cache: 'no-store' });
+                if (res.ok) {
+                    const list = await res.json();
+                    if (Array.isArray(list)) {
+                        items = list
+                            .filter(it => it && typeof it.name === 'string' && it.name)
+                            .map(it => ({ name: it.name, caption: String(it.caption || '') }));
+                    }
+                }
+                // Always cross-check against manifest.json so newly-uploaded files
+                // (not yet in gallery.json) still show up.
+                res = await fetch(`${base}/manifest.json`, { cache: 'no-store' });
+                if (res.ok) {
+                    const all = await res.json();
+                    if (Array.isArray(all)) {
+                        const known = new Set(items.map(it => it.name));
+                        all.forEach(name => {
+                            if (typeof name === 'string' && name && !known.has(name)) {
+                                items.push({ name, caption: '' });
+                            }
+                        });
+                        // Remove any gallery entries whose file no longer exists.
+                        const onDisk = new Set(all);
+                        items = items.filter(it => onDisk.has(it.name));
+                    }
+                }
+            } catch (_) { /* leave empty */ }
+            renderTiles();
+            markDirty(false);
         };
 
         const fileInput = document.createElement('input');
@@ -1300,6 +1518,14 @@
             });
 
             try {
+                // Flush any gallery edits (captions / order) first. Always
+                // run — the dirty flag is best-effort and easy to miss.
+                const galleryRoots = overlay.querySelectorAll('.de-gallery');
+                for (const gr of galleryRoots) {
+                    if (typeof gr._saveGallery === 'function') {
+                        await gr._saveGallery();
+                    }
+                }
                 await onSave(values);
                 statusEl.classList.add('is-ok');
                 if (reloadOnSave) {

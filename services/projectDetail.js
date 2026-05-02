@@ -227,32 +227,48 @@
         if (!section || !grid || !projectSlug) return;
 
         const folder = `/assets/images/projects/${projectSlug}/`;
-        const url    = `${folder}manifest.json`;
 
-        fetch(url, { cache: 'no-store' })
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
-                const files = Array.isArray(data) ? data
-                            : (data && Array.isArray(data.images)) ? data.images
-                            : [];
-                const sorted = files
-                    .map(f => String(f || '').trim())
-                    .filter(Boolean)
-                    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-                if (!sorted.length) return;
-                grid.innerHTML = sorted.map((name, i) => {
-                    const src = folder + name;
-                    return `<a class="pd-media-item" href="${esc(src)}" data-index="${i}">
-                        <img src="${esc(src)}" alt="${esc(name)}" loading="lazy">
-                    </a>`;
-                }).join('');
-                section.hidden = false;
-                installLightbox(grid, sorted.map(n => folder + n));
-            })
-            .catch(() => { /* no media — leave hidden */ });
+        // Load gallery.json (order + captions) in parallel with manifest.json
+        // (raw file list). gallery.json wins for ordering and provides
+        // captions; manifest.json fills in any files not yet in gallery.json.
+        Promise.all([
+            fetch(`${folder}gallery.json`,  { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`${folder}manifest.json`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]).then(([gallery, manifest]) => {
+            const onDisk = new Set(
+                Array.isArray(manifest)
+                    ? manifest.filter(n => typeof n === 'string')
+                    : []
+            );
+            let items = [];
+            if (Array.isArray(gallery)) {
+                items = gallery
+                    .filter(it => it && typeof it.name === 'string' && (onDisk.size === 0 || onDisk.has(it.name)))
+                    .map(it => ({ name: it.name, caption: String(it.caption || '') }));
+            }
+            // Append any on-disk files not already represented (no caption).
+            const known = new Set(items.map(it => it.name));
+            if (onDisk.size) {
+                [...onDisk]
+                    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+                    .forEach(name => {
+                        if (!known.has(name)) items.push({ name, caption: '' });
+                    });
+            }
+            if (!items.length) return;
+
+            grid.innerHTML = items.map((it, i) => {
+                const src = folder + it.name;
+                return `<a class="pd-media-item" href="${esc(src)}" data-index="${i}">
+                    <img src="${esc(src)}" alt="${esc(it.caption || it.name)}" loading="lazy">
+                </a>`;
+            }).join('');
+            section.hidden = false;
+            installLightbox(grid, items.map(it => ({ src: folder + it.name, caption: it.caption })));
+        });
     }
 
-    function installLightbox(grid, sources) {
+    function installLightbox(grid, slides) {
         let overlay = document.getElementById('pdLightbox');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -263,21 +279,27 @@
                 <button class="pd-lightbox-btn pd-lightbox-prev" type="button" aria-label="Previous">&#8592;</button>
                 <button class="pd-lightbox-btn pd-lightbox-next" type="button" aria-label="Next">&#8594;</button>
                 <img class="pd-lightbox-img" alt="">
+                <div class="pd-lightbox-caption"></div>
                 <div class="pd-lightbox-counter"></div>`;
             document.body.appendChild(overlay);
         }
         const imgEl     = overlay.querySelector('.pd-lightbox-img');
         const counterEl = overlay.querySelector('.pd-lightbox-counter');
+        const captionEl = overlay.querySelector('.pd-lightbox-caption');
         const closeBtn  = overlay.querySelector('.pd-lightbox-close');
         const prevBtn   = overlay.querySelector('.pd-lightbox-prev');
         const nextBtn   = overlay.querySelector('.pd-lightbox-next');
 
         let index = 0;
         function show(i) {
-            if (!sources.length) return;
-            index = ((i % sources.length) + sources.length) % sources.length;
-            imgEl.src = sources[index];
-            counterEl.textContent = `${index + 1} / ${sources.length}`;
+            if (!slides.length) return;
+            index = ((i % slides.length) + slides.length) % slides.length;
+            const s = slides[index];
+            imgEl.src = s.src;
+            counterEl.textContent = `${index + 1} / ${slides.length}`;
+            const cap = (s.caption || '').trim();
+            captionEl.textContent = cap;
+            captionEl.style.display = cap ? '' : 'none';
         }
         function open(i) {
             show(i);
