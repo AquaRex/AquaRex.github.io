@@ -979,6 +979,13 @@
         drop.addEventListener('drop', (e) => {
             e.preventDefault(); e.stopPropagation();
             drop.classList.remove('is-dragover');
+            // Internal drop from a gallery tile → set path directly, skip upload.
+            const internal = e.dataTransfer && e.dataTransfer.getData('application/x-gallery-path');
+            if (internal) {
+                setPath(internal);
+                setStatus('Hero set · ' + internal);
+                return;
+            }
             const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
             if (f) handleFile(f);
         });
@@ -1049,8 +1056,9 @@
                         return;
                     }
                     tile.classList.add('is-dragging');
-                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.effectAllowed = 'copyMove';
                     e.dataTransfer.setData('text/plain', String(idx));
+                    e.dataTransfer.setData('application/x-gallery-path', urlFor(items[idx].name));
                 });
                 tile.addEventListener('dragend', () => tile.classList.remove('is-dragging'));
                 tile.addEventListener('dragover', (e) => {

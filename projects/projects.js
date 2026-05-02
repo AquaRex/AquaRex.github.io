@@ -23,7 +23,7 @@ window.PROJECTS_DATA = [
         "name": "Crane Simulator",
         "summary": "A complex and highly realistic internal overhead crane simulator with a custom grayscale-shaded environment so objective objects and the crane itself pop out.",
         "popupDescription": "A complex and highly realistic overhead crane simulator with a custom environment shaded in grayscale so that objective objects and the crane itself pops out. Featuring easily customizable courses and loads. The crane can be easily modified and have many customizable parameters, featuring complex crane features for realistic training scenarios. \nI also designed, modelled and textured a custom \"Nagelld\" crane hoist for better visual quality and detail.",
-        "image": "/assets/images/projects/nagelld_cranesimulator/customHoist04.png",
+        "image": "/assets/images/projects/nagelld_cranesimulator/customHoist05.png",
         "tags": [
             "Unity",
             "C#",
