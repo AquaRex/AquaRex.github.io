@@ -28,7 +28,9 @@ window.PROJECTS_DATA = [
             "Unity",
             "C#",
             "VR / XR",
-            "Mobile"
+            "Mobile",
+            "Blender",
+            "Substance Painter"
         ]
     },
     {
