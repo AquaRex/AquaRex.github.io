@@ -106,10 +106,11 @@ window.PROJECTS_DATA = [
         "popupDescription": "Crane Simulator for overhead crane and tower-crane providing various challenges and courses to test operators skill. Published to Meta AppStore. Running directly on mobile VR hardware.",
         "image": "/assets/images/projects/visualengineering_vrcranesimulator/SCR-20260503-tfxa.jpeg",
         "tags": [
-            "Unity",
-            "C#",
             "VR / XR",
-            "Mobile"
+            "Mobile",
+            "Unreal Engine",
+            "Blueprint",
+            "Engine Tools"
         ]
     },
     {
@@ -122,7 +123,8 @@ window.PROJECTS_DATA = [
             "Unreal Engine",
             "Blueprint",
             "VR / XR",
-            "Networking"
+            "Networking",
+            "Engine Tools"
         ],
         "summary": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions.",
         "popupDescription": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions."
