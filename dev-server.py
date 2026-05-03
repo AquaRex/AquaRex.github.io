@@ -125,6 +125,37 @@ def serialize_cv(cv: dict) -> str:
     return "window.CV_DATA = " + json.dumps(cv, indent=4, ensure_ascii=False) + ";\n"
 
 
+def _project_page_html(company: str, name: str) -> str:
+    """Per-project detail page — matches the existing pages exactly."""
+    title   = json.dumps(name, ensure_ascii=False)
+    company = json.dumps(company, ensure_ascii=False)
+    return (
+        '<!DOCTYPE html>\n'
+        '<html lang="en">\n'
+        '<head>\n'
+        '    <meta charset="UTF-8">\n'
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+        f'    <title>{json.loads(title)} — Thomas Hetland</title>\n'
+        '    <link rel="stylesheet" href="/services/projectDetail.css">\n'
+        '    <link rel="stylesheet" href="/services/cvLayout.css">\n'
+        '    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\n'
+        '</head>\n'
+        '<body>\n'
+        '    <div id="pdRoot"></div>\n'
+        '    <script>\n'
+        f'        window.PROJECT_REF = {{ company: {company}, name: {title} }};\n'
+        '    </script>\n'
+        '    <script src="/cv/cv.js"></script>\n'
+        '    <script src="/projects/projects.js"></script>\n'
+        '    <script src="/services/dataEditor.js" defer></script>\n'
+        '    <script src="/services/projectEditor.js" defer></script>\n'
+        '    <script src="/services/projectDetail.js"></script>\n'
+        '    <script src="/services/cvLayout.js"></script>\n'
+        '</body>\n'
+        '</html>\n'
+    )
+
+
 class DevHandler(SimpleHTTPRequestHandler):
     # Serve from project root regardless of cwd.
     def __init__(self, *args, **kwargs):
@@ -223,10 +254,40 @@ class DevHandler(SimpleHTTPRequestHandler):
                     raise ValueError("each project must be an object")
             text = serialize_projects(projects)
             PROJECTS_FILE.write_text(text, encoding="utf-8")
+            created = self._ensure_project_pages(projects)
         except Exception as exc:  # noqa: BLE001
             self._send_json(400, {"ok": False, "error": str(exc)})
             return
-        self._send_json(200, {"ok": True, "count": len(projects)})
+        self._send_json(200, {"ok": True, "count": len(projects), "pagesCreated": created})
+
+    def _ensure_project_pages(self, projects: list[dict]) -> list[str]:
+        """Create /projects/<company>/<name>/index.html for any missing entry.
+
+        Mirrors projectDetail.js's slugify + URL rule. Idempotent — never
+        overwrites an existing index.html.
+        """
+        def slugify(s: str) -> str:
+            return re.sub(r"[^a-z0-9]+", "", (s or "").lower())
+
+        created: list[str] = []
+        for p in projects:
+            company = p.get("company") or ""
+            name    = p.get("name") or ""
+            c_slug  = slugify(company)
+            p_slug  = slugify(name)
+            if not c_slug or not p_slug:
+                continue
+            folder = ROOT / "projects" / c_slug / p_slug
+            page   = folder / "index.html"
+            if page.exists():
+                continue
+            folder.mkdir(parents=True, exist_ok=True)
+            page.write_text(
+                _project_page_html(company, name),
+                encoding="utf-8",
+            )
+            created.append(f"projects/{c_slug}/{p_slug}/index.html")
+        return created
 
     def _handle_save_cv(self):
         data = self._read_loopback_json()

@@ -36,10 +36,9 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Boat Simulator",
-        "date": "",
         "summary": "Solo-developed boat simulator with realistic physics, multi-user crew, and modular boats for varied weather scenarios.",
         "popupDescription": "I was the solo developer behind this Boat Simulator. The boat simulator features a highly realistic and detailed physics engine simulating accurate boat physics, and realistic crane physics for lowering the boat by davit. Multiple users can walk around freely on the boat while driving and need to work and communicate together to problem-solve and exercise in various waves, wind and weather conditions. The simulator is modular allowing you to swap out boats and setup custom scenarios quickly.",
-        "image": "/assets/images/cvprojects/nagelld_boatsim.jpeg",
+        "image": "/assets/images/projects/nagelld_boatsimulator/nagelld_boatsim.jpeg",
         "tags": [
             "Unreal Engine",
             "Blueprint",
@@ -50,10 +49,9 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Fire Fighting Experiment",
-        "date": "",
         "summary": "Short internal VR experiment for extinguishing fires in low-visibility, smoke-filled environments.",
         "popupDescription": "A short, internal unfinished experiment for a VR fire-fighting experience where the user extinguishes fires and navigates various low visibility, smoke-filled environments.",
-        "image": "/assets/images/cvprojects/nagelld_firesim.jpeg",
+        "image": "/assets/images/projects/nagelld_firefightingexperiment/nagelld_firefightingexperiment.jpeg",
         "tags": [
             "Unreal Engine",
             "Blueprint",
@@ -63,10 +61,9 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Interactive Application",
-        "date": "",
         "summary": "Mobile 3D viewer for product presentations — rotate, zoom, pan and pick models apart, optimized for weak hardware.",
         "popupDescription": "Interactive viewer is a mobile application that visualizes 3d models or solutions, designed for highlighting important product details for presentations with good user-experience at the core. It allows rotating around, zooming in and panning around models and picking them apart showing interior parts of motors or other enclosed systems, or highlighting and visualizing flow direction in a pump system. Optimized for weak hardware allowing for great performance on mobile phones or tablets.",
-        "image": "/assets/images/cvprojects/nagelld_interactiveapp.jpeg",
+        "image": "/assets/images/projects/nagelld_interactiveapplication/nagelld_interactiveapp.jpeg",
         "tags": [
             "Unity",
             "C#",
@@ -78,7 +75,7 @@ window.PROJECTS_DATA = [
         "name": "Boat Simulator Quest",
         "summary": "Reworked the Boat Simulator from Unreal to Unity for mobile VR — added networking, hand-tracking, and physical control support.",
         "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.",
-        "image": "/assets/images/cvprojects/nagelld_boatsimquest.jpeg",
+        "image": "/assets/images/projects/nagelld_boatsimulatorquest/nagelld_boatsimquest.jpeg",
         "tags": [
             "Unity",
             "C#",
@@ -90,10 +87,9 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Offshore Supply Vessel Bridge",
-        "date": "",
         "summary": "Designed, modelled and textured a generic OSV bridge with baked lighting for high-quality mobile VR visuals.",
         "popupDescription": "Designed, modelled and textured the bridge of a generic offshore supply vessel. Then setup baked lighting for high quality visuals on mobile VR hardware.",
-        "image": "/assets/images/cvprojects/nagelld_vesselbridge.jpeg",
+        "image": "/assets/images/projects/nagelld_offshoresupplyvesselbridge/nagelld_offshoresupplyvesselbridge.jpeg",
         "tags": [
             "Unity",
             "VR / XR",
@@ -108,7 +104,7 @@ window.PROJECTS_DATA = [
         "name": "VR Crane Simulator",
         "summary": "Overhead and tower crane VR simulator with courses to test operator skill. Published to Meta AppStore, runs natively on mobile VR hardware.",
         "popupDescription": "Crane Simulator for overhead crane and tower-crane providing various challenges and courses to test operators skill. Published to Meta AppStore. Running directly on mobile VR hardware.",
-        "image": "/assets/images/cvprojects/ve_cranesim.jpeg",
+        "image": "/assets/images/projects/visualengineering_vrcranesimulator/SCR-20260503-tfxa.jpeg",
         "tags": [
             "Unity",
             "C#",
@@ -138,7 +134,7 @@ window.PROJECTS_DATA = [
         "name": "TINY VOTERS",
         "summary": "Ever had problems making up your mind? Tiny Voters will help you decide. Get answers at once whether it's yes, no, a number you're thinking of, or anything else.",
         "popupDescription": "Tiny Voters is an interactive decision-making web application designed to help users overcome choice paralysis and make decisions quickly and efficiently. Whether you're trying to decide between yes or no, pick a random number, or choose from a list of options, Tiny Voters provides an engaging and visually appealing solution.\n\nBuilt with Unity and deployed as a WebGL application, Tiny Voters combines the power of game engine technology with web accessibility, creating a smooth and responsive user experience across all devices and platforms.\n\nThe application features cute animated characters called \"Tiny Voters\" who cast their votes to help you make decisions. Each decision type has its own unique voting mechanism, making the process both functional and entertaining.",
-        "image": "/assets/images/cvprojects/private_tinyvoters.png",
+        "image": "/assets/images/projects/sideprojects_tinyvoters/sideprojects_tinyvoters.png",
         "tags": [
             "Unity",
             "WEB",
@@ -155,10 +151,9 @@ window.PROJECTS_DATA = [
     {
         "company": "Side-Projects",
         "name": "STAR CITIZEN TRACKER",
-        "date": "",
         "summary": "A .NET Application using HTML for frontend and a C# backend, that tracks player statistics in-game and uploads the data in real-time to an SQL database.",
         "popupDescription": "A .NET Application using HTML for frontend and a C# backend, that tracks player statistics in-game and uploads the data in real-time to an SQL database. The website provides a user-friendly, realtime analytics dashboard for players to view their performance and statistics directly from the database using secure Web Service APIs. The .NET application provides, like the website, a login interface that verifies users securely using encrypted credentials, ensuring data privacy and security.\nThe design of the .NET App and Website was designed as modern minimalism with the principle of 3 colors for the entire website, where the colors could flip to allow darkmode viewing, reveal hovered interaction states, intent and contrast.",
-        "image": "/assets/images/cvprojects/private_sctracker.png",
+        "image": "/assets/images/projects/sideprojects_starcitizentracker/sideprojects_starcitizentracker.png",
         "tags": [
             "Azure",
             "SQL",
