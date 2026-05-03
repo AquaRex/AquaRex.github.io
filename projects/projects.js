@@ -116,6 +116,21 @@ window.PROJECTS_DATA = [
             "Mobile"
         ]
     },
+    {
+        "name": "Tower-Crane Simulator",
+        "company": "Visual Engineering",
+        "date": "2021",
+        "status": "Published",
+        "image": "/assets/images/projects/visualengineering_towercranesimulator/SCR-20260503-tdau.jpeg",
+        "tags": [
+            "Unreal Engine",
+            "Blueprint",
+            "VR / XR",
+            "Networking"
+        ],
+        "summary": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions.",
+        "popupDescription": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions."
+    },
 
     /* ===== Side-Projects ===== */
     {
