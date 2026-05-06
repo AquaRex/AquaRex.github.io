@@ -38,13 +38,14 @@ window.PROJECTS_DATA = [
         "name": "Boat Simulator",
         "summary": "Solo-developed boat simulator with realistic physics, multi-user crew, and modular boats for varied weather scenarios.",
         "popupDescription": "I was the solo developer behind this Boat Simulator. The boat simulator features a highly realistic and detailed physics engine simulating accurate boat physics, and realistic crane physics for lowering the boat by davit. Multiple users can walk around freely on the boat while driving and need to work and communicate together to problem-solve and exercise in various waves, wind and weather conditions. The simulator is modular allowing you to swap out boats and setup custom scenarios quickly.",
-        "image": "/assets/images/projects/nagelld_boatsimulator/nagelld_boatsim.jpeg",
+        "image": "/assets/images/projects/nagelld_boatsimulator/hero/nagelld_boatsimulator.jpeg",
         "tags": [
             "Unreal Engine",
             "Blueprint",
             "VR / XR",
             "Networking"
-        ]
+        ],
+        "heroVideo": ""
     },
     {
         "company": "Nagelld",
@@ -114,6 +115,20 @@ window.PROJECTS_DATA = [
         "popupDescription": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. Users can be invited from the admin panel and will automatically receive an email with their access key / serial number and a download url for the appropriate launcher. The launcher is self-updating for maintanance and after logging in the user gets access to their application and can from there download, launch or update it. The launcher has a configurable offline mode that will allow the user to launch the application without internet access for a period of time, if the user was previously logged in, primarily for expo usage without reliable internet access. ",
         "showOnCv": false,
         "heroVideo": ""
+    },
+    {
+        "name": "Interactive Fishfarm",
+        "company": "Nagelld",
+        "status": "Published",
+        "image": "/assets/images/projects/nagelld_interactivefishfarm/hero/nagelld_interactivefishfarm.jpeg",
+        "heroVideo": "",
+        "tags": [
+            "Blueprint",
+            "Unreal Engine"
+        ],
+        "summary": "Short Summary",
+        "popupDescription": "Long Summary",
+        "showOnCv": false
     },
 
     /* ===== Visual Engineering ===== */
