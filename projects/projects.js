@@ -97,6 +97,21 @@ window.PROJECTS_DATA = [
             "Substance Painter"
         ]
     },
+    {
+        "name": "Software Launcher",
+        "company": "Nagelld",
+        "status": "Development",
+        "image": "/assets/images/projects/nagelld_softwarelauncher/Launcher_LoginScreen_key.png",
+        "tags": [
+            "Azure",
+            ".NET",
+            "SQL",
+            "C#"
+        ],
+        "summary": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. ",
+        "popupDescription": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. Users can be invited from the admin panel and will automatically receive an email with their access key / serial number and a download url for the appropriate launcher. The launcher is self-updating for maintanance and after logging in the user gets access to their application and can from there download, launch or update it. The launcher has a configurable offline mode that will allow the user to launch the application without internet access for a period of time, if the user was previously logged in, primarily for expo usage without reliable internet access. ",
+        "showOnCv": false
+    },
 
     /* ===== Visual Engineering ===== */
     {
