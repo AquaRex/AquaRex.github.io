@@ -45,6 +45,36 @@
         return c || n;
     }
 
+    function normalizeWebPath(path) {
+        const raw = String(path || '').trim();
+        if (!raw) return '';
+        return raw.startsWith('/') ? raw : ('/' + raw.replace(/^\/+/, ''));
+    }
+
+    function dirWebPath(dir) {
+        return '/' + String(dir || '').replace(/^\/+/, '').replace(/\/$/, '');
+    }
+
+    function isPathInDir(path, dir) {
+        const normalized = normalizeWebPath(path);
+        const base = dirWebPath(dir);
+        return !!normalized && (normalized === base || normalized.startsWith(base + '/'));
+    }
+
+    async function migrateHeroAsset(path, sourceDir, targetDir, filenameTemplate) {
+        const normalized = normalizeWebPath(path);
+        if (!normalized || !isPathInDir(normalized, sourceDir) || isPathInDir(normalized, targetDir)) {
+            return normalized;
+        }
+        const copiedPath = await DE.cloneMediaToTarget({ sourcePath: normalized, targetDir, filenameTemplate });
+        try {
+            await DE.deleteMediaPath(normalized);
+        } catch (_) {
+            // Keep the copied hero asset even if cleanup of the legacy shared copy fails.
+        }
+        return copiedPath;
+    }
+
     /* ---------- open project editor for an entry ---------- */
     function editProject(entry) {
         const link = entry.link || {};
@@ -54,8 +84,10 @@
             companies.unshift(entry.company);
         }
         const slug = folderSlug(entry.company, entry.name);
-        const heroDir   = slug ? `assets/images/projects/${slug}` : 'assets/images/projects';
-        const mediaDir  = heroDir;
+        const heroDir   = slug ? `assets/images/projects/${slug}/hero` : 'assets/images/projects/hero';
+        const videoDir  = slug ? `assets/videos/projects/${slug}/hero` : 'assets/videos/projects/hero';
+        const mediaDir  = slug ? `assets/images/projects/${slug}` : 'assets/images/projects';
+        const mediaVideoDir = slug ? `assets/videos/projects/${slug}` : 'assets/videos/projects';
         DE.openModal({
             title:    'Edit Project',
             subtitle: `${entry.company || ''} · ${entry.name || ''}`,
@@ -65,7 +97,8 @@
                 { key: 'date',                label: 'Date',                       type: 'text',     value: entry.date,        placeholder: 'YYYY-MM-DD or freeform' },
                 { key: 'status',              label: 'Status',                     type: 'text',     value: entry.status,      placeholder: 'Published / Development / ...' },
                 { key: 'image',               label: 'Hero Image',                 type: 'image',    value: entry.image,       full: true, targetDir: heroDir, filename: `${slug || 'hero'}.{ext}` },
-                { key: '__media',             label: 'Media gallery',              type: 'image-gallery', full: true, targetDir: mediaDir },
+                { key: 'heroVideo',           label: 'Hero Video',                 type: 'video',    value: entry.heroVideo,   full: true, targetDir: videoDir, filename: `${slug || 'hero'}.{ext}` },
+                { key: '__media',             label: 'Media gallery',              type: 'image-gallery', full: true, targetDir: mediaDir, videoTargetDir: mediaVideoDir, excludePaths: [entry.image, entry.heroVideo].filter(Boolean) },
                 { key: 'tags',                label: 'Tags',                       type: 'tags',     value: entry.tags || [],  full: true, suggestions: knownTags() },
                 { key: 'summary',             label: 'Summary (card description)', type: 'textarea', value: entry.summary,     full: true, rows: 3 },
                 { key: 'popupDescription',    label: 'Popup / Detail Description', type: 'textarea', value: entry.popupDescription, full: true, rows: 6 },
@@ -77,6 +110,8 @@
             onSave: async (values) => {
                 // Strip transient gallery key — it's not part of the data.
                 delete values.__media;
+                values.image = await migrateHeroAsset(values.image, mediaDir, heroDir, `${slug || 'hero'}.{ext}`);
+                values.heroVideo = await migrateHeroAsset(values.heroVideo, mediaVideoDir, videoDir, `${slug || 'hero'}.{ext}`);
                 Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
                 // Trim empty optional fields
                 ['date', 'status'].forEach(k => { if (entry[k] === '') delete entry[k]; });
@@ -127,6 +162,7 @@
             date: '',
             status: 'Development',
             image: '',
+            heroVideo: '',
             tags: [],
             summary: '',
             popupDescription: '',
@@ -142,6 +178,7 @@
                 { key: 'date',                label: 'Date',                       type: 'text',     value: draft.date,   placeholder: 'YYYY-MM-DD or freeform' },
                 { key: 'status',              label: 'Status',                     type: 'text',     value: draft.status, placeholder: 'Published / Development / ...' },
                 { key: 'image',               label: 'Image (path or URL)',        type: 'text',     value: draft.image,  full: true },
+                { key: 'heroVideo',           label: 'Hero Video (path or URL)',   type: 'text',     value: draft.heroVideo, full: true },
                 { key: 'tags',                label: 'Tags',                       type: 'tags',     value: draft.tags,   full: true, suggestions: knownTags() },
                 { key: 'summary',             label: 'Summary (card description)', type: 'textarea', value: draft.summary, full: true, rows: 3 },
                 { key: 'popupDescription',    label: 'Popup / Detail Description', type: 'textarea', value: draft.popupDescription, full: true, rows: 6 },

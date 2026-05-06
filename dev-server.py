@@ -31,15 +31,19 @@ ROOT = Path(__file__).resolve().parent
 PROJECTS_FILE = ROOT / "projects" / "projects.js"
 CV_FILE = ROOT / "cv" / "cv.js"
 PROJECT_IMAGES_DIR = ROOT / "assets" / "images" / "projects"
+PROJECT_VIDEOS_DIR = ROOT / "assets" / "videos" / "projects"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov", ".m4v"}
 
 # Directories under ROOT that the upload endpoint is allowed to write into.
 UPLOAD_ALLOWED_PREFIXES = (
     "assets/images/",
+    "assets/videos/",
     "assets/logos/",
     "assets/profile/",
 )
-MAX_UPLOAD_BYTES = 30_000_000  # 30 MB
+MAX_UPLOAD_REQUEST_BYTES = 80_000_000  # JSON body cap (base64 + metadata)
+MAX_UPLOADED_FILE_BYTES = 50_000_000   # decoded file cap on disk
 
 FILE_HEADER = """\
 /* =================================================================
@@ -162,26 +166,36 @@ class DevHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def do_GET(self):  # noqa: N802 (stdlib naming)
-        # Auto-regenerate manifest.json for project image folders so
-        # dropping a new image into /assets/images/projects/<slug>/
+        # Auto-regenerate manifest.json for project media folders so
+        # dropping new files into /assets/images|videos/projects/<slug>/
         # is immediately picked up locally and committed for prod.
         path = self.path.split("?", 1)[0].split("#", 1)[0]
-        prefix = "/assets/images/projects/"
-        if path.startswith(prefix) and path.endswith("/manifest.json"):
-            slug = path[len(prefix):-len("/manifest.json")]
+        img_prefix = "/assets/images/projects/"
+        vid_prefix = "/assets/videos/projects/"
+        if path.startswith(img_prefix) and path.endswith("/manifest.json"):
+            slug = path[len(img_prefix):-len("/manifest.json")]
             if slug and "/" not in slug and ".." not in slug:
-                self._regenerate_manifest(slug)
+                self._regenerate_manifest(slug, media_type="image")
+        if path.startswith(vid_prefix) and path.endswith("/manifest.json"):
+            slug = path[len(vid_prefix):-len("/manifest.json")]
+            if slug and "/" not in slug and ".." not in slug:
+                self._regenerate_manifest(slug, media_type="video")
         return super().do_GET()
 
-    def _regenerate_manifest(self, slug: str) -> None:
-        folder = PROJECT_IMAGES_DIR / slug
+    def _regenerate_manifest(self, slug: str, media_type: str = "image") -> None:
+        if media_type == "video":
+            folder = PROJECT_VIDEOS_DIR / slug
+            allowed_exts = VIDEO_EXTENSIONS
+        else:
+            folder = PROJECT_IMAGES_DIR / slug
+            allowed_exts = IMAGE_EXTENSIONS
         if not folder.is_dir():
             return
         try:
             files = sorted(
                 p.name for p in folder.iterdir()
                 if p.is_file()
-                and p.suffix.lower() in IMAGE_EXTENSIONS
+                and p.suffix.lower() in allowed_exts
                 and not p.name.startswith(".")
             )
             (folder / "manifest.json").write_text(
@@ -204,8 +218,8 @@ class DevHandler(SimpleHTTPRequestHandler):
             return self._handle_save_projects()
         if self.path == "/__save-cv":
             return self._handle_save_cv()
-        if self.path == "/__upload-image":
-            return self._handle_upload_image()
+        if self.path in ("/__upload-image", "/__upload-file"):
+            return self._handle_upload_file()
         if self.path == "/__delete-image":
             return self._handle_delete_image()
         if self.path == "/__save-gallery":
@@ -232,7 +246,7 @@ class DevHandler(SimpleHTTPRequestHandler):
             self._send_json(403, {"ok": False, "error": "loopback only"})
             return None
         length = int(self.headers.get("Content-Length") or 0)
-        if length <= 0 or length > MAX_UPLOAD_BYTES:
+        if length <= 0 or length > MAX_UPLOAD_REQUEST_BYTES:
             self._send_json(400, {"ok": False, "error": "bad length"})
             return None
         try:
@@ -304,7 +318,7 @@ class DevHandler(SimpleHTTPRequestHandler):
             return
         self._send_json(200, {"ok": True})
 
-    def _handle_upload_image(self):
+    def _handle_upload_file(self):
         data = self._read_loopback_json_large()
         if data is None:
             return
@@ -331,7 +345,8 @@ class DevHandler(SimpleHTTPRequestHandler):
             if not dot:
                 raise ValueError("filename must include extension")
             ext = "." + ext.lower()
-            if ext not in IMAGE_EXTENSIONS:
+            allowed_exts = VIDEO_EXTENSIONS if target_dir.startswith("assets/videos/") else IMAGE_EXTENSIONS
+            if ext not in allowed_exts:
                 raise ValueError(f"extension {ext} not allowed")
             if not stem:
                 raise ValueError("filename stem required")
@@ -352,7 +367,7 @@ class DevHandler(SimpleHTTPRequestHandler):
                 raise ValueError(f"bad base64: {exc}") from exc
             if not blob:
                 raise ValueError("empty file")
-            if len(blob) > MAX_UPLOAD_BYTES:
+            if len(blob) > MAX_UPLOADED_FILE_BYTES:
                 raise ValueError("file too large")
 
             # Resolve a non-colliding filename.
@@ -386,8 +401,8 @@ class DevHandler(SimpleHTTPRequestHandler):
             raise ValueError("targetDir escapes workspace")
         return folder
 
-    def _safe_image_name(self, name: str) -> str:
-        """Validate a filename refers to a single image file in a folder.
+    def _safe_media_name(self, name: str) -> str:
+        """Validate a filename refers to a single media file in a folder.
 
         Used for delete/gallery-save where the name must match a file
         that already exists on disk — so we MUST preserve the literal
@@ -399,9 +414,28 @@ class DevHandler(SimpleHTTPRequestHandler):
         if "\x00" in clean:
             raise ValueError(f"invalid filename: {name!r}")
         ext = Path(clean).suffix.lower()
-        if ext not in IMAGE_EXTENSIONS:
+        if ext not in (IMAGE_EXTENSIONS | VIDEO_EXTENSIONS):
             raise ValueError(f"extension {ext} not allowed")
         return clean
+
+    def _validate_media_path(self, web_path: str) -> Path:
+        clean = str(web_path or "").strip()
+        if not clean.startswith("/"):
+            raise ValueError("path must be absolute web path")
+        rel = clean.lstrip("/")
+        if ".." in rel.split("/"):
+            raise ValueError("path may not contain ..")
+        if not any(rel.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+            raise ValueError("path outside allowed prefixes")
+        ext = Path(rel).suffix.lower()
+        if ext not in (IMAGE_EXTENSIONS | VIDEO_EXTENSIONS):
+            raise ValueError(f"extension {ext} not allowed")
+        target = (ROOT / rel).resolve()
+        if ROOT not in target.parents and target != ROOT:
+            raise ValueError("path escapes workspace")
+        if not target.is_file():
+            raise ValueError(f"unknown file: {clean}")
+        return target
 
     def _handle_delete_image(self):
         data = self._read_loopback_json()
@@ -409,7 +443,7 @@ class DevHandler(SimpleHTTPRequestHandler):
             return
         try:
             folder = self._resolve_allowed_dir(str(data.get("targetDir") or ""))
-            name   = self._safe_image_name(str(data.get("filename") or ""))
+            name   = self._safe_media_name(str(data.get("filename") or ""))
             target = folder / name
             if not target.is_file():
                 raise ValueError("file not found")
@@ -425,7 +459,13 @@ class DevHandler(SimpleHTTPRequestHandler):
                     if isinstance(items, list):
                         items = [
                             it for it in items
-                            if not (isinstance(it, dict) and it.get("name") == name)
+                            if not (
+                                isinstance(it, dict)
+                                and (
+                                    it.get("name") == name
+                                    or it.get("path") == ("/" + str(target.relative_to(ROOT)).replace("\\", "/"))
+                                )
+                            )
                         ]
                         gallery_path.write_text(
                             json.dumps(items, indent=2, ensure_ascii=False) + "\n",
@@ -444,28 +484,59 @@ class DevHandler(SimpleHTTPRequestHandler):
             return
         try:
             folder = self._resolve_allowed_dir(str(data.get("targetDir") or ""))
+            video_folder = None
+            video_target_dir = str(data.get("videoTargetDir") or "").strip()
+            if video_target_dir:
+                video_folder = self._resolve_allowed_dir(video_target_dir)
             items_in = data.get("items")
             if not isinstance(items_in, list):
                 raise ValueError("items must be a list")
-            existing = {
+            existing_images = {
                 p.name for p in folder.iterdir()
                 if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS
             }
+            existing_videos = set()
+            if video_folder:
+                existing_videos = {
+                    p.name for p in video_folder.iterdir()
+                    if p.is_file() and p.suffix.lower() in VIDEO_EXTENSIONS
+                }
             seen: set[str] = set()
             cleaned: list[dict] = []
             for it in items_in:
                 if not isinstance(it, dict):
                     raise ValueError("each item must be an object")
-                name = self._safe_image_name(str(it.get("name") or ""))
-                if name not in existing:
-                    raise ValueError(f"unknown file: {name}")
-                if name in seen:
-                    raise ValueError(f"duplicate file: {name}")
-                seen.add(name)
+                # New mixed-media format: explicit web path per item.
+                path = str(it.get("path") or "").strip()
+                if path:
+                    media_file = self._validate_media_path(path)
+                    key = str(media_file.relative_to(ROOT)).replace("\\", "/")
+                    if key in seen:
+                        raise ValueError(f"duplicate file: {path}")
+                    seen.add(key)
+                else:
+                    # Back-compat image-only format.
+                    name = self._safe_media_name(str(it.get("name") or ""))
+                    ext = Path(name).suffix.lower()
+                    if ext in IMAGE_EXTENSIONS:
+                        if name not in existing_images:
+                            raise ValueError(f"unknown file: {name}")
+                        media_file = folder / name
+                    elif ext in VIDEO_EXTENSIONS and video_folder:
+                        if name not in existing_videos:
+                            raise ValueError(f"unknown file: {name}")
+                        media_file = video_folder / name
+                    else:
+                        raise ValueError(f"unknown file: {name}")
+                    key = str(media_file.relative_to(ROOT)).replace("\\", "/")
+                    if key in seen:
+                        raise ValueError(f"duplicate file: {name}")
+                    seen.add(key)
+                    path = "/" + key
                 caption = str(it.get("caption") or "")
                 if len(caption) > 500:
                     raise ValueError("caption too long")
-                cleaned.append({"name": name, "caption": caption})
+                cleaned.append({"path": path, "caption": caption})
             (folder / "gallery.json").write_text(
                 json.dumps(cleaned, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",

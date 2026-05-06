@@ -500,16 +500,31 @@
             width: 220px; height: 140px; flex-shrink: 0;
             border-right: 2px solid var(--border);
             display: flex; align-items: center; justify-content: center;
+            position: relative;
             overflow: hidden;
             background: color-mix(in srgb, var(--border) 5%, transparent);
         }
-        .cv3-project-thumb img {
+        .cv3-project-thumb img,
+        .cv3-project-thumb video {
             width: 100%; height: 100%; object-fit: cover;
+            position: absolute;
+            inset: 0;
+            display: block;
+        }
+        .cv3-project-thumb video {
+            opacity: 0;
+            pointer-events: none;
+            background: #000;
+            transition: opacity 0.2s ease;
         }
         .cv3-project-thumb-ph {
             font-size: 0.58rem; letter-spacing: 2px;
             font-weight: 700; color: var(--muted);
         }
+        .cv3-project.has-hover-video:hover .cv3-project-thumb img,
+        .cv3-project.has-hover-video.is-hovered .cv3-project-thumb img { opacity: 0; }
+        .cv3-project.has-hover-video:hover .cv3-project-thumb video,
+        .cv3-project.has-hover-video.is-hovered .cv3-project-thumb video { opacity: 1; }
         .cv3-project-info {
             flex: 1; padding: var(--sp-3) var(--sp-4);
         }
@@ -1078,6 +1093,7 @@
                 const summary  = escapeHtml(p.summary || '');
                 const popupDesc = escapeHtml(p.popupDescription || p.summary || '');
                 const img      = escapeHtml(p.image || '');
+                const heroVideo = escapeHtml(p.heroVideo || '');
                 const linkLabel = escapeHtml((p.link && p.link.label) || '');
                 const linkUrl   = escapeHtml((p.link && p.link.url) || '');
                 const showOnCard = !!(p.link && p.link.showOnCard);
@@ -1090,7 +1106,7 @@
                     ? `<a class="cv3-project-link-btn" href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkLabel || 'Visit project'}</a>`
                     : '';
                 const hiddenClass = showOnCv ? '' : ' cv3-project-cv-hidden';
-                return `<div class="cv3-project${hiddenClass}"
+                return `<div class="cv3-project${hiddenClass}${heroVideo ? ' has-hover-video' : ''}"
                              data-edit-item="${basePath}"
                              data-title="${name}"
                              data-date="${date}"
@@ -1107,6 +1123,7 @@
                         ${img
                             ? `<img src="${img}" alt="${name}">`
                             : `<span class="cv3-project-thumb-ph">IMG</span>`}
+                        ${heroVideo ? `<video class="cv3-project-thumb-video" src="${heroVideo}" muted playsinline preload="metadata"></video>` : ''}
                         <span class="cv3-edit-thumb-path cv3-edit-only" data-edit-path="${basePath}.image" data-edit-type="image-src">${img || 'image path…'}</span>
                     </div>
                     <div class="cv3-project-info">
@@ -1290,10 +1307,29 @@
                     .join('');
             }
 
+            bindProjectHoverVideos();
+
             /* Notify editor (if loaded) so it can rebind controls */
             if (window.cvEditor && window.cvEditor.onRender) window.cvEditor.onRender();
         }
         window.renderCv3 = renderCv3;
+
+        function bindProjectHoverVideos() {
+            document.querySelectorAll('.cv3-project.has-hover-video').forEach(card => {
+                const video = card.querySelector('.cv3-project-thumb-video');
+                if (!video || video.dataset.hoverBound === '1') return;
+                video.dataset.hoverBound = '1';
+                const playVideo = () => video.play().catch(() => {});
+                const stopVideo = () => {
+                    video.pause();
+                    try { video.currentTime = 0; } catch (_) {}
+                };
+                card.addEventListener('mouseenter', playVideo);
+                card.addEventListener('mouseleave', stopVideo);
+                card.addEventListener('focusin', playVideo);
+                card.addEventListener('focusout', stopVideo);
+            });
+        }
 
         /* ===== POPUP ===== */
         let currentPopupEl = null;

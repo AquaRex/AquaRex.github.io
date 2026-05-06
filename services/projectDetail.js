@@ -84,10 +84,15 @@
         const description = (project.popupDescription || project.summary || '')
             .split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('');
         const image       = esc(project.image || '');
+        const heroVideo   = esc(project.heroVideo || '');
         const tags        = (project.tags || []);
         const date        = esc(project.date || '');
         const status      = esc(project.status || 'Published');
         const companyName = esc(group.company);
+
+        const heroMediaHtml = heroVideo
+            ? `<div class="pd-hero"><video class="pd-hero-video" src="${heroVideo}" ${image ? `poster="${image}"` : ''} autoplay muted loop playsinline preload="metadata"></video></div>`
+            : (image ? `<div class="pd-hero"><img src="${image}" alt="${name}"></div>` : '');
 
         const tagsHtml = tags.length
             ? `<div class="pd-tags">${tags.map(t => `<span class="pd-tag">${esc(t)}</span>`).join('')}</div>`
@@ -115,7 +120,7 @@
             <main class="cv3-main">
                 <section class="cv3-section">
                     <div class="cv3-strip">${ICONS.image}<span class="cv3-strip-num">01</span></div>
-                    ${image ? `<div class="pd-hero"><img src="${image}" alt="${name}"></div>` : ''}
+                    ${heroMediaHtml}
                     <h1 class="pd-title">${name}</h1>
                     <p class="pd-subtitle">${summary}</p>
                 </section>
@@ -216,9 +221,41 @@
             </div>`;
 
         document.title = `${project.name} — ${group.company} — Thomas Hetland`;
+        setupHeroVideo(root);
 
         const folderName = [slugify(group.company), slugify(project.name)].filter(Boolean).join('_');
         loadMedia(folderName);
+    }
+
+    function setupHeroVideo(root) {
+        const video = root.querySelector('.pd-hero-video');
+        if (!video) return;
+        const hero = video.closest('.pd-hero');
+        const poster = video.getAttribute('poster') || '';
+        video.muted = true;
+        video.defaultMuted = true;
+        video.loop = true;
+        video.removeAttribute('controls');
+
+        const fallbackToPoster = () => {
+            if (!hero || !poster) return;
+            hero.innerHTML = `<img src="${esc(poster)}" alt="">`;
+        };
+
+        const tryAutoplay = () => {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+        };
+        tryAutoplay();
+
+        const showControls = () => video.setAttribute('controls', 'controls');
+        const hideControls = () => video.removeAttribute('controls');
+
+        video.addEventListener('mouseenter', showControls);
+        video.addEventListener('mouseleave', hideControls);
+        video.addEventListener('focus', showControls);
+        video.addEventListener('blur', hideControls);
+        video.addEventListener('error', fallbackToPoster, { once: true });
     }
 
     function loadMedia(projectSlug) {
@@ -226,45 +263,116 @@
         const grid    = document.getElementById('pdMediaGrid');
         if (!section || !grid || !projectSlug) return;
 
-        const folder = `/assets/images/projects/${projectSlug}/`;
+        const ref  = window.PROJECT_REF || {};
+        const { project } = findProject(ref);
+        const excludedPaths = new Set([project && project.image, project && project.heroVideo].filter(Boolean).map(String));
+
+        const imageFolder = `/assets/images/projects/${projectSlug}/`;
+        const videoFolder = `/assets/videos/projects/${projectSlug}/`;
 
         // Load gallery.json (order + captions) in parallel with manifest.json
         // (raw file list). gallery.json wins for ordering and provides
         // captions; manifest.json fills in any files not yet in gallery.json.
         Promise.all([
-            fetch(`${folder}gallery.json`,  { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-            fetch(`${folder}manifest.json`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-        ]).then(([gallery, manifest]) => {
-            const onDisk = new Set(
-                Array.isArray(manifest)
-                    ? manifest.filter(n => typeof n === 'string')
+            fetch(`${imageFolder}gallery.json`,  { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`${imageFolder}manifest.json`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`${videoFolder}manifest.json`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]).then(([gallery, imageManifest, videoManifest]) => {
+            const imageManifestKnown = Array.isArray(imageManifest);
+            const videoManifestKnown = Array.isArray(videoManifest);
+            const imageOnDisk = new Set(
+                imageManifestKnown
+                    ? imageManifest.filter(n => typeof n === 'string')
                     : []
             );
+            const videoOnDisk = new Set(
+                videoManifestKnown
+                    ? videoManifest.filter(n => typeof n === 'string')
+                    : []
+            );
+            const kindFromName = (name) => /\.(mp4|webm|ogg|mov|m4v)$/i.test(name) ? 'video' : 'image';
+            const buildPath = (name, kind) => `${kind === 'video' ? videoFolder : imageFolder}${name}`;
             let items = [];
             if (Array.isArray(gallery)) {
                 items = gallery
-                    .filter(it => it && typeof it.name === 'string' && (onDisk.size === 0 || onDisk.has(it.name)))
-                    .map(it => ({ name: it.name, caption: String(it.caption || '') }));
+                    .map(it => {
+                        if (!it || typeof it !== 'object') return null;
+                        if (typeof it.path === 'string' && it.path) {
+                            const path = String(it.path);
+                            if (excludedPaths.has(path)) return null;
+                            const name = path.split('/').pop() || '';
+                            return {
+                                path,
+                                name,
+                                kind: kindFromName(name),
+                                caption: String(it.caption || ''),
+                            };
+                        }
+                        if (typeof it.name === 'string' && it.name) {
+                            const kind = kindFromName(it.name);
+                            const path = buildPath(it.name, kind);
+                            if (excludedPaths.has(path)) return null;
+                            return {
+                                path,
+                                name: it.name,
+                                kind,
+                                caption: String(it.caption || ''),
+                            };
+                        }
+                        return null;
+                    })
+                    .filter(Boolean);
             }
+            // Keep only files that still exist on disk for local media folders.
+            items = items.filter(it => {
+                const n = it.name || '';
+                if (!n) return false;
+                return it.kind === 'video'
+                    ? (!videoManifestKnown || videoOnDisk.has(n))
+                    : (!imageManifestKnown || imageOnDisk.has(n));
+            });
+
             // Append any on-disk files not already represented (no caption).
-            const known = new Set(items.map(it => it.name));
-            if (onDisk.size) {
-                [...onDisk]
+            const known = new Set(items.map(it => it.path));
+            if (imageOnDisk.size) {
+                [...imageOnDisk]
                     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
                     .forEach(name => {
-                        if (!known.has(name)) items.push({ name, caption: '' });
+                        const path = `${imageFolder}${name}`;
+                        if (!known.has(path) && !excludedPaths.has(path)) items.push({ path, name, kind: 'image', caption: '' });
+                    });
+            }
+            if (videoOnDisk.size) {
+                [...videoOnDisk]
+                    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+                    .forEach(name => {
+                        const path = `${videoFolder}${name}`;
+                        if (!known.has(path) && !excludedPaths.has(path)) items.push({ path, name, kind: 'video', caption: '' });
                     });
             }
             if (!items.length) return;
 
             grid.innerHTML = items.map((it, i) => {
-                const src = folder + it.name;
-                return `<a class="pd-media-item" href="${esc(src)}" data-index="${i}">
-                    <img src="${esc(src)}" alt="${esc(it.caption || it.name)}" loading="lazy">
+                const src = it.path;
+                return `<a class="pd-media-item" href="${esc(src)}" data-index="${i}" data-kind="${esc(it.kind)}">
+                    ${it.kind === 'video'
+                        ? `<video src="${esc(src)}" muted playsinline preload="metadata"></video>`
+                        : `<img src="${esc(src)}" alt="${esc(it.caption || it.name)}" loading="lazy">`}
                 </a>`;
             }).join('');
+            grid.querySelectorAll('.pd-media-item video').forEach(v => {
+                v.pause();
+                v.currentTime = 0;
+                v.addEventListener('mouseenter', () => {
+                    v.play().catch(() => {});
+                });
+                v.addEventListener('mouseleave', () => {
+                    v.pause();
+                    v.currentTime = 0;
+                });
+            });
             section.hidden = false;
-            installLightbox(grid, items.map(it => ({ src: folder + it.name, caption: it.caption })));
+            installLightbox(grid, items.map(it => ({ src: it.path, kind: it.kind, caption: it.caption })));
         });
     }
 
@@ -279,11 +387,13 @@
                 <button class="pd-lightbox-btn pd-lightbox-prev" type="button" aria-label="Previous">&#8592;</button>
                 <button class="pd-lightbox-btn pd-lightbox-next" type="button" aria-label="Next">&#8594;</button>
                 <img class="pd-lightbox-img" alt="">
+                <video class="pd-lightbox-video" controls playsinline preload="metadata"></video>
                 <div class="pd-lightbox-caption"></div>
                 <div class="pd-lightbox-counter"></div>`;
             document.body.appendChild(overlay);
         }
         const imgEl     = overlay.querySelector('.pd-lightbox-img');
+        const videoEl   = overlay.querySelector('.pd-lightbox-video');
         const counterEl = overlay.querySelector('.pd-lightbox-counter');
         const captionEl = overlay.querySelector('.pd-lightbox-caption');
         const closeBtn  = overlay.querySelector('.pd-lightbox-close');
@@ -295,7 +405,19 @@
             if (!slides.length) return;
             index = ((i % slides.length) + slides.length) % slides.length;
             const s = slides[index];
-            imgEl.src = s.src;
+            if (s.kind === 'video') {
+                imgEl.style.display = 'none';
+                imgEl.removeAttribute('src');
+                videoEl.style.display = 'block';
+                videoEl.src = s.src;
+                videoEl.play().catch(() => {});
+            } else {
+                videoEl.style.display = 'none';
+                videoEl.pause();
+                videoEl.removeAttribute('src');
+                imgEl.style.display = '';
+                imgEl.src = s.src;
+            }
             counterEl.textContent = `${index + 1} / ${slides.length}`;
             const cap = (s.caption || '').trim();
             captionEl.textContent = cap;
@@ -309,6 +431,8 @@
         function close() {
             overlay.classList.remove('is-open');
             imgEl.removeAttribute('src');
+            videoEl.pause();
+            videoEl.removeAttribute('src');
             document.removeEventListener('keydown', onKey);
         }
         function onKey(e) {

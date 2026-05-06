@@ -217,20 +217,37 @@
             align-self: stretch;
             border-right: 2px solid var(--border);
             display: flex; align-items: center; justify-content: center;
+            position: relative;
             overflow: hidden;
             background: color-mix(in srgb, var(--border) 5%, transparent);
         }
-        .cv3-project-thumb img {
+        .cv3-project-thumb img,
+        .cv3-project-thumb video {
             width: 100%; height: 100%; object-fit: cover;
+            position: absolute;
+            inset: 0;
+            display: block;
             transition: transform 0.4s ease;
         }
-        .cv3-project:hover .cv3-project-thumb img,
-        .cv3-project.is-hovered .cv3-project-thumb img {
-            transform: scale(1.04);
+        .cv3-project-thumb video {
+            opacity: 0;
+            pointer-events: none;
+            background: #000;
+            transition: transform 0.4s ease, opacity 0.2s ease;
         }
         .cv3-project:hover .cv3-project-thumb img,
-        .cv3-project.is-hovered .cv3-project-thumb img {
+        .cv3-project.is-hovered .cv3-project-thumb img,
+        .cv3-project:hover .cv3-project-thumb video,
+        .cv3-project.is-hovered .cv3-project-thumb video {
             transform: scale(1.04);
+        }
+        .cv3-project.has-hover-video:hover .cv3-project-thumb img,
+        .cv3-project.has-hover-video.is-hovered .cv3-project-thumb img {
+            opacity: 0;
+        }
+        .cv3-project.has-hover-video:hover .cv3-project-thumb video,
+        .cv3-project.has-hover-video.is-hovered .cv3-project-thumb video {
+            opacity: 1;
         }
         .cv3-project-thumb-ph {
             font-size: 0.58rem; letter-spacing: 2px;
@@ -781,6 +798,7 @@
                         const date    = esc(formatDate(p.date));
                         const summary = esc(p.summary || '');
                         const img     = esc(p.image || '');
+                        const heroVideo = esc(p.heroVideo || '');
                         const linkUrl = esc(projectUrl(p));
                         const status  = esc(projectStatus(p));
                         const company = esc(p._company || '');
@@ -789,7 +807,7 @@
                             `<span class="cv3-project-tag${activeTags.has((t||'').toLowerCase()) ? ' is-active-filter' : ''}" data-tag="${esc(t)}">${esc(t)}</span>`
                         ).join('')}</div>`;
                         const isExternal = linkUrl && /^https?:\/\//.test(linkUrl);
-                        return `<a class="cv3-project" href="${linkUrl || '#'}"${isExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}
+                        return `<a class="cv3-project${heroVideo ? ' has-hover-video' : ''}" href="${linkUrl || '#'}"${isExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}
                                     data-tags='${esc(JSON.stringify(tags))}'
                                     data-status="${status}"
                                     data-company="${company}"
@@ -797,6 +815,7 @@
                                     data-search="${esc((name + ' ' + summary + ' ' + tags.join(' ')).toLowerCase())}">
                             <div class="cv3-project-thumb">
                                 ${img ? `<img src="${img}" alt="${name}">` : '<span class="cv3-project-thumb-ph">IMG</span>'}
+                            ${heroVideo ? `<video class="cv3-project-thumb-video" src="${heroVideo}" muted playsinline preload="metadata"></video>` : ''}
                             </div>
                             <div class="cv3-project-info">
                                 <h4 class="cv3-project-name">${name}</h4>
@@ -901,6 +920,23 @@
                 if (set.has(k)) set.delete(k); else set.add(k);
             }
 
+            function bindProjectHoverVideos() {
+                document.querySelectorAll('.cv3-project.has-hover-video').forEach(card => {
+                    const video = card.querySelector('.cv3-project-thumb-video');
+                    if (!video || video.dataset.hoverBound === '1') return;
+                    video.dataset.hoverBound = '1';
+                    const playVideo = () => video.play().catch(() => {});
+                    const stopVideo = () => {
+                        video.pause();
+                        try { video.currentTime = 0; } catch (_) {}
+                    };
+                    card.addEventListener('mouseenter', playVideo);
+                    card.addEventListener('mouseleave', stopVideo);
+                    card.addEventListener('focusin', playVideo);
+                    card.addEventListener('focusout', stopVideo);
+                });
+            }
+
             /* ===== EVENTS ===== */
             document.addEventListener('click', e => {
                 const cardStatus = e.target.closest('.cv3-project-status');
@@ -971,6 +1007,7 @@
 
             /* ===== INIT ===== */
             renderSections();
+            bindProjectHoverVideos();
             renderFilters();
             applyFilter();
         })();

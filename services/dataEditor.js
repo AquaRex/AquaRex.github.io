@@ -461,6 +461,13 @@
             object-fit: contain;
             display: block;
         }
+        .de-image-drop video {
+            max-width: 100%;
+            max-height: 140px;
+            object-fit: contain;
+            display: block;
+            background: #000;
+        }
         .de-image-drop-hint {
             font-size: 0.6rem;
             font-weight: 800;
@@ -555,6 +562,29 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+        }
+        .de-gallery-tile video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: #000;
+        }
+        .de-gallery-tile-type {
+            position: absolute;
+            left: 4px;
+            top: 4px;
+            z-index: 2;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 2px 6px;
+            font-size: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         .de-gallery-tile-name {
             display: block;
@@ -864,8 +894,8 @@
         });
     }
 
-    // POST a file to /__upload-image. Returns the saved web path.
-    async function uploadImage({ file, targetDir, filenameTemplate }) {
+    // POST a file to upload endpoint(s). Returns the saved web path.
+    async function uploadFile({ file, targetDir, filenameTemplate }) {
         if (!file) throw new Error('no file');
         if (!targetDir) throw new Error('no target dir');
         const dataBase64 = await readFileAsBase64(file);
@@ -880,17 +910,119 @@
                 filename = `${filename}.${baseExt}`;
             }
         }
-        const res = await fetch('/__upload-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ targetDir, filename, dataBase64 }),
-        });
-        let json = null;
-        try { json = await res.json(); } catch (_) {}
-        if (!res.ok || !json || !json.ok) {
+        const payload = { targetDir, filename, dataBase64 };
+        const endpoints = ['/__upload-file', '/__upload-image'];
+        let lastError = null;
+        for (const endpoint of endpoints) {
+            let res = null;
+            try {
+                res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+            } catch (err) {
+                lastError = err;
+                continue;
+            }
+            let json = null;
+            try { json = await res.json(); } catch (_) {}
+            if (res.ok && json && json.ok) {
+                return json.path;
+            }
+            // If endpoint doesn't exist, try fallback endpoint.
+            if (res.status === 404) {
+                lastError = new Error('upload endpoint not found');
+                continue;
+            }
             throw new Error((json && json.error) || `upload failed (${res.status})`);
         }
-        return json.path;
+        const networkMsg = lastError && lastError.message ? lastError.message : 'Failed to fetch';
+        throw new Error(`Cannot reach upload endpoint (${networkMsg}). Start or restart dev-server.py and reload.`);
+    }
+
+    // Backward-compatible helper used by existing image widgets.
+    async function uploadImage({ file, targetDir, filenameTemplate }) {
+        return uploadFile({ file, targetDir, filenameTemplate });
+    }
+
+    function fileNameFromPath(path) {
+        const clean = String(path || '').split('?')[0].split('#')[0];
+        const idx = clean.lastIndexOf('/');
+        return idx >= 0 ? clean.slice(idx + 1) : clean;
+    }
+
+    async function cloneMediaToTarget({ sourcePath, targetDir, filenameTemplate }) {
+        const sourceName = fileNameFromPath(sourcePath) || 'media';
+        const res = await fetch(sourcePath, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Failed to read source media (${res.status})`);
+        const blob = await res.blob();
+        const file = new File([blob], sourceName, { type: blob.type || undefined });
+        return uploadFile({ file, targetDir, filenameTemplate });
+    }
+
+    function releaseMediaPath(path) {
+        const target = String(path || '').trim();
+        if (!target) return;
+        const matchPath = (value) => {
+            if (!value) return false;
+            try {
+                const url = new URL(value, location.href);
+                return url.pathname === target;
+            } catch (_) {
+                return value === target;
+            }
+        };
+        document.querySelectorAll('video').forEach(video => {
+            const attrSrc = video.getAttribute('src') || '';
+            const current = video.currentSrc || attrSrc;
+            if (!matchPath(attrSrc) && !matchPath(current)) return;
+            try { video.pause(); } catch (_) {}
+            try { video.removeAttribute('src'); } catch (_) {}
+            try { video.load(); } catch (_) {}
+        });
+    }
+
+    function parseProjectMediaPath(path) {
+        const normalizedPath = String(path || '').trim().startsWith('/')
+            ? String(path || '').trim()
+            : ('/' + String(path || '').trim().replace(/^\/+/, ''));
+        const fileExt = (() => {
+            const clean = fileNameFromPath(normalizedPath);
+            const idx = clean.lastIndexOf('.');
+            return idx >= 0 ? clean.slice(idx).toLowerCase() : '';
+        })();
+        const marker = '/projects/';
+        const markerIdx = normalizedPath.indexOf(marker);
+        if (markerIdx < 0) throw new Error('Invalid media path');
+        const dirAndFile = normalizedPath.slice(markerIdx + marker.length);
+        const slash = dirAndFile.lastIndexOf('/');
+        if (slash < 0) throw new Error('Invalid media path');
+        const slug = dirAndFile.slice(0, slash);
+        const filename = dirAndFile.slice(slash + 1);
+        const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.m4v'].includes(fileExt);
+        return {
+            normalizedPath,
+            filename,
+            targetDir: isVideo
+                ? `assets/videos/projects/${slug}`
+                : `assets/images/projects/${slug}`,
+        };
+    }
+
+    async function deleteMediaPath(path) {
+        const { normalizedPath, filename, targetDir } = parseProjectMediaPath(path);
+        releaseMediaPath(normalizedPath);
+        const res = await fetch('/__delete-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetDir, filename }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+            throw new Error((data && data.error) || `HTTP ${res.status}`);
+        }
+        return data;
     }
 
     function setupImageWidget(root) {
@@ -901,13 +1033,28 @@
         const clearBtn  = root.querySelector('[data-role="clear"]');
         const targetDir = root.getAttribute('data-target-dir') || '';
         const tpl       = root.getAttribute('data-filename-template') || '';
+        const uploadKind = root.getAttribute('data-upload-kind') === 'video' ? 'video' : 'image';
+        const isVideo = uploadKind === 'video';
         if (!drop || !input) return;
+
+        const renderPreview = (path) => {
+            if (!path) return `<div class="de-image-drop-hint">Drop ${isVideo ? 'video' : 'image'}<br>or click</div>`;
+            if (isVideo) {
+                return `<video aria-hidden="true" src="${escapeAttr(path)}" muted playsinline preload="metadata"></video>`;
+            }
+            return `<img alt="" src="${escapeAttr(path)}">`;
+        };
 
         const setPath = (path) => {
             input.value = path || '';
-            drop.innerHTML = path
-                ? `<img alt="" src="${escapeAttr(path)}">`
-                : `<div class="de-image-drop-hint">Drop image<br>or click</div>`;
+            drop.innerHTML = renderPreview(path);
+            if (isVideo) {
+                const v = drop.querySelector('video');
+                if (v) {
+                    v.muted = true;
+                    v.play().catch(() => {});
+                }
+            }
         };
         const setStatus = (text, isError) => {
             if (!status) return;
@@ -926,7 +1073,7 @@
         // Hidden file picker reused for click + "Choose…".
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
-        fileInput.accept = 'image/*';
+        fileInput.accept = isVideo ? 'video/*' : 'image/*';
         fileInput.style.display = 'none';
         root.appendChild(fileInput);
         const openPicker = () => fileInput.click();
@@ -948,7 +1095,7 @@
             drop.classList.add('is-uploading');
             setStatus('Uploading…');
             try {
-                const path = await uploadImage({ file, targetDir, filenameTemplate: tpl });
+                const path = await uploadFile({ file, targetDir, filenameTemplate: tpl });
                 setPath(path);
                 setStatus('Saved · ' + path);
             } catch (err) {
@@ -981,14 +1128,37 @@
             drop.classList.remove('is-dragover');
             // Internal drop from a gallery tile → set path directly, skip upload.
             const internal = e.dataTransfer && e.dataTransfer.getData('application/x-gallery-path');
+            const internalKind = e.dataTransfer && e.dataTransfer.getData('application/x-gallery-kind');
+            const wantsKind = isVideo ? 'video' : 'image';
+            if (internal && internalKind && internalKind !== wantsKind) {
+                setStatus(`Only ${wantsKind}s can be dropped here.`, true);
+                return;
+            }
             if (internal) {
-                setPath(internal);
-                setStatus('Hero set · ' + internal);
+                if (!targetDir) {
+                    setStatus('No target directory configured for this field.', true);
+                    return;
+                }
+                drop.classList.add('is-uploading');
+                setStatus('Copying from media…');
+                cloneMediaToTarget({ sourcePath: internal, targetDir, filenameTemplate: tpl })
+                    .then((path) => {
+                        setPath(path);
+                        setStatus(`${isVideo ? 'Hero video' : 'Hero image'} set · ` + path);
+                    })
+                    .catch((err) => {
+                        setStatus(err && err.message ? err.message : String(err), true);
+                    })
+                    .finally(() => {
+                        drop.classList.remove('is-uploading');
+                    });
                 return;
             }
             const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
             if (f) handleFile(f);
         });
+
+        setPath(input.value.trim());
     }
 
     function setupGalleryWidget(root) {
@@ -996,6 +1166,10 @@
         const grid      = root.querySelector('[data-role="grid"]');
         const status    = root.querySelector('[data-role="status"]');
         const targetDir = root.getAttribute('data-target-dir') || '';
+        const videoTargetDir = root.getAttribute('data-video-target-dir') || '';
+        let excludedPaths;
+        try { excludedPaths = JSON.parse(root.getAttribute('data-exclude-paths') || '[]'); } catch (_) { excludedPaths = []; }
+        const excluded = new Set((Array.isArray(excludedPaths) ? excludedPaths : []).filter(Boolean).map(p => String(p).trim()));
         if (!drop || !grid) return;
 
         const setStatus = (text, isError) => {
@@ -1004,12 +1178,30 @@
             status.classList.toggle('is-error', !!isError);
         };
 
-        // In-memory model: [{ name, caption }] in display order.
+        // In-memory model: [{ path, name, caption, kind }] in display order.
         let items = [];
         let dirty = false;
 
-        const dirBase = () => '/' + targetDir.replace(/^\/+/, '').replace(/\/$/, '');
-        const urlFor  = (name) => `${dirBase()}/${name}`;
+        const dirBase = (dir) => '/' + String(dir || '').replace(/^\/+/, '').replace(/\/$/, '');
+        const imageBase = () => dirBase(targetDir);
+        const videoBase = () => dirBase(videoTargetDir);
+        const extOf = (name) => {
+            const i = String(name || '').lastIndexOf('.');
+            return i >= 0 ? String(name).slice(i).toLowerCase() : '';
+        };
+        const isVideoExt = (ext) => ['.mp4', '.webm', '.ogg', '.mov', '.m4v'].includes(ext);
+        const kindFromName = (name) => (isVideoExt(extOf(name)) ? 'video' : 'image');
+        const pathFor = (name, kind) => `${kind === 'video' ? videoBase() : imageBase()}/${name}`;
+        const normalizePath = (p) => {
+            const s = String(p || '').trim();
+            return s.startsWith('/') ? s : ('/' + s.replace(/^\/+/, ''));
+        };
+        const nameFromPath = (p) => {
+            const s = normalizePath(p);
+            const i = s.lastIndexOf('/');
+            return i >= 0 ? s.slice(i + 1) : s;
+        };
+        const kindFromPath = (p) => kindFromName(nameFromPath(p));
 
         function markDirty(d) {
             dirty = d;
@@ -1017,10 +1209,13 @@
 
         function renderTiles() {
             grid.innerHTML = items.map((it, i) => `
-                <div class="de-gallery-tile" data-index="${i}" data-name="${escapeAttr(it.name)}">
+                <div class="de-gallery-tile" data-index="${i}" data-name="${escapeAttr(it.name)}" data-path="${escapeAttr(it.path)}" data-kind="${escapeAttr(it.kind)}">
                     <button type="button" class="de-gallery-del" data-role="del" title="Remove">&times;</button>
+                    <span class="de-gallery-tile-type">${escapeHtml(it.kind)}</span>
                     <div class="de-gallery-tile-img" draggable="true" data-role="drag" title="Drag to reorder">
-                        <img alt="" src="${escapeAttr(urlFor(it.name))}" draggable="false">
+                        ${it.kind === 'video'
+                            ? `<video muted loop playsinline preload="metadata" src="${escapeAttr(it.path)}" draggable="false"></video>`
+                            : `<img alt="" src="${escapeAttr(it.path)}" draggable="false">`}
                     </div>
                     <span class="de-gallery-tile-name" title="${escapeAttr(it.name)}">${escapeHtml(it.name)}</span>
                     <input class="de-gallery-tile-caption"
@@ -1040,8 +1235,9 @@
                 tile.querySelector('[data-role="del"]').addEventListener('click', (e) => {
                     e.preventDefault(); e.stopPropagation();
                     const name = tile.dataset.name;
+                    const path = tile.dataset.path;
                     if (!confirm(`Remove "${name}"?`)) return;
-                    deleteImage(name);
+                    deleteImage(name, path);
                 });
 
                 const cap = tile.querySelector('[data-role="caption"]');
@@ -1058,7 +1254,8 @@
                     tile.classList.add('is-dragging');
                     e.dataTransfer.effectAllowed = 'copyMove';
                     e.dataTransfer.setData('text/plain', String(idx));
-                    e.dataTransfer.setData('application/x-gallery-path', urlFor(items[idx].name));
+                    e.dataTransfer.setData('application/x-gallery-path', items[idx].path);
+                    e.dataTransfer.setData('application/x-gallery-kind', items[idx].kind);
                 });
                 tile.addEventListener('dragend', () => tile.classList.remove('is-dragging'));
                 tile.addEventListener('dragover', (e) => {
@@ -1081,22 +1278,25 @@
             });
         }
 
-        async function deleteImage(name) {
+        async function deleteImage(name, path) {
             setStatus(`Deleting ${name}…`);
             try {
-                const res = await fetch('/__delete-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetDir, filename: name }),
-                });
-                const j = await res.json().catch(() => ({}));
-                if (!res.ok || !j.ok) throw new Error((j && j.error) || `HTTP ${res.status}`);
-                items = items.filter(it => it.name !== name);
+                const normalizedPath = normalizePath(path);
+                await deleteMediaPath(normalizedPath);
+                items = items.filter(it => it.path !== normalizedPath);
                 renderTiles();
-                markDirty(false);
+                await saveOrder();
                 setStatus(`Removed ${name}.`);
             } catch (err) {
-                setStatus(err && err.message ? err.message : String(err), true);
+                const message = err && err.message ? err.message : String(err);
+                if (/file not found/i.test(message)) {
+                    items = items.filter(it => it.path !== normalizePath(path));
+                    renderTiles();
+                    await saveOrder();
+                    setStatus(`Removed stale entry for ${name}.`);
+                    return;
+                }
+                setStatus(message, true);
             }
         }
 
@@ -1104,17 +1304,17 @@
             // Pull live captions out of the DOM so we never send stale model data.
             const liveItems = Array.from(grid.querySelectorAll('.de-gallery-tile')).map(tile => {
                 const name = tile.dataset.name;
+                const path = normalizePath(tile.dataset.path || '');
                 const capEl = tile.querySelector('[data-role="caption"]');
-                return { name, caption: capEl ? capEl.value : '' };
+                return { path, name, caption: capEl ? capEl.value : '' };
             });
             // Sync back into the in-memory model so subsequent edits start from truth.
-            items = liveItems.map(it => ({ ...it }));
-            if (!liveItems.length) { markDirty(false); return; }
+            items = liveItems.map(it => ({ ...it, kind: kindFromPath(it.path) }));
             setStatus('Saving order & captions…');
             const res = await fetch('/__save-gallery', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ targetDir, items: liveItems }),
+                body: JSON.stringify({ targetDir, videoTargetDir, items: liveItems }),
             });
             const j = await res.json().catch(() => ({}));
             if (!res.ok || !j.ok) {
@@ -1142,7 +1342,7 @@
             items = [];
             grid.innerHTML = '';
             if (!targetDir) return;
-            const base = dirBase();
+            const base = imageBase();
             try {
                 // Prefer gallery.json (order + captions). Fall back to manifest.json.
                 let res = await fetch(`${base}/gallery.json`, { cache: 'no-store' });
@@ -1150,35 +1350,106 @@
                     const list = await res.json();
                     if (Array.isArray(list)) {
                         items = list
-                            .filter(it => it && typeof it.name === 'string' && it.name)
-                            .map(it => ({ name: it.name, caption: String(it.caption || '') }));
+                            .map(it => {
+                                if (!it || typeof it !== 'object') return null;
+                                const caption = String(it.caption || '');
+                                if (typeof it.path === 'string' && it.path) {
+                                    const path = normalizePath(it.path);
+                                    if (excluded.has(path)) return null;
+                                    return {
+                                        path,
+                                        name: nameFromPath(path),
+                                        kind: kindFromPath(path),
+                                        caption,
+                                    };
+                                }
+                                if (typeof it.name === 'string' && it.name) {
+                                    const kind = kindFromName(it.name);
+                                    const path = pathFor(it.name, kind);
+                                    if (excluded.has(path)) return null;
+                                    return {
+                                        path,
+                                        name: it.name,
+                                        kind,
+                                        caption,
+                                    };
+                                }
+                                return null;
+                            })
+                            .filter(Boolean);
                     }
                 }
                 // Always cross-check against manifest.json so newly-uploaded files
                 // (not yet in gallery.json) still show up.
+                let imageManifestKnown = false;
                 res = await fetch(`${base}/manifest.json`, { cache: 'no-store' });
                 if (res.ok) {
                     const all = await res.json();
                     if (Array.isArray(all)) {
-                        const known = new Set(items.map(it => it.name));
+                        imageManifestKnown = true;
+                        const known = new Set(items.map(it => it.path));
                         all.forEach(name => {
-                            if (typeof name === 'string' && name && !known.has(name)) {
-                                items.push({ name, caption: '' });
+                            if (typeof name === 'string' && name) {
+                                const path = `${imageBase()}/${name}`;
+                                if (!known.has(path) && !excluded.has(path)) {
+                                    items.push({ path, name, kind: 'image', caption: '' });
+                                }
                             }
                         });
-                        // Remove any gallery entries whose file no longer exists.
-                        const onDisk = new Set(all);
-                        items = items.filter(it => onDisk.has(it.name));
                     }
                 }
-            } catch (_) { /* leave empty */ }
+                let videoManifestKnown = false;
+                if (videoTargetDir) {
+                    const vBase = videoBase();
+                    res = await fetch(`${vBase}/manifest.json`, { cache: 'no-store' });
+                    if (res.ok) {
+                        const all = await res.json();
+                        if (Array.isArray(all)) {
+                            videoManifestKnown = true;
+                            const known = new Set(items.map(it => it.path));
+                            all.forEach(name => {
+                                if (typeof name === 'string' && name) {
+                                    const path = `${vBase}/${name}`;
+                                    if (!known.has(path) && !excluded.has(path)) {
+                                        items.push({ path, name, kind: 'video', caption: '' });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+                const imageOnDisk = new Set();
+                const videoOnDisk = new Set();
+                if (imageManifestKnown) {
+                    const manifest = await fetch(`${base}/manifest.json`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+                    if (Array.isArray(manifest)) manifest.forEach(name => { if (typeof name === 'string' && name) imageOnDisk.add(`${imageBase()}/${name}`); });
+                }
+                if (videoManifestKnown) {
+                    const vBase = videoBase();
+                    const manifest = await fetch(`${vBase}/manifest.json`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+                    if (Array.isArray(manifest)) manifest.forEach(name => { if (typeof name === 'string' && name) videoOnDisk.add(`${vBase}/${name}`); });
+                }
+                const beforePrune = items.length;
+                items = items.filter(it => {
+                    if (it.kind === 'video' && videoManifestKnown) return videoOnDisk.has(it.path);
+                    if (it.kind === 'image' && imageManifestKnown) return imageOnDisk.has(it.path);
+                    return true;
+                });
+                if (items.length !== beforePrune) {
+                    renderTiles();
+                    await saveOrder();
+                }
+                setStatus('');
+            } catch (err) {
+                setStatus('Failed loading media gallery. Reload page and try again.', true);
+            }
             renderTiles();
             markDirty(false);
         };
 
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
-        fileInput.accept = 'image/*';
+        fileInput.accept = 'image/*,video/*';
         fileInput.multiple = true;
         fileInput.style.display = 'none';
         root.appendChild(fileInput);
@@ -1197,12 +1468,18 @@
             let done = 0, failed = 0;
             for (const f of list) {
                 setStatus(`Uploading ${done + 1}/${list.length}…`);
-                try { await uploadImage({ file: f, targetDir }); done++; }
+                try {
+                    const uploadDir = (String(f.type || '').startsWith('video/') && videoTargetDir)
+                        ? videoTargetDir
+                        : targetDir;
+                    await uploadFile({ file: f, targetDir: uploadDir });
+                    done++;
+                }
                 catch (_) { failed++; }
             }
             setStatus(failed
                 ? `Uploaded ${done}, ${failed} failed.`
-                : `Uploaded ${done} image${done === 1 ? '' : 's'}.`,
+                : `Uploaded ${done} media file${done === 1 ? '' : 's'}.`,
                 failed > 0);
             await refresh();
         };
@@ -1392,16 +1669,47 @@
                 </div>
             </div>`;
         }
+        if (f.type === 'video') {
+            // Single-video drop zone with a synced text path input.
+            const targetDir   = f.targetDir || '';
+            const filenameTpl = f.filename  || '';
+            const current     = v == null ? '' : String(v);
+            return `<div class="${cls}">
+                <label>${escapeHtml(f.label)}</label>
+                <div class="de-image" data-value-type="image"
+                     data-upload-kind="video"
+                     data-target-dir="${escapeAttr(targetDir)}"
+                     data-filename-template="${escapeAttr(filenameTpl)}">
+                    <div class="de-image-drop" data-role="drop" tabindex="0">
+                        ${current
+                            ? `<video aria-hidden="true" src="${escapeAttr(current)}" muted playsinline preload="metadata"></video>`
+                            : `<div class="de-image-drop-hint">Drop video<br>or click</div>`}
+                    </div>
+                    <div class="de-image-side">
+                        <input type="text" data-key="${escapeAttr(f.key)}" value="${escapeAttr(current)}" placeholder="${escapeAttr(f.placeholder || '/assets/...')}">
+                        <div class="de-image-side-row">
+                            <button type="button" class="de-row-btn" data-role="pick">Choose…</button>
+                            <button type="button" class="de-row-btn is-danger" data-role="clear">Clear</button>
+                        </div>
+                        <div class="de-image-status" data-role="status"></div>
+                    </div>
+                </div>
+            </div>`;
+        }
         if (f.type === 'image-gallery') {
             // Multi-image upload area for a fixed folder. Does not store a
             // value into the form payload — drops just upload to disk.
             const targetDir = f.targetDir || '';
+            const videoTargetDir = f.videoTargetDir || '';
+            const excludePaths = Array.isArray(f.excludePaths) ? f.excludePaths : [];
             return `<div class="de-field de-full">
                 <label>${escapeHtml(f.label)}</label>
                 <div class="de-gallery" data-value-type="gallery"
-                     data-target-dir="${escapeAttr(targetDir)}">
+                     data-target-dir="${escapeAttr(targetDir)}"
+                     data-video-target-dir="${escapeAttr(videoTargetDir)}"
+                     data-exclude-paths='${escapeAttr(JSON.stringify(excludePaths))}'>
                     <div class="de-gallery-drop" data-role="drop" tabindex="0">
-                        Drop images here, or click to choose
+                        Drop media (images/videos) here, or click to choose
                     </div>
                     <div class="de-gallery-grid" data-role="grid"></div>
                     <div class="de-image-status" data-role="status"></div>
@@ -1579,6 +1887,9 @@
         setPath,
         getPath,
         saveJson,
+        uploadFile,
         uploadImage,
+        cloneMediaToTarget,
+        deleteMediaPath,
     };
 })();

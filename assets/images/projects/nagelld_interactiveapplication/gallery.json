@@ -1,34 +1,30 @@
 [
   {
-    "name": "nagelld_interactiveapp.jpeg",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AirCooled.png",
     "caption": ""
   },
   {
-    "name": "AlfaLaval_AirCooled.png",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AirCooled_Flow.png",
     "caption": ""
   },
   {
-    "name": "AlfaLaval_AirCooled_Flow.png",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AquaCooled.png",
     "caption": ""
   },
   {
-    "name": "AlfaLaval_AquaCooled.png",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AquaCooled_Flow.png",
     "caption": ""
   },
   {
-    "name": "AlfaLaval_AquaCooled_Flow.png",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AquaCooled_Close.png",
     "caption": ""
   },
   {
-    "name": "AlfaLaval_AquaCooled_Close.png",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AquaCooled_Close_Flow.png",
     "caption": ""
   },
   {
-    "name": "AlfaLaval_AquaCooled_Close_Flow.png",
-    "caption": ""
-  },
-  {
-    "name": "AlfaLaval_AquaCooled_Close_Flow_Opened.png",
+    "path": "/assets/images/projects/nagelld_interactiveapplication/AlfaLaval_AquaCooled_Close_Flow_Opened.png",
     "caption": ""
   }
 ]

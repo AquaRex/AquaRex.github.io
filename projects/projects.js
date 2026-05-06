@@ -63,12 +63,13 @@ window.PROJECTS_DATA = [
         "name": "Interactive Application",
         "summary": "Interactive viewer is a mobile application that visualizes 3d models or solutions, designed for highlighting important product details for presentations with good user-experience at the core.",
         "popupDescription": "Interactive viewer is a mobile application that visualizes 3d models or solutions, designed for highlighting important product details for presentations with good user-experience at the core. It allows rotating around, zooming in and panning around models and picking them apart showing interior parts of motors or other enclosed systems, or highlighting and visualizing flow direction in a pump system. Optimized for weak hardware allowing for great performance on mobile phones or tablets.\n\nIt also features a highly optimized Ray-triangle solution for interacting with individual objects without any colliders on a triangle level. This is used for double-clicking to set pivot point, and for hiding individual elements to look inside of complex objects.\n\nThe project is developed with modularity in mind, allowing to easily create an interactive presentation for any 3d-model within a short amount of time due to easily configurable options and togglable modules making up the application's features. ",
-        "image": "/assets/images/projects/nagelld_interactiveapplication/nagelld_interactiveapp.jpeg",
+        "image": "/assets/images/projects/nagelld_interactiveapplication/hero/nagelld_interactiveapplication.jpeg",
         "tags": [
             "Unity",
             "C#",
             "Mobile"
-        ]
+        ],
+        "heroVideo": "/assets/videos/projects/nagelld_interactiveapplication/hero/nagelld_interactiveapplication.mp4"
     },
     {
         "company": "Nagelld",
