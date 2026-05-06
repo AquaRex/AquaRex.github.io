@@ -1,30 +1,26 @@
 [
   {
-    "name": "Launcher_BoatSim.png",
+    "path": "/assets/images/projects/nagelld_softwarelauncher/Launcher_BoatSim.png",
     "caption": ""
   },
   {
-    "name": "Launcher_BoatSim_Download.png",
+    "path": "/assets/images/projects/nagelld_softwarelauncher/Launcher_BoatSim_Download.png",
     "caption": ""
   },
   {
-    "name": "Launcher_BoatSim_UpdateLauncher.png",
+    "path": "/assets/images/projects/nagelld_softwarelauncher/Launcher_BoatSim_UpdateLauncher.png",
     "caption": ""
   },
   {
-    "name": "Launcher_LoginScreen.png",
+    "path": "/assets/images/projects/nagelld_softwarelauncher/Launcher_LoginScreen.png",
     "caption": ""
   },
   {
-    "name": "Launcher_LoginScreen_key.png",
+    "path": "/assets/images/projects/nagelld_softwarelauncher/Launcher_LoginScreen_Downloading.png",
     "caption": ""
   },
   {
-    "name": "Launcher_LoginScreen_Downloading.png",
-    "caption": ""
-  },
-  {
-    "name": "Launcher_LoginScreen_OfflineAccess.png",
+    "path": "/assets/images/projects/nagelld_softwarelauncher/Launcher_LoginScreen_OfflineAccess.png",
     "caption": ""
   }
 ]

@@ -46,6 +46,18 @@
             background: var(--de-dark, #111);
             color: var(--de-bg, #fff);
         }
+        .de-order-btn--edit {
+            background: var(--de-accent, #f5c400);
+            color: var(--de-dark, #111);
+            border-color: var(--de-accent, #f5c400);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .de-order-btn--edit:hover {
+            background: var(--de-dark, #111);
+            color: var(--de-bg, #fff);
+            border-color: var(--de-dark, #111);
+        }
         body:not(.de-edit-mode) .de-project-controls {
             display: none !important;
         }
@@ -319,18 +331,7 @@
             card.classList.add('de-edit-host');
             const controls = document.createElement('div');
             controls.className = 'de-project-controls';
-            const btn = DE.makeEditButton({
-                onClick: () => {
-                    const company = card.getAttribute('data-company');
-                    const name = card.getAttribute('data-name');
-                    const entry = findEntry(company, name);
-                    if (!entry) {
-                        alert(`Project not found in PROJECTS_DATA:\n${company} / ${name}`);
-                        return;
-                    }
-                    editProject(entry);
-                },
-            });
+
             const moveUp = document.createElement('button');
             moveUp.type = 'button';
             moveUp.className = 'de-order-btn';
@@ -359,9 +360,28 @@
                 await persistProjectOrder();
             });
 
-            controls.appendChild(btn);
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'de-order-btn de-order-btn--edit';
+            editBtn.title = 'Edit project';
+            editBtn.setAttribute('aria-label', 'Edit project');
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const company = card.getAttribute('data-company');
+                const name = card.getAttribute('data-name');
+                const entry = findEntry(company, name);
+                if (!entry) {
+                    alert(`Project not found in PROJECTS_DATA:\n${company} / ${name}`);
+                    return;
+                }
+                editProject(entry);
+            });
+
             controls.appendChild(moveUp);
             controls.appendChild(moveDown);
+            controls.appendChild(editBtn);
             card.appendChild(controls);
         });
     }

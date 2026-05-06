@@ -42,8 +42,8 @@ UPLOAD_ALLOWED_PREFIXES = (
     "assets/logos/",
     "assets/profile/",
 )
-MAX_UPLOAD_REQUEST_BYTES = 80_000_000  # JSON body cap (base64 + metadata)
-MAX_UPLOADED_FILE_BYTES = 50_000_000   # decoded file cap on disk
+MAX_UPLOAD_REQUEST_BYTES = 400_000_000  # JSON body cap (base64 + metadata)
+MAX_UPLOADED_FILE_BYTES = 300_000_000  # decoded file cap on disk
 
 FILE_HEADER = """\
 /* =================================================================
@@ -220,6 +220,8 @@ class DevHandler(SimpleHTTPRequestHandler):
             return self._handle_save_cv()
         if self.path in ("/__upload-image", "/__upload-file"):
             return self._handle_upload_file()
+        if self.path == "/__upload-binary":
+            return self._handle_upload_binary()
         if self.path == "/__delete-image":
             return self._handle_delete_image()
         if self.path == "/__save-gallery":
@@ -371,6 +373,65 @@ class DevHandler(SimpleHTTPRequestHandler):
                 raise ValueError("file too large")
 
             # Resolve a non-colliding filename.
+            candidate = folder / f"{stem}{ext}"
+            i = 2
+            while candidate.exists():
+                candidate = folder / f"{stem}-{i}{ext}"
+                i += 1
+            candidate.write_bytes(blob)
+
+            web_path = "/" + str(candidate.relative_to(ROOT)).replace("\\", "/")
+        except Exception as exc:  # noqa: BLE001
+            self._send_json(400, {"ok": False, "error": str(exc)})
+            return
+        self._send_json(200, {"ok": True, "path": web_path})
+
+    def _handle_upload_binary(self):
+        """Receive a raw binary file upload (no base64 overhead).
+
+        The caller sends two custom headers:
+          X-Target-Dir: assets/videos/projects/<slug>
+          X-Filename:   myfile.mp4
+        The raw file bytes are the request body (Content-Type can be anything).
+        """
+        if self.client_address[0] not in ("127.0.0.1", "::1"):
+            self._send_json(403, {"ok": False, "error": "loopback only"})
+            return
+        try:
+            target_dir = str(self.headers.get("X-Target-Dir") or "").strip().lstrip("/")
+            filename   = str(self.headers.get("X-Filename")   or "").strip()
+            length     = int(self.headers.get("Content-Length") or 0)
+            if not target_dir or not filename:
+                raise ValueError("X-Target-Dir and X-Filename headers required")
+            if length <= 0 or length > MAX_UPLOADED_FILE_BYTES:
+                raise ValueError("bad content-length")
+            if ".." in target_dir.split("/"):
+                raise ValueError("targetDir may not contain ..")
+            if not any(target_dir.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+                raise ValueError("targetDir must start with one of: " + ", ".join(UPLOAD_ALLOWED_PREFIXES))
+
+            name = re.sub(r"[^A-Za-z0-9._-]+", "-", filename).strip("-._")
+            if not name:
+                raise ValueError("invalid filename")
+            stem, dot, ext = name.rpartition(".")
+            if not dot:
+                raise ValueError("filename must include extension")
+            ext = "." + ext.lower()
+            allowed_exts = VIDEO_EXTENSIONS if target_dir.startswith("assets/videos/") else IMAGE_EXTENSIONS
+            if ext not in allowed_exts:
+                raise ValueError(f"extension {ext} not allowed")
+            if not stem:
+                raise ValueError("filename stem required")
+
+            folder = (ROOT / target_dir).resolve()
+            if ROOT not in folder.parents and folder != ROOT:
+                raise ValueError("targetDir escapes workspace")
+            folder.mkdir(parents=True, exist_ok=True)
+
+            blob = self.rfile.read(length)
+            if not blob:
+                raise ValueError("empty file")
+
             candidate = folder / f"{stem}{ext}"
             i = 2
             while candidate.exists():

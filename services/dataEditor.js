@@ -895,21 +895,47 @@
     }
 
     // POST a file to upload endpoint(s). Returns the saved web path.
+    // Files ≥ 5 MB are sent as raw binary to /__upload-binary to avoid
+    // base64 overhead; smaller files fall back to JSON base64 for compat.
     async function uploadFile({ file, targetDir, filenameTemplate }) {
         if (!file) throw new Error('no file');
         if (!targetDir) throw new Error('no target dir');
-        const dataBase64 = await readFileAsBase64(file);
         const original = String(file.name || 'image');
         const dot = original.lastIndexOf('.');
         const baseExt = dot >= 0 ? original.slice(dot + 1).toLowerCase() : 'jpg';
         let filename = original;
         if (filenameTemplate) {
-            // {ext} replaced with actual extension.
             filename = filenameTemplate.replace(/\{ext\}/gi, baseExt);
             if (!/\.[a-z0-9]+$/i.test(filename)) {
                 filename = `${filename}.${baseExt}`;
             }
         }
+
+        // For large files use raw binary upload to avoid base64 overhead.
+        if (file.size >= 5 * 1024 * 1024) {
+            let res = null;
+            try {
+                res = await fetch('/__upload-binary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': file.type || 'application/octet-stream',
+                        'X-Target-Dir': targetDir,
+                        'X-Filename': filename,
+                    },
+                    body: file,
+                });
+            } catch (err) {
+                const msg = err && err.message ? err.message : 'Failed to fetch';
+                throw new Error(`Cannot reach upload endpoint (${msg}). Start or restart dev-server.py and reload.`);
+            }
+            let json = null;
+            try { json = await res.json(); } catch (_) {}
+            if (res.ok && json && json.ok) return json.path;
+            throw new Error((json && json.error) || `upload failed (${res.status})`);
+        }
+
+        // Small files: existing base64 JSON path.
+        const dataBase64 = await readFileAsBase64(file);
         const payload = { targetDir, filename, dataBase64 };
         const endpoints = ['/__upload-file', '/__upload-image'];
         let lastError = null;
@@ -930,7 +956,6 @@
             if (res.ok && json && json.ok) {
                 return json.path;
             }
-            // If endpoint doesn't exist, try fallback endpoint.
             if (res.status === 404) {
                 lastError = new Error('upload endpoint not found');
                 continue;

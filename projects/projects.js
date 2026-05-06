@@ -50,7 +50,7 @@ window.PROJECTS_DATA = [
         "company": "Nagelld",
         "name": "Boat Simulator Quest",
         "summary": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware.",
-        "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.",
+        "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.\n\nThe simulator features realistic boat physics and complex gerstner-wave calculations for realistic ocean waves affected by winds that pushes on every physics object in the scene. It features various scenario setups and open sandbox training that allow the instructor to alter the scenario in the middle of an excersize to simulate unexpected objectives. VR Trainees has realistic interactivity with objects, davit and boat systems, objects can be picked up, levers pulled and buttons pressed with both hand-tracking and VR controller support. Hatches can be opened and flashlights used to see in the dark. Trainees will have to adapt and communicate to overcome challenges that the Instructor throws at them. \n\nThe Instructor hosts a server where up to 5 VR trainees can join, the Instructor has full control of the scenario and overview of the simulation and can change weather, setup markers in the ocean, add search-patterns for the trainees to follow and override boat and davit systems. As showcased in the video above. \n",
         "image": "/assets/images/projects/nagelld_boatsimulatorquest/hero/nagelld_boatsimulatorquest.jpeg",
         "tags": [
             "Unity",
@@ -59,7 +59,7 @@ window.PROJECTS_DATA = [
             "Networking",
             "Mobile"
         ],
-        "heroVideo": ""
+        "heroVideo": "/assets/videos/projects/nagelld_boatsimulatorquest/hero/nagelld_boatsimulatorquest-2.mp4"
     },
     {
         "company": "Nagelld",
@@ -102,8 +102,8 @@ window.PROJECTS_DATA = [
     {
         "name": "Software Launcher",
         "company": "Nagelld",
-        "status": "Development",
-        "image": "/assets/images/projects/nagelld_softwarelauncher/Launcher_LoginScreen_key.png",
+        "status": "Published",
+        "image": "/assets/images/projects/nagelld_softwarelauncher/hero/nagelld_softwarelauncher.png",
         "tags": [
             "Azure",
             ".NET",
@@ -112,7 +112,8 @@ window.PROJECTS_DATA = [
         ],
         "summary": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. ",
         "popupDescription": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. Users can be invited from the admin panel and will automatically receive an email with their access key / serial number and a download url for the appropriate launcher. The launcher is self-updating for maintanance and after logging in the user gets access to their application and can from there download, launch or update it. The launcher has a configurable offline mode that will allow the user to launch the application without internet access for a period of time, if the user was previously logged in, primarily for expo usage without reliable internet access. ",
-        "showOnCv": false
+        "showOnCv": false,
+        "heroVideo": ""
     },
 
     /* ===== Visual Engineering ===== */
