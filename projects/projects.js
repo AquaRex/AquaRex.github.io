@@ -61,7 +61,7 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Interactive Application",
-        "summary": "Mobile 3D viewer for product presentations — rotate, zoom, pan and pick models apart, optimized for weak hardware.",
+        "summary": "Interactive viewer is a mobile application that visualizes 3d models or solutions, designed for highlighting important product details for presentations with good user-experience at the core.",
         "popupDescription": "Interactive viewer is a mobile application that visualizes 3d models or solutions, designed for highlighting important product details for presentations with good user-experience at the core. It allows rotating around, zooming in and panning around models and picking them apart showing interior parts of motors or other enclosed systems, or highlighting and visualizing flow direction in a pump system. Optimized for weak hardware allowing for great performance on mobile phones or tablets.",
         "image": "/assets/images/projects/nagelld_interactiveapplication/nagelld_interactiveapp.jpeg",
         "tags": [
@@ -73,7 +73,7 @@ window.PROJECTS_DATA = [
     {
         "company": "Nagelld",
         "name": "Boat Simulator Quest",
-        "summary": "Reworked the Boat Simulator from Unreal to Unity for mobile VR — added networking, hand-tracking, and physical control support.",
+        "summary": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware.",
         "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.",
         "image": "/assets/images/projects/nagelld_boatsimulatorquest/nagelld_boatsimquest.jpeg",
         "tags": [
