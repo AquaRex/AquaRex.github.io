@@ -133,6 +133,7 @@
     function normalizeWebPath(path) {
         const raw = String(path || '').trim();
         if (!raw) return '';
+        if (/^https?:\/\//i.test(raw)) return raw;
         return raw.startsWith('/') ? raw : ('/' + raw.replace(/^\/+/, ''));
     }
 

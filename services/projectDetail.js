@@ -13,6 +13,114 @@
     function slugify(s) {
         return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
     }
+    function parseExternalEmbed(rawUrl) {
+        const src = String(rawUrl || '').trim();
+        if (!/^https?:\/\//i.test(src)) return null;
+        let u;
+        try { u = new URL(src); } catch (_) { return null; }
+        const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+
+        if (host === 'youtu.be') {
+            const id = u.pathname.split('/').filter(Boolean)[0] || '';
+            if (!id) return null;
+            return {
+                embedUrl: `https://www.youtube.com/embed/${id}`,
+                name: `youtube:${id}`,
+                kind: 'embed',
+            };
+        }
+        if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+            if (u.pathname === '/watch') {
+                const id = u.searchParams.get('v') || '';
+                if (!id) return null;
+                return {
+                    embedUrl: `https://www.youtube.com/embed/${id}`,
+                    name: `youtube:${id}`,
+                    kind: 'embed',
+                };
+            }
+            const parts = u.pathname.split('/').filter(Boolean);
+            if (parts[0] === 'embed' && parts[1]) {
+                const id = parts[1];
+                return {
+                    embedUrl: `https://www.youtube.com/embed/${id}`,
+                    name: `youtube:${id}`,
+                    kind: 'embed',
+                };
+            }
+        }
+        if (host === 'vimeo.com' || host === 'player.vimeo.com') {
+            const parts = u.pathname.split('/').filter(Boolean);
+            let id = '';
+            if (host === 'player.vimeo.com') {
+                id = (parts[0] === 'video' && parts[1]) ? parts[1] : '';
+            } else {
+                id = parts.find(part => /^\d+$/.test(part)) || '';
+            }
+            if (!id) return null;
+            return {
+                embedUrl: `https://player.vimeo.com/video/${id}`,
+                name: `vimeo:${id}`,
+                kind: 'embed',
+            };
+        }
+        if (host === 'drive.google.com' || host === 'docs.google.com') {
+            const parts = u.pathname.split('/').filter(Boolean);
+            let id = '';
+            const fileIdx = parts.indexOf('file');
+            const dIdx = parts.indexOf('d');
+            if (fileIdx >= 0 && dIdx === fileIdx + 1 && parts[dIdx + 1]) {
+                id = parts[dIdx + 1];
+            }
+            if (!id) id = u.searchParams.get('id') || '';
+            if (!id && parts[0] === 'uc') id = u.searchParams.get('id') || '';
+            if (!id) return null;
+            return {
+                embedUrl: `https://drive.google.com/file/d/${id}/preview`,
+                name: `gdrive:${id}`,
+                kind: 'embed',
+            };
+        }
+        return null;
+    }
+    function embedPlaybackUrl(rawUrl, { showControls = false } = {}) {
+        const base = String(rawUrl || '').trim();
+        if (!base) return '';
+        let u;
+        try { u = new URL(base); } catch (_) { return base; }
+        const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+
+        if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+            const parts = u.pathname.split('/').filter(Boolean);
+            const id = (parts[0] === 'embed' && parts[1]) ? parts[1] : '';
+            u.searchParams.set('autoplay', '1');
+            u.searchParams.set('mute', '1');
+            u.searchParams.set('playsinline', '1');
+            u.searchParams.set('rel', '0');
+            u.searchParams.set('modestbranding', '1');
+            u.searchParams.set('loop', '1');
+            if (id) u.searchParams.set('playlist', id);
+            u.searchParams.set('controls', showControls ? '1' : '0');
+            u.searchParams.set('iv_load_policy', '3');
+            return u.toString();
+        }
+        if (host === 'player.vimeo.com' || host === 'vimeo.com') {
+            u.searchParams.set('autoplay', '1');
+            u.searchParams.set('muted', '1');
+            u.searchParams.set('loop', '1');
+            u.searchParams.set('autopause', '0');
+            u.searchParams.set('controls', showControls ? '1' : '0');
+            u.searchParams.set('title', '0');
+            u.searchParams.set('byline', '0');
+            u.searchParams.set('portrait', '0');
+            return u.toString();
+        }
+        if (host === 'drive.google.com' || host === 'docs.google.com') {
+            u.searchParams.set('autoplay', '1');
+            return u.toString();
+        }
+        return base;
+    }
 
     function findProject(ref) {
         const data = window.CV_DATA || {};
@@ -85,13 +193,16 @@
             .split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('');
         const image       = esc(project.image || '');
         const heroVideo   = esc(project.heroVideo || '');
+        const heroEmbed   = parseExternalEmbed(project.heroVideo || '');
         const tags        = (project.tags || []);
         const date        = esc(project.date || '');
         const status      = esc(project.status || 'Published');
         const companyName = esc(group.company);
 
         const heroMediaHtml = heroVideo
-            ? `<div class="pd-hero"><video class="pd-hero-video" src="${heroVideo}" ${image ? `poster="${image}"` : ''} autoplay muted loop playsinline preload="metadata"></video></div>`
+            ? (heroEmbed
+                ? `<div class="pd-hero"><iframe class="pd-hero-embed" src="${esc(embedPlaybackUrl(heroEmbed.embedUrl, { showControls: false }))}" title="${name} video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`
+                : `<div class="pd-hero"><video class="pd-hero-video" src="${heroVideo}" ${image ? `poster="${image}"` : ''} autoplay muted loop playsinline preload="metadata"></video></div>`)
             : (image ? `<div class="pd-hero"><img src="${image}" alt="${name}"></div>` : '');
 
         const tagsHtml = tags.length
@@ -298,13 +409,14 @@
                     .map(it => {
                         if (!it || typeof it !== 'object') return null;
                         if (typeof it.path === 'string' && it.path) {
-                            const path = String(it.path);
+                            const path = String(it.path).trim();
                             if (excludedPaths.has(path)) return null;
-                            const name = path.split('/').pop() || '';
+                            const embed = parseExternalEmbed(path);
+                            const name = embed ? embed.name : (path.split('/').pop() || '');
                             return {
-                                path,
+                                path: embed ? embed.embedUrl : path,
                                 name,
-                                kind: kindFromName(name),
+                                kind: embed ? 'embed' : kindFromName(name),
                                 caption: String(it.caption || ''),
                             };
                         }
@@ -325,6 +437,7 @@
             }
             // Keep only files that still exist on disk for local media folders.
             items = items.filter(it => {
+                if (it.kind === 'embed') return true;
                 const n = it.name || '';
                 if (!n) return false;
                 return it.kind === 'video'
@@ -357,6 +470,8 @@
                 return `<a class="pd-media-item" href="${esc(src)}" data-index="${i}" data-kind="${esc(it.kind)}">
                     ${it.kind === 'video'
                         ? `<video src="${esc(src)}" muted playsinline preload="metadata"></video>`
+                        : it.kind === 'embed'
+                            ? `<iframe src="${esc(embedPlaybackUrl(src, { showControls: false }))}" title="Embedded video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>`
                         : `<img src="${esc(src)}" alt="${esc(it.caption || it.name)}" loading="lazy">`}
                 </a>`;
             }).join('');
@@ -388,12 +503,14 @@
                 <button class="pd-lightbox-btn pd-lightbox-next" type="button" aria-label="Next">&#8594;</button>
                 <img class="pd-lightbox-img" alt="">
                 <video class="pd-lightbox-video" controls playsinline preload="metadata"></video>
+                <iframe class="pd-lightbox-embed" title="Embedded video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
                 <div class="pd-lightbox-caption"></div>
                 <div class="pd-lightbox-counter"></div>`;
             document.body.appendChild(overlay);
         }
         const imgEl     = overlay.querySelector('.pd-lightbox-img');
         const videoEl   = overlay.querySelector('.pd-lightbox-video');
+        const embedEl   = overlay.querySelector('.pd-lightbox-embed');
         const counterEl = overlay.querySelector('.pd-lightbox-counter');
         const captionEl = overlay.querySelector('.pd-lightbox-caption');
         const closeBtn  = overlay.querySelector('.pd-lightbox-close');
@@ -408,13 +525,25 @@
             if (s.kind === 'video') {
                 imgEl.style.display = 'none';
                 imgEl.removeAttribute('src');
+                embedEl.style.display = 'none';
+                embedEl.removeAttribute('src');
                 videoEl.style.display = 'block';
                 videoEl.src = s.src;
                 videoEl.play().catch(() => {});
+            } else if (s.kind === 'embed') {
+                imgEl.style.display = 'none';
+                imgEl.removeAttribute('src');
+                videoEl.style.display = 'none';
+                videoEl.pause();
+                videoEl.removeAttribute('src');
+                embedEl.style.display = 'block';
+                embedEl.src = embedPlaybackUrl(s.src, { showControls: true });
             } else {
                 videoEl.style.display = 'none';
                 videoEl.pause();
                 videoEl.removeAttribute('src');
+                embedEl.style.display = 'none';
+                embedEl.removeAttribute('src');
                 imgEl.style.display = '';
                 imgEl.src = s.src;
             }
@@ -433,6 +562,7 @@
             imgEl.removeAttribute('src');
             videoEl.pause();
             videoEl.removeAttribute('src');
+            embedEl.removeAttribute('src');
             document.removeEventListener('keydown', onKey);
         }
         function onKey(e) {

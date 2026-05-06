@@ -60,7 +60,7 @@ window.PROJECTS_DATA = [
             "Networking",
             "Mobile"
         ],
-        "heroVideo": "/assets/videos/projects/nagelld_boatsimulatorquest/hero/nagelld_boatsimulatorquest-2.mp4"
+        "heroVideo": "https://pub-329e3bd197cd4a0dbe81fadc30cc032a.r2.dev/nagelld_boatsimulatorquest.mp4"
     },
     {
         "company": "Nagelld",

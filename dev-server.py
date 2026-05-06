@@ -24,6 +24,7 @@ import json
 import sys
 import re
 import base64
+from urllib.parse import parse_qs, urlparse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -498,6 +499,72 @@ class DevHandler(SimpleHTTPRequestHandler):
             raise ValueError(f"unknown file: {clean}")
         return target
 
+    def _normalize_external_embed_url(self, raw_url: str) -> str:
+        clean = str(raw_url or "").strip()
+        parsed = urlparse(clean)
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError("external url must be http or https")
+        host = (parsed.hostname or "").lower()
+        if host.startswith("www."):
+            host = host[4:]
+
+        path_parts = [p for p in (parsed.path or "").split("/") if p]
+        if host == "youtu.be":
+            if not path_parts:
+                raise ValueError("invalid youtube url")
+            vid = path_parts[0]
+            return f"https://www.youtube.com/embed/{vid}"
+        if host in ("youtube.com", "m.youtube.com", "music.youtube.com"):
+            if parsed.path == "/watch":
+                params = parse_qs(parsed.query)
+                vid = (params.get("v") or [""])[0]
+                if not vid:
+                    raise ValueError("invalid youtube url")
+                return f"https://www.youtube.com/embed/{vid}"
+            if len(path_parts) >= 2 and path_parts[0] == "embed":
+                return f"https://www.youtube.com/embed/{path_parts[1]}"
+            raise ValueError("unsupported youtube url")
+        if host in ("vimeo.com", "player.vimeo.com"):
+            vid = ""
+            if host == "player.vimeo.com":
+                if len(path_parts) >= 2 and path_parts[0] == "video":
+                    vid = path_parts[1]
+            else:
+                for part in path_parts:
+                    if part.isdigit():
+                        vid = part
+                        break
+            if not vid:
+                raise ValueError("invalid vimeo url")
+            return f"https://player.vimeo.com/video/{vid}"
+        if host in ("drive.google.com", "docs.google.com"):
+            file_id = ""
+            if "file" in path_parts and "d" in path_parts:
+                try:
+                    file_idx = path_parts.index("file")
+                    d_idx = path_parts.index("d")
+                    if d_idx == file_idx + 1 and (d_idx + 1) < len(path_parts):
+                        file_id = path_parts[d_idx + 1]
+                except ValueError:
+                    file_id = ""
+            if not file_id:
+                query = parse_qs(parsed.query)
+                file_id = (query.get("id") or [""])[0]
+            if not file_id:
+                raise ValueError("invalid google drive url")
+            return f"https://drive.google.com/file/d/{file_id}/preview"
+        raise ValueError("only YouTube, Vimeo, and Google Drive urls are supported")
+
+    def _normalize_gallery_path(self, path: str) -> tuple[str, str]:
+        clean = str(path or "").strip()
+        if clean.startswith("http://") or clean.startswith("https://"):
+            embed_url = self._normalize_external_embed_url(clean)
+            return embed_url, embed_url
+
+        media_file = self._validate_media_path(clean)
+        key = "/" + str(media_file.relative_to(ROOT)).replace("\\", "/")
+        return key, key
+
     def _handle_delete_image(self):
         data = self._read_loopback_json()
         if data is None:
@@ -572,8 +639,7 @@ class DevHandler(SimpleHTTPRequestHandler):
                 # New mixed-media format: explicit web path per item.
                 path = str(it.get("path") or "").strip()
                 if path:
-                    media_file = self._validate_media_path(path)
-                    key = str(media_file.relative_to(ROOT)).replace("\\", "/")
+                    path, key = self._normalize_gallery_path(path)
                     if key in seen:
                         raise ValueError(f"duplicate file: {path}")
                     seen.add(key)

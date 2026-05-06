@@ -636,6 +636,41 @@
             padding-top: 8px;
             flex-wrap: wrap;
         }
+        .de-gallery-url {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 320px;
+            min-width: 260px;
+        }
+        .de-gallery-url input {
+            flex: 1 1 auto;
+            min-width: 180px;
+            border: 2px solid var(--de-border);
+            background: var(--de-bg);
+            color: var(--de-dark);
+            padding: 8px 10px;
+            font-size: 0.72rem;
+            font-family: inherit;
+            outline: none;
+        }
+        .de-gallery-url input:focus { background: #fff8e6; }
+        .de-gallery-url button {
+            border: 2px solid var(--de-border);
+            background: var(--de-bg);
+            color: var(--de-dark);
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .de-gallery-url button:hover {
+            background: var(--de-dark);
+            color: var(--de-bg);
+        }
         .de-gallery-save {
             border: 2px solid var(--de-border);
             background: var(--de-accent, #f6c244);
@@ -651,6 +686,13 @@
         .de-gallery-hint {
             font-size: 0.65rem;
             color: var(--de-muted);
+        }
+        .de-gallery-tile iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            pointer-events: none;
+            background: #000;
         }
     `;
     let stylesInjected = false;
@@ -687,7 +729,6 @@
         const chipsHost = root.querySelector('.de-tags-chips');
         const input     = root.querySelector('.de-tags-input');
         const sugHost   = root.querySelector('.de-tags-suggest');
-
         let selected;
         try { selected = JSON.parse(root.dataset.initial || '[]'); } catch (_) { selected = []; }
         let suggestions;
@@ -1060,17 +1101,117 @@
         const tpl       = root.getAttribute('data-filename-template') || '';
         const uploadKind = root.getAttribute('data-upload-kind') === 'video' ? 'video' : 'image';
         const isVideo = uploadKind === 'video';
+        const isExternalUrl = (p) => /^https?:\/\//i.test(String(p || '').trim());
+        const parseExternalEmbed = (rawUrl) => {
+            const src = String(rawUrl || '').trim();
+            if (!/^https?:\/\//i.test(src)) return null;
+            let u;
+            try { u = new URL(src); } catch (_) { return null; }
+            const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+
+            if (host === 'youtu.be') {
+                const id = u.pathname.split('/').filter(Boolean)[0] || '';
+                if (!id) return null;
+                return { embedUrl: `https://www.youtube.com/embed/${id}` };
+            }
+            if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+                if (u.pathname === '/watch') {
+                    const id = u.searchParams.get('v') || '';
+                    if (!id) return null;
+                    return { embedUrl: `https://www.youtube.com/embed/${id}` };
+                }
+                const parts = u.pathname.split('/').filter(Boolean);
+                if (parts[0] === 'embed' && parts[1]) {
+                    return { embedUrl: `https://www.youtube.com/embed/${parts[1]}` };
+                }
+            }
+            if (host === 'vimeo.com' || host === 'player.vimeo.com') {
+                const parts = u.pathname.split('/').filter(Boolean);
+                let id = '';
+                if (host === 'player.vimeo.com') {
+                    id = (parts[0] === 'video' && parts[1]) ? parts[1] : '';
+                } else {
+                    id = parts.find(part => /^\d+$/.test(part)) || '';
+                }
+                if (!id) return null;
+                return { embedUrl: `https://player.vimeo.com/video/${id}` };
+            }
+            if (host === 'drive.google.com' || host === 'docs.google.com') {
+                const parts = u.pathname.split('/').filter(Boolean);
+                let id = '';
+                const fileIdx = parts.indexOf('file');
+                const dIdx = parts.indexOf('d');
+                if (fileIdx >= 0 && dIdx === fileIdx + 1 && parts[dIdx + 1]) {
+                    id = parts[dIdx + 1];
+                }
+                if (!id) id = u.searchParams.get('id') || '';
+                if (!id && parts[0] === 'uc') id = u.searchParams.get('id') || '';
+                if (!id) return null;
+                return { embedUrl: `https://drive.google.com/file/d/${id}/preview` };
+            }
+            return null;
+        };
+        const embedPlaybackUrl = (rawUrl, { showControls = false } = {}) => {
+            const base = String(rawUrl || '').trim();
+            if (!base) return '';
+            let u;
+            try { u = new URL(base); } catch (_) { return base; }
+            const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+            if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+                const parts = u.pathname.split('/').filter(Boolean);
+                const id = (parts[0] === 'embed' && parts[1]) ? parts[1] : '';
+                u.searchParams.set('autoplay', '1');
+                u.searchParams.set('mute', '1');
+                u.searchParams.set('playsinline', '1');
+                u.searchParams.set('rel', '0');
+                u.searchParams.set('modestbranding', '1');
+                u.searchParams.set('loop', '1');
+                if (id) u.searchParams.set('playlist', id);
+                u.searchParams.set('controls', showControls ? '1' : '0');
+                u.searchParams.set('iv_load_policy', '3');
+                return u.toString();
+            }
+            if (host === 'player.vimeo.com' || host === 'vimeo.com') {
+                u.searchParams.set('autoplay', '1');
+                u.searchParams.set('muted', '1');
+                u.searchParams.set('loop', '1');
+                u.searchParams.set('autopause', '0');
+                u.searchParams.set('controls', showControls ? '1' : '0');
+                u.searchParams.set('title', '0');
+                u.searchParams.set('byline', '0');
+                u.searchParams.set('portrait', '0');
+                return u.toString();
+            }
+            if (host === 'drive.google.com' || host === 'docs.google.com') {
+                u.searchParams.set('autoplay', '1');
+                return u.toString();
+            }
+            return base;
+        };
+        const normalizeWidgetPath = (rawPath) => {
+            const trimmed = String(rawPath || '').trim();
+            if (!trimmed) return '';
+            if (!isVideo) return trimmed;
+            if (!isExternalUrl(trimmed)) return trimmed;
+            const embed = parseExternalEmbed(trimmed);
+            return embed ? embed.embedUrl : trimmed;
+        };
         if (!drop || !input) return;
 
         const renderPreview = (path) => {
             if (!path) return `<div class="de-image-drop-hint">Drop ${isVideo ? 'video' : 'image'}<br>or click</div>`;
             if (isVideo) {
+                const embed = parseExternalEmbed(path);
+                if (embed) {
+                    return `<iframe aria-hidden="true" src="${escapeAttr(embedPlaybackUrl(embed.embedUrl, { showControls: false }))}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+                }
                 return `<video aria-hidden="true" src="${escapeAttr(path)}" muted playsinline preload="metadata"></video>`;
             }
             return `<img alt="" src="${escapeAttr(path)}">`;
         };
 
-        const setPath = (path) => {
+        const setPath = (rawPath) => {
+            const path = normalizeWidgetPath(rawPath);
             input.value = path || '';
             drop.innerHTML = renderPreview(path);
             if (isVideo) {
@@ -1179,6 +1320,24 @@
                     });
                 return;
             }
+            const droppedUri = (e.dataTransfer && (e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain'))) || '';
+            const droppedUrl = String(droppedUri || '').trim();
+            if (droppedUrl && /^https?:\/\//i.test(droppedUrl)) {
+                if (isVideo) {
+                    const normalized = normalizeWidgetPath(droppedUrl);
+                    const embed = parseExternalEmbed(normalized);
+                    if (embed || /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(normalized)) {
+                        setPath(normalized);
+                        setStatus('Hero video URL set · ' + normalized);
+                        return;
+                    }
+                    setStatus('Only YouTube/Vimeo or direct video URLs are supported here.', true);
+                    return;
+                }
+                setPath(droppedUrl);
+                setStatus('Image URL set · ' + droppedUrl);
+                return;
+            }
             const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
             if (f) handleFile(f);
         });
@@ -1218,16 +1377,115 @@
         const isVideoExt = (ext) => ['.mp4', '.webm', '.ogg', '.mov', '.m4v'].includes(ext);
         const kindFromName = (name) => (isVideoExt(extOf(name)) ? 'video' : 'image');
         const pathFor = (name, kind) => `${kind === 'video' ? videoBase() : imageBase()}/${name}`;
+        const isExternalUrl = (p) => /^https?:\/\//i.test(String(p || '').trim());
+        const parseExternalEmbed = (rawUrl) => {
+            const src = String(rawUrl || '').trim();
+            if (!/^https?:\/\//i.test(src)) return null;
+            let u;
+            try { u = new URL(src); } catch (_) { return null; }
+            const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+
+            if (host === 'youtu.be') {
+                const id = u.pathname.split('/').filter(Boolean)[0] || '';
+                if (!id) return null;
+                return { embedUrl: `https://www.youtube.com/embed/${id}`, name: `youtube:${id}`, kind: 'embed' };
+            }
+            if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+                if (u.pathname === '/watch') {
+                    const id = u.searchParams.get('v') || '';
+                    if (!id) return null;
+                    return { embedUrl: `https://www.youtube.com/embed/${id}`, name: `youtube:${id}`, kind: 'embed' };
+                }
+                const parts = u.pathname.split('/').filter(Boolean);
+                if (parts[0] === 'embed' && parts[1]) {
+                    const id = parts[1];
+                    return { embedUrl: `https://www.youtube.com/embed/${id}`, name: `youtube:${id}`, kind: 'embed' };
+                }
+            }
+            if (host === 'vimeo.com' || host === 'player.vimeo.com') {
+                const parts = u.pathname.split('/').filter(Boolean);
+                let id = '';
+                if (host === 'player.vimeo.com') {
+                    id = (parts[0] === 'video' && parts[1]) ? parts[1] : '';
+                } else {
+                    id = parts.find(part => /^\d+$/.test(part)) || '';
+                }
+                if (!id) return null;
+                return { embedUrl: `https://player.vimeo.com/video/${id}`, name: `vimeo:${id}`, kind: 'embed' };
+            }
+            if (host === 'drive.google.com' || host === 'docs.google.com') {
+                const parts = u.pathname.split('/').filter(Boolean);
+                let id = '';
+                const fileIdx = parts.indexOf('file');
+                const dIdx = parts.indexOf('d');
+                if (fileIdx >= 0 && dIdx === fileIdx + 1 && parts[dIdx + 1]) {
+                    id = parts[dIdx + 1];
+                }
+                if (!id) id = u.searchParams.get('id') || '';
+                if (!id && parts[0] === 'uc') id = u.searchParams.get('id') || '';
+                if (!id) return null;
+                return { embedUrl: `https://drive.google.com/file/d/${id}/preview`, name: `gdrive:${id}`, kind: 'embed' };
+            }
+            return null;
+        };
+        const embedPlaybackUrl = (rawUrl, { showControls = false } = {}) => {
+            const base = String(rawUrl || '').trim();
+            if (!base) return '';
+            let u;
+            try { u = new URL(base); } catch (_) { return base; }
+            const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+            if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com') {
+                const parts = u.pathname.split('/').filter(Boolean);
+                const id = (parts[0] === 'embed' && parts[1]) ? parts[1] : '';
+                u.searchParams.set('autoplay', '1');
+                u.searchParams.set('mute', '1');
+                u.searchParams.set('playsinline', '1');
+                u.searchParams.set('rel', '0');
+                u.searchParams.set('modestbranding', '1');
+                u.searchParams.set('loop', '1');
+                if (id) u.searchParams.set('playlist', id);
+                u.searchParams.set('controls', showControls ? '1' : '0');
+                u.searchParams.set('iv_load_policy', '3');
+                return u.toString();
+            }
+            if (host === 'player.vimeo.com' || host === 'vimeo.com') {
+                u.searchParams.set('autoplay', '1');
+                u.searchParams.set('muted', '1');
+                u.searchParams.set('loop', '1');
+                u.searchParams.set('autopause', '0');
+                u.searchParams.set('controls', showControls ? '1' : '0');
+                u.searchParams.set('title', '0');
+                u.searchParams.set('byline', '0');
+                u.searchParams.set('portrait', '0');
+                return u.toString();
+            }
+            if (host === 'drive.google.com' || host === 'docs.google.com') {
+                u.searchParams.set('autoplay', '1');
+                return u.toString();
+            }
+            return base;
+        };
         const normalizePath = (p) => {
             const s = String(p || '').trim();
+            if (!s) return '';
+            if (isExternalUrl(s)) return s;
             return s.startsWith('/') ? s : ('/' + s.replace(/^\/+/, ''));
         };
         const nameFromPath = (p) => {
+            if (isExternalUrl(p)) {
+                const embed = parseExternalEmbed(p);
+                if (embed) return embed.name;
+                return 'external-video';
+            }
             const s = normalizePath(p);
             const i = s.lastIndexOf('/');
             return i >= 0 ? s.slice(i + 1) : s;
         };
-        const kindFromPath = (p) => kindFromName(nameFromPath(p));
+        const kindFromPath = (p) => {
+            const embed = parseExternalEmbed(p);
+            if (embed) return 'embed';
+            return kindFromName(nameFromPath(p));
+        };
 
         function markDirty(d) {
             dirty = d;
@@ -1247,6 +1505,8 @@
                     <div class="de-gallery-tile-img" draggable="true" data-role="drag" title="Drag to reorder">
                         ${it.kind === 'video'
                             ? `<video muted loop playsinline preload="metadata" src="${escapeAttr(it.path)}" draggable="false"></video>`
+                            : it.kind === 'embed'
+                                ? `<iframe src="${escapeAttr(embedPlaybackUrl(it.path, { showControls: false }))}" title="Embedded video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>`
                             : `<img alt="" src="${escapeAttr(it.path)}" draggable="false">`}
                     </div>
                     <span class="de-gallery-tile-name" title="${escapeAttr(it.name)}">${escapeHtml(it.name)}</span>
@@ -1312,7 +1572,7 @@
 
         async function deleteImage(name, path) {
             const normalizedPath = normalizePath(path);
-            queueDelete(normalizedPath);
+            if (normalizedPath.startsWith('/')) queueDelete(normalizedPath);
             items = items.filter(it => it.path !== normalizedPath);
             renderTiles();
             markDirty(true);
@@ -1373,8 +1633,46 @@
         if (!root.querySelector('.de-gallery-actions')) {
             const bar = document.createElement('div');
             bar.className = 'de-gallery-actions';
-            bar.innerHTML = `<span class="de-gallery-hint">Drag tiles to reorder · type captions inline · click × to remove · saved with the project</span>`;
+            bar.innerHTML = `
+                <div class="de-gallery-url">
+                    <input type="url" data-role="embed-url" placeholder="Paste YouTube/Vimeo URL and click Add URL">
+                    <button type="button" data-role="add-url">Add URL</button>
+                </div>
+                <span class="de-gallery-hint">Drag tiles to reorder · type captions inline · click × to remove · saved with the project</span>
+            `;
             root.appendChild(bar);
+            const urlInput = bar.querySelector('[data-role="embed-url"]');
+            const addUrlBtn = bar.querySelector('[data-role="add-url"]');
+            const addUrl = () => {
+                const raw = urlInput ? String(urlInput.value || '').trim() : '';
+                if (!raw) {
+                    setStatus('Paste a YouTube or Vimeo URL first.', true);
+                    return;
+                }
+                const embed = parseExternalEmbed(raw);
+                if (!embed) {
+                    setStatus('Only YouTube/Vimeo URLs are supported for embeds.', true);
+                    return;
+                }
+                const path = embed.embedUrl;
+                if (items.some(it => it.path === path)) {
+                    setStatus('This URL is already in the gallery.', true);
+                    return;
+                }
+                items.push({ path, name: embed.name, kind: 'embed', caption: '' });
+                markDirty(true);
+                renderTiles();
+                if (urlInput) urlInput.value = '';
+                setStatus('Added embedded video URL.');
+            };
+            if (addUrlBtn) addUrlBtn.addEventListener('click', addUrl);
+            if (urlInput) {
+                urlInput.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter') return;
+                    e.preventDefault();
+                    addUrl();
+                });
+            }
         }
 
         const refresh = async () => {
@@ -1471,6 +1769,7 @@
                 }
                 const beforePrune = items.length;
                 items = items.filter(it => {
+                    if (it.kind === 'embed') return true;
                     if (it.kind === 'video' && videoManifestKnown) return videoOnDisk.has(it.path);
                     if (it.kind === 'image' && imageManifestKnown) return imageOnDisk.has(it.path);
                     return true;
