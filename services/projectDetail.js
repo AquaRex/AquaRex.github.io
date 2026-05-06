@@ -208,6 +208,8 @@
         const tagsHtml = tags.length
             ? `<div class="pd-tags">${tags.map(t => `<span class="pd-tag">${esc(t)}</span>`).join('')}</div>`
             : '<p style="color:var(--muted);font-size:0.8rem;">No tags</p>';
+        const backUrl = detailBackUrl();
+        const backLabel = backUrl === '/cv/' ? 'Back to CV' : 'All Projects';
 
         // Sibling projects (within same group)
         const siblings = (group.projects || []).filter(p =>
@@ -300,7 +302,7 @@
                 <nav class="cv3-nav">
                     <div class="cv3-nav-left">THOMAS HETLAND <span style="opacity:0.5">/ ${companyName.toUpperCase()} / ${name}</span></div>
                     <div class="cv3-nav-right">
-                        <a href="/projects/" class="cv3-nav-back" title="All Projects" aria-label="All Projects">
+                        <a href="${esc(backUrl)}" class="cv3-nav-back" title="${esc(backLabel)}" aria-label="${esc(backLabel)}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <line x1="19" y1="12" x2="5" y2="12"/>
                                 <polyline points="12 19 5 12 12 5"/>
@@ -587,7 +589,20 @@
     function projectDetailUrlFor(company, project) {
         const cSlug = slugify(company);
         const pSlug = slugify(project.name);
-        return `/projects/${cSlug}/${pSlug}/`;
+        const from = detailSource();
+        const suffix = from === 'cv' ? '?from=cv' : '';
+        return `/projects/${cSlug}/${pSlug}/${suffix}`;
+    }
+
+    function detailSource() {
+        const qs = new URLSearchParams(window.location.search || '');
+        return (qs.get('from') || '').toLowerCase();
+    }
+
+    function detailBackUrl() {
+        const from = detailSource();
+        if (from === 'cv') return '/cv/';
+        return '/projects/';
     }
 
     if (document.readyState === 'loading') {

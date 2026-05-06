@@ -954,7 +954,7 @@
                 const showOnCard = !!(p.link && p.link.showOnCard);
                 const tags     = p.tags || [];
                 const detailUrl = (companySlug && p.name)
-                    ? `/projects/${companySlug}/${projectDetailSlug(p.name)}/`
+                    ? `/projects/${companySlug}/${projectDetailSlug(p.name)}/?from=cv`
                     : '';
                 const tagsHtml = `<div class="cv3-project-tags" data-edit-list="${basePath}.tags">${tags.map((t, ti) => `<span class="cv3-project-tag" data-edit-item="${basePath}.tags.${ti}"><span class="cv3-project-tag-text" data-edit-path="${basePath}.tags.${ti}">${escapeHtml(t)}</span></span>`).join('')}</div>`;
                 const cardBtnHtml = (showOnCard && linkUrl)
