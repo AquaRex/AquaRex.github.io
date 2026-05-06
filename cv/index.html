@@ -709,125 +709,6 @@
             color: var(--bg);
         }
 
-        /* ===== POPUP OVERLAY ===== */
-        .cv3-popup-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: flex-start; justify-content: center;
-            overflow-y: auto;
-            padding: var(--sp-8) var(--sp-5);
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.25s;
-        }
-        .cv3-popup-overlay.active {
-            opacity: 1; pointer-events: auto;
-        }
-        .cv3-popup {
-            background: var(--surface);
-            border: 2px solid var(--border);
-            max-width: 1500px; width: 100%;
-            position: relative;
-            transform: translateY(20px);
-            transition: transform 0.25s;
-            margin: auto;
-        }
-        .cv3-popup-overlay.active .cv3-popup {
-            transform: translateY(0);
-        }
-        .cv3-popup-close {
-            position: absolute; top: var(--sp-3); right: var(--sp-3);
-            width: 32px; height: 32px;
-            border: 2px solid var(--border);
-            background: var(--dark);
-            color: var(--bg);
-            font-size: 0.8rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 2; transition: opacity 0.2s;
-        }
-        .cv3-popup-close:hover,
-        .cv3-popup-close.is-hovered { opacity: 0.7; }
-        .cv3-popup-content {
-            display: flex;
-        }
-        .cv3-popup-image {
-            flex: 0 0 auto;
-            width: auto;
-            height: 600px;
-            aspect-ratio: 16 / 9;
-            border-right: 2px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            background: color-mix(in srgb, var(--border) 5%, transparent);
-            overflow: hidden;
-        }
-        .cv3-popup-image img {
-            width: 100%; height: 100%; object-fit: contain;
-        }
-        .cv3-popup-image-ph {
-            font-size: 0.62rem; letter-spacing: 2px;
-            font-weight: 700; color: var(--muted);
-        }
-        .cv3-popup-details {
-            flex: 1; padding: var(--sp-7);
-        }
-        .cv3-popup-org-logo {
-            max-width: 140px; margin-bottom: var(--sp-4);
-        }
-        .cv3-popup-org-logo img {
-            width: 100%; height: auto;
-        }
-        .cv3-popup-title {
-            font-size: 1.3rem; font-weight: 900;
-            letter-spacing: 0.5px; margin-bottom: 4px;
-        }
-        .cv3-popup-date {
-            font-size: 0.68rem; font-weight: 700;
-            letter-spacing: 2px; color: var(--muted);
-            text-transform: uppercase;
-            display: block; margin-bottom: var(--sp-4);
-        }
-        .cv3-popup-desc {
-            font-size: 0.87rem; line-height: 1.8;
-            color: var(--text);
-        }
-        .cv3-popup-link-btn {
-            display: inline-block;
-            margin-top: var(--sp-5);
-            padding: var(--sp-3) var(--sp-5);
-            background: var(--dark);
-            color: var(--bg);
-            border: 2px solid var(--border);
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            text-decoration: none;
-            transition: opacity 0.2s, background 0.2s;
-        }
-        .cv3-popup-link-btn:hover,
-        .cv3-popup-link-btn.is-hovered {
-            background: var(--accent-color, var(--dark));
-            color: var(--dark);
-        }
-        .cv3-popup-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--sp-3);
-            align-items: center;
-        }
-        .cv3-popup-actions .cv3-popup-link-btn { margin-top: var(--sp-5); }
-        .cv3-popup-readmore {
-            background: transparent;
-            color: var(--text);
-        }
-        .cv3-popup-readmore:hover,
-        .cv3-popup-readmore.is-hovered {
-            background: var(--dark);
-            color: var(--bg);
-        }
         .cv3-project-link-edit {
             display: flex; flex-direction: column; gap: 4px;
             margin-top: var(--sp-3);
@@ -882,8 +763,6 @@
             .cv3-outer { padding: var(--sp-4); }
             .cv3-field-date-col { width: 90px; }
             .cv3-hero-name { font-size: 2rem; }
-            .cv3-popup-content { flex-direction: column; }
-            .cv3-popup-image { flex: none; min-height: 260px; border-right: none; border-bottom: 2px solid var(--border); }
         }
     </style>
 </head>
@@ -892,30 +771,6 @@
     <div id="cv3NavShadowLayer" aria-hidden="true"></div>
     <div id="cv3ShadowLayer" aria-hidden="true"></div>
     <div id="cv3RenderRoot">
-
-    <!-- ===== POPUP ===== -->
-    <div class="cv3-popup-overlay" id="cv3PopupOverlay">
-        <div class="cv3-popup">
-            <button class="cv3-popup-close" id="cv3PopupClose" aria-label="Close">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="cv3-popup-content">
-                <div class="cv3-popup-image" id="cv3PopupImage">
-                    <span class="cv3-popup-image-ph">IMAGE</span>
-                </div>
-                <div class="cv3-popup-details">
-                    <div class="cv3-popup-org-logo" id="cv3PopupOrgLogo"></div>
-                    <h3 class="cv3-popup-title" id="cv3PopupTitle"></h3>
-                    <span class="cv3-popup-date" id="cv3PopupDate"></span>
-                    <p class="cv3-popup-desc" id="cv3PopupDesc"></p>
-                    <div class="cv3-popup-actions">
-                        <a class="cv3-popup-link-btn cv3-popup-readmore" id="cv3PopupReadMore" style="display:none">Read more</a>
-                        <a class="cv3-popup-link-btn" id="cv3PopupLink" target="_blank" rel="noopener noreferrer" style="display:none"></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- ===== PAGE ===== -->
     <div class="cv3-outer">
@@ -1118,7 +973,10 @@
                              data-link-label="${linkLabel}"
                              data-link-url="${linkUrl}"
                              data-company="${company}"
-                             data-detail-url="${escapeHtml(detailUrl)}">
+                             data-detail-url="${escapeHtml(detailUrl)}"
+                             role="link"
+                             tabindex="0"
+                             aria-label="Open project details: ${name}">
                     <div class="cv3-project-thumb">
                         ${img
                             ? `<img src="${img}" alt="${name}">`
@@ -1314,6 +1172,15 @@
         }
         window.renderCv3 = renderCv3;
 
+        function navigateToProjectDetail(project) {
+            if (!project) return;
+            const detailUrl = (project.dataset.detailUrl || '').trim();
+            if (!detailUrl) return;
+            if (detailUrl.startsWith('/') || detailUrl.startsWith('http://') || detailUrl.startsWith('https://')) {
+                window.location.href = detailUrl;
+            }
+        }
+
         function bindProjectHoverVideos() {
             document.querySelectorAll('.cv3-project.has-hover-video').forEach(card => {
                 const video = card.querySelector('.cv3-project-thumb-video');
@@ -1331,97 +1198,32 @@
             });
         }
 
-        /* ===== POPUP ===== */
-        let currentPopupEl = null;
-
-        function openPopup(el) {
-            currentPopupEl = el;
-            document.getElementById('cv3PopupTitle').textContent = el.dataset.title || '';
-            document.getElementById('cv3PopupDate').textContent  = el.dataset.date  || '';
-            document.getElementById('cv3PopupDesc').textContent  = el.dataset.desc  || '';
-
-            const imgEl = document.getElementById('cv3PopupImage');
-            imgEl.innerHTML = el.dataset.img
-                ? `<img src="${escapeHtml(el.dataset.img)}" alt="${escapeHtml(el.dataset.title || '')}">`
-                : '<span class="cv3-popup-image-ph">IMAGE</span>';
-
-            const logoEl = document.getElementById('cv3PopupOrgLogo');
-            logoEl.innerHTML = el.dataset.orgLogo
-                ? `<img src="${escapeHtml(el.dataset.orgLogo)}" alt="${escapeHtml(el.dataset.orgLogoAlt || '')}" style="max-width:140px;height:auto;">`
-                : '';
-
-            const linkEl = document.getElementById('cv3PopupLink');
-            const linkUrl = (el.dataset.linkUrl || '').trim();
-            const linkLabel = (el.dataset.linkLabel || '').trim();
-            if (linkUrl) {
-                linkEl.href = linkUrl;
-                linkEl.textContent = linkLabel || 'Visit project';
-                linkEl.style.display = '';
-            } else {
-                linkEl.removeAttribute('href');
-                linkEl.textContent = '';
-                linkEl.style.display = 'none';
-            }
-
-            const readMoreEl = document.getElementById('cv3PopupReadMore');
-            const detailUrl = (el.dataset.detailUrl || '').trim();
-            if (readMoreEl) {
-                if (detailUrl) {
-                    readMoreEl.href = detailUrl;
-                    readMoreEl.style.display = '';
-                } else {
-                    readMoreEl.removeAttribute('href');
-                    readMoreEl.style.display = 'none';
-                }
-            }
-
-            document.getElementById('cv3PopupOverlay').classList.add('active');
-        }
-
-        function closePopup() {
-            currentPopupEl = null;
-            document.getElementById('cv3PopupOverlay').classList.remove('active');
-        }
-
-        function navigatePopup(dir) {
-            if (!currentPopupEl) return;
-            const all = Array.from(document.querySelectorAll('.cv3-project'));
-            const idx = all.indexOf(currentPopupEl);
-            if (idx === -1 || all.length < 2) return;
-            const next = all[(idx + dir + all.length) % all.length];
-            openPopup(next);
-        }
-
         /* ===== INIT ===== */
         document.addEventListener('DOMContentLoaded', () => {
             renderCv3();
 
             /* Click delegation */
             document.addEventListener('click', e => {
-                /* Skip project popup while editing */
-                if (document.body.classList.contains('cv-edit-mode')) {
-                    const overlay = document.getElementById('cv3PopupOverlay');
-                    if (e.target === overlay || e.target.closest('#cv3PopupClose')) closePopup();
-                    return;
-                }
+                /* Keep card clicks available for editors while in edit mode */
+                if (document.body.classList.contains('cv-edit-mode')) return;
+
                 const project = e.target.closest('.cv3-project');
                 if (project) {
                     /* let the on-card link button navigate normally */
                     if (e.target.closest('.cv3-project-link-btn')) return;
-                    openPopup(project);
+                    navigateToProjectDetail(project);
                     return;
                 }
-
-                const overlay = document.getElementById('cv3PopupOverlay');
-                if (e.target === overlay || e.target.closest('#cv3PopupClose')) closePopup();
             });
 
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') { closePopup(); return; }
-                const overlay = document.getElementById('cv3PopupOverlay');
-                if (!overlay.classList.contains('active')) return;
-                if (e.key === 'ArrowRight') { e.preventDefault(); navigatePopup(1); }
-                else if (e.key === 'ArrowLeft') { e.preventDefault(); navigatePopup(-1); }
+            document.addEventListener('keydown', (e) => {
+                if (document.body.classList.contains('cv-edit-mode')) return;
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const project = e.target.closest('.cv3-project');
+                if (!project) return;
+                if (e.target.closest('.cv3-project-link-btn')) return;
+                e.preventDefault();
+                navigateToProjectDetail(project);
             });
 
             /* Keyboard shortcut for color configurator */
