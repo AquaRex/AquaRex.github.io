@@ -23,7 +23,7 @@ window.PROJECTS_DATA = [
         "name": "Crane Simulator",
         "summary": "A complex and highly realistic internal overhead crane simulator with a custom grayscale-shaded environment so objective objects and the crane itself pop out.",
         "popupDescription": "A complex and highly realistic overhead crane simulator with a custom environment shaded in grayscale so that objective objects and the crane itself pops out. Featuring easily customizable courses and loads. The crane can be easily modified and have many customizable parameters, featuring complex crane features for realistic training scenarios. \nI also designed, modelled and textured a custom \"Nagelld\" crane hoist for better visual quality and detail.",
-        "image": "/assets/images/projects/nagelld_cranesimulator/customHoist05.png",
+        "image": "/assets/images/projects/nagelld_cranesimulator/hero/nagelld_cranesimulator.png",
         "tags": [
             "Unity",
             "C#",
@@ -31,12 +31,13 @@ window.PROJECTS_DATA = [
             "Mobile",
             "Blender",
             "Substance Painter"
-        ]
+        ],
+        "heroVideo": "https://pub-329e3bd197cd4a0dbe81fadc30cc032a.r2.dev/CraneSimulator.mov"
     },
     {
         "company": "Nagelld",
         "name": "Boat Simulator",
-        "summary": "Solo-developed boat simulator with realistic physics, multi-user crew, and modular boats for varied weather scenarios.",
+        "summary": "Solo-developed boat simulator with realistic physics, multi-user crew, and modular boats in varied weather scenarios.",
         "popupDescription": "I was the solo developer behind this Boat Simulator. The boat simulator features a highly realistic and detailed physics engine simulating accurate boat physics, and realistic crane physics for lowering the boat by davit. Multiple users can walk around freely on the boat while driving and need to work and communicate together to problem-solve and exercise in various waves, wind and weather conditions. The simulator is modular allowing you to swap out boats and setup custom scenarios quickly.",
         "image": "/assets/images/projects/nagelld_boatsimulator/hero/nagelld_boatsimulator.jpeg",
         "tags": [
@@ -124,10 +125,11 @@ window.PROJECTS_DATA = [
         "heroVideo": "",
         "tags": [
             "Blueprint",
-            "Unreal Engine"
+            "Unreal Engine",
+            "Shaders"
         ],
-        "summary": "Short Summary",
-        "popupDescription": "Long Summary",
+        "summary": "An Interactive Application showcasing AkvaGroup's Nautilus submersible fish-farm system with realistic underwater shader with clean and user-friendly interface for expo showcase on touchscreens.",
+        "popupDescription": "An Interactive Application showcasing AkvaGroup's Nautilus submersible fish-farm system with realistic underwater shader or unlit view featuring clear graphics for more technical inspections. \nThe User-Interface and User-Experience is optimized for touchscreens and ease of use for people at expos to interact with on a large tv touchscreen. \n\nA radial menu provides shortcut access to Points placed around the model which moves the camera into customizable viewing angles with information popups for what you are looking at.\n\nThis software was the precursor for the Interactive Application software developed later in Unity. This was less flexible and was developed for visuals first, rather than optimized for mobile. ",
         "showOnCv": false
     },
 
