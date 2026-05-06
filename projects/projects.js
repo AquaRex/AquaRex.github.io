@@ -48,6 +48,21 @@ window.PROJECTS_DATA = [
     },
     {
         "company": "Nagelld",
+        "name": "Boat Simulator Quest",
+        "summary": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware.",
+        "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.",
+        "image": "/assets/images/projects/nagelld_boatsimulatorquest/hero/nagelld_boatsimulatorquest.jpeg",
+        "tags": [
+            "Unity",
+            "C#",
+            "VR / XR",
+            "Networking",
+            "Mobile"
+        ],
+        "heroVideo": ""
+    },
+    {
+        "company": "Nagelld",
         "name": "Fire Fighting Experiment",
         "summary": "Short internal VR experiment for extinguishing fires in low-visibility, smoke-filled environments.",
         "popupDescription": "A short, internal unfinished experiment for a VR fire-fighting experience where the user extinguishes fires and navigates various low visibility, smoke-filled environments.",
@@ -70,20 +85,6 @@ window.PROJECTS_DATA = [
             "Mobile"
         ],
         "heroVideo": "/assets/videos/projects/nagelld_interactiveapplication/hero/nagelld_interactiveapplication.mp4"
-    },
-    {
-        "company": "Nagelld",
-        "name": "Boat Simulator Quest",
-        "summary": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware.",
-        "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.",
-        "image": "/assets/images/projects/nagelld_boatsimulatorquest/nagelld_boatsimquest.jpeg",
-        "tags": [
-            "Unity",
-            "C#",
-            "VR / XR",
-            "Networking",
-            "Mobile"
-        ]
     },
     {
         "company": "Nagelld",

@@ -1,22 +1,78 @@
 [
   {
-    "name": "nagelld_boatsimquest.jpeg",
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_WeatherPanel.png",
+    "caption": "Weather Panel, for adjusting weather in real-time"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_DavitPanel.png",
+    "caption": "Instructor can override davit controls directly from a panel"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_BoatPanel_POV.png",
+    "caption": "Instructor can override boat systems directly from a panel"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_BoatPanel.png",
     "caption": ""
   },
   {
-    "name": "SCR-20260425-bbix.png",
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_Instruments.png",
     "caption": ""
   },
   {
-    "name": "SCR-20260425-bbya.png",
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_BoatTechnical.png",
     "caption": ""
   },
   {
-    "name": "SCR-20260425-bclx.png",
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_Hook.png",
     "caption": ""
   },
   {
-    "name": "SCR-20260425-bdac.png",
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_HideOcean.png",
+    "caption": "Hide ocean to see underneath boat and waterjet parts"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_SeeThrough.png",
+    "caption": "Toggle see-through to see internal components and how they work"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_Wake.png",
     "caption": ""
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_EditModeMove.png",
+    "caption": "Instructor has full motion editing mode, setup scenarios in real-time with VR players onboard and move the boat to the position or rotation you want the scenario to start from"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_EditModeRotate.png",
+    "caption": "Instructor has full motion editing mode, setup scenarios in real-time with VR players onboard and move the boat to the position or rotation you want the scenario to start from"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_POV.png",
+    "caption": "See multiple POVs from different cameras in the simulation, including VR players if any are connected"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_Map.png",
+    "caption": "Fullscreen map for planning and analysis"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_Map_SearchPattern.png",
+    "caption": "You can place markers in the ocean and create configurable search-patterns, and even toggle if it should be visible to the trainees in VR"
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_SearchPattern.png",
+    "caption": ""
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_SearchPattern_POV.png",
+    "caption": ""
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/BoatSimQuest_Night.png",
+    "caption": ""
+  },
+  {
+    "path": "/assets/images/projects/nagelld_boatsimulatorquest/SCR-20260425-bdac.png",
+    "caption": "Train on deploying the boat from the davit in various weather conditions and mothership situations"
   }
 ]

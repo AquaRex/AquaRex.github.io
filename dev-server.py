@@ -491,12 +491,14 @@ class DevHandler(SimpleHTTPRequestHandler):
             items_in = data.get("items")
             if not isinstance(items_in, list):
                 raise ValueError("items must be a list")
-            existing_images = {
-                p.name for p in folder.iterdir()
-                if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS
-            }
+            existing_images = set()
+            if folder.is_dir():
+                existing_images = {
+                    p.name for p in folder.iterdir()
+                    if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS
+                }
             existing_videos = set()
-            if video_folder:
+            if video_folder and video_folder.is_dir():
                 existing_videos = {
                     p.name for p in video_folder.iterdir()
                     if p.is_file() and p.suffix.lower() in VIDEO_EXTENSIONS
@@ -537,6 +539,7 @@ class DevHandler(SimpleHTTPRequestHandler):
                 if len(caption) > 500:
                     raise ValueError("caption too long")
                 cleaned.append({"path": path, "caption": caption})
+            folder.mkdir(parents=True, exist_ok=True)
             (folder / "gallery.json").write_text(
                 json.dumps(cleaned, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",

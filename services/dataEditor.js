@@ -1181,6 +1181,7 @@
         // In-memory model: [{ path, name, caption, kind }] in display order.
         let items = [];
         let dirty = false;
+        let pendingDeletes = [];
 
         const dirBase = (dir) => '/' + String(dir || '').replace(/^\/+/, '').replace(/\/$/, '');
         const imageBase = () => dirBase(targetDir);
@@ -1205,6 +1206,12 @@
 
         function markDirty(d) {
             dirty = d;
+        }
+
+        function queueDelete(path) {
+            const normalized = normalizePath(path);
+            if (!normalized) return;
+            if (!pendingDeletes.includes(normalized)) pendingDeletes.push(normalized);
         }
 
         function renderTiles() {
@@ -1279,24 +1286,30 @@
         }
 
         async function deleteImage(name, path) {
-            setStatus(`Deleting ${name}…`);
-            try {
-                const normalizedPath = normalizePath(path);
-                await deleteMediaPath(normalizedPath);
-                items = items.filter(it => it.path !== normalizedPath);
-                renderTiles();
-                await saveOrder();
-                setStatus(`Removed ${name}.`);
-            } catch (err) {
-                const message = err && err.message ? err.message : String(err);
-                if (/file not found/i.test(message)) {
-                    items = items.filter(it => it.path !== normalizePath(path));
-                    renderTiles();
-                    await saveOrder();
-                    setStatus(`Removed stale entry for ${name}.`);
-                    return;
+            const normalizedPath = normalizePath(path);
+            queueDelete(normalizedPath);
+            items = items.filter(it => it.path !== normalizedPath);
+            renderTiles();
+            markDirty(true);
+            setStatus(`Marked ${name} for removal. Save to apply changes.`);
+        }
+
+        async function flushDeletes() {
+            if (!pendingDeletes.length) return;
+            const remaining = [];
+            for (const path of pendingDeletes) {
+                try {
+                    await deleteMediaPath(path);
+                } catch (err) {
+                    const message = err && err.message ? err.message : String(err);
+                    if (!/file not found/i.test(message)) {
+                        remaining.push(path);
+                    }
                 }
-                setStatus(message, true);
+            }
+            pendingDeletes = remaining;
+            if (pendingDeletes.length) {
+                throw new Error('Some files could not be deleted.');
             }
         }
 
@@ -1322,6 +1335,7 @@
                 setStatus('Gallery save failed: ' + msg, true);
                 throw new Error('gallery save: ' + msg);
             }
+            await flushDeletes();
             markDirty(false);
             setStatus('Gallery saved.');
         }
@@ -1340,6 +1354,7 @@
 
         const refresh = async () => {
             items = [];
+            pendingDeletes = [];
             grid.innerHTML = '';
             if (!targetDir) return;
             const base = imageBase();

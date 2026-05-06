@@ -14,6 +14,52 @@
     if (!DE || !DE.IS_LOCAL) return;
     DE.injectStyles();
 
+    const EXTRA_CSS = `
+        .de-project-controls {
+            position: absolute;
+            top: var(--sp-3, 12px);
+            right: var(--sp-3, 12px);
+            z-index: 6;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            opacity: 0;
+        }
+        .de-edit-host:hover > .de-project-controls,
+        .de-project-controls:focus-within {
+            opacity: 1;
+        }
+        .de-order-btn {
+            min-width: 42px;
+            padding: 6px 10px;
+            background: var(--de-bg, #fff);
+            color: var(--de-dark, #111);
+            border: 2px solid var(--de-border, #111);
+            border-radius: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .de-order-btn:hover {
+            background: var(--de-dark, #111);
+            color: var(--de-bg, #fff);
+        }
+        body:not(.de-edit-mode) .de-project-controls {
+            display: none !important;
+        }
+    `;
+    let extraStylesInjected = false;
+    function injectProjectEditorStyles() {
+        if (extraStylesInjected) return;
+        extraStylesInjected = true;
+        const style = document.createElement('style');
+        style.setAttribute('data-project-editor-styles', 'true');
+        style.textContent = EXTRA_CSS;
+        document.head.appendChild(style);
+    }
+
     /* ---------- find a PROJECTS_DATA entry ---------- */
     function findEntry(company, name) {
         const data = window.PROJECTS_DATA || [];
@@ -32,6 +78,33 @@
             (p.tags || []).forEach(t => { if (t) set.add(String(t).trim()); });
         });
         return [...set].sort((a, b) => a.localeCompare(b));
+    }
+
+    function entryKey(entry) {
+        return `${String(entry.company || '').toLowerCase()}::${String(entry.name || '').toLowerCase()}`;
+    }
+
+    function moveProject(entry, direction) {
+        const data = window.PROJECTS_DATA || [];
+        const currentIndex = data.indexOf(entry);
+        if (currentIndex < 0) return false;
+        const companyKey = String(entry.company || '').toLowerCase();
+        const step = direction < 0 ? -1 : 1;
+        let swapIndex = currentIndex + step;
+        while (swapIndex >= 0 && swapIndex < data.length) {
+            const candidate = data[swapIndex];
+            if (String(candidate.company || '').toLowerCase() === companyKey) {
+                [data[currentIndex], data[swapIndex]] = [data[swapIndex], data[currentIndex]];
+                return true;
+            }
+            swapIndex += step;
+        }
+        return false;
+    }
+
+    async function persistProjectOrder() {
+        await DE.saveJson('/__save', { projects: window.PROJECTS_DATA });
+        location.reload();
     }
 
     /* ---------- match the slug rule used by projectDetail.js ---------- */
@@ -242,8 +315,10 @@
     /* ---------- attach "Edit" pill to gallery cards ---------- */
     function attachGalleryButtons() {
         document.querySelectorAll('a.cv3-project[data-name][data-company]').forEach(card => {
-            if (card.querySelector('.de-edit-btn')) return;
+            if (card.querySelector('.de-project-controls')) return;
             card.classList.add('de-edit-host');
+            const controls = document.createElement('div');
+            controls.className = 'de-project-controls';
             const btn = DE.makeEditButton({
                 onClick: () => {
                     const company = card.getAttribute('data-company');
@@ -256,7 +331,38 @@
                     editProject(entry);
                 },
             });
-            card.appendChild(btn);
+            const moveUp = document.createElement('button');
+            moveUp.type = 'button';
+            moveUp.className = 'de-order-btn';
+            moveUp.title = 'Move project up';
+            moveUp.setAttribute('aria-label', 'Move project up');
+            moveUp.textContent = '↑';
+            moveUp.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const entry = findEntry(card.getAttribute('data-company'), card.getAttribute('data-name'));
+                if (!entry || !moveProject(entry, -1)) return;
+                await persistProjectOrder();
+            });
+
+            const moveDown = document.createElement('button');
+            moveDown.type = 'button';
+            moveDown.className = 'de-order-btn';
+            moveDown.title = 'Move project down';
+            moveDown.setAttribute('aria-label', 'Move project down');
+            moveDown.textContent = '↓';
+            moveDown.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const entry = findEntry(card.getAttribute('data-company'), card.getAttribute('data-name'));
+                if (!entry || !moveProject(entry, 1)) return;
+                await persistProjectOrder();
+            });
+
+            controls.appendChild(btn);
+            controls.appendChild(moveUp);
+            controls.appendChild(moveDown);
+            card.appendChild(controls);
         });
     }
 
@@ -303,6 +409,7 @@
     }
     function init() {
         if (!window.PROJECTS_DATA) return;
+        injectProjectEditorStyles();
         ensureToggle();
         ensureAddButton();
         attachGalleryButtons();
