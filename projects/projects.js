@@ -244,6 +244,21 @@ window.PROJECTS_DATA = [
             "label": "Browse",
             "showOnCard": true
         }
+    },
+    {
+        "name": "Sameieboden",
+        "company": "Side-Projects",
+        "status": "Development",
+        "image": "/assets/images/projects/sideprojects_sameieboden/hero/sideprojects_sameieboden.png",
+        "heroVideo": "",
+        "tags": [
+            "SQL",
+            "WEB",
+            "Javascript"
+        ],
+        "summary": "A website made for the owners association where I live. The page was originally meant to just track what we had in our shared shed, but expanded to track usage, reservations and more. A webApp was also made for phones and computers to install it natively, with offline support. ",
+        "popupDescription": "A website made for the owners association where I live. The page was originally meant to just track what we had in our shared shed, but expanded to track who was using what and when, and allow for reservations. A webApp was also made for phones and computers to install it natively, with offline support. \n\nLater, and really for a bit of experimentation I added a Calendar to track when someone had reserved something, but got an idea to allow anyone to create an event so others could see. For example if there was a \"dugnad\" it would be included in that calendar. \n\nWe also had a facebook messenger group, but sometimes I found it difficult to place who lived in which unit, and then add them on facebook or find their phone number if i wanted to talk to them directly, so instead I got the idea for a chat window where you use your house number to communicate with another house number. So It's relatively anonymous and you only need to know their house number to give them a heads-up. I also added the ability for everyone to talk in a global all-chat for general purpose information. \n\nThe idea for the design came from an idea that this should be homely, and cozy instead of professional looking, so i took inspiration from Nintendo's Animal Crossing. With some nice and toony animations and an easy to navigate user experience. ",
+        "showOnCv": false
     }
 ];
 
