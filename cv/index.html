@@ -426,8 +426,22 @@
             max-width: 130px;
             margin-bottom: var(--sp-3);
         }
-        .cv3-field-logo img {
+        .cv3-field-logo img,
+        .cv3-field-logo-text,
+        .cv3-field-logo-placeholder {
             width: 100%; height: auto;
+        }
+        .cv3-field-logo-light {
+            display: block;
+        }
+        body.dark-mode .cv3-field-logo-light {
+            display: none;
+        }
+        .cv3-field-logo-dark {
+            display: none;
+        }
+        body.dark-mode .cv3-field-logo-dark {
+            display: block;
         }
         .cv3-field-logo-text {
             display: inline-block;
@@ -436,12 +450,6 @@
             letter-spacing: 4px;
             text-transform: uppercase;
             color: var(--muted);
-        }
-            font-size: 0.62rem; font-weight: 700;
-            letter-spacing: 2px; text-transform: uppercase;
-            border: 2px solid var(--border);
-            padding: var(--sp-1) var(--sp-3);
-            display: inline-block;
         }
         .cv3-field-title {
             font-size: 1rem; font-weight: 700;
@@ -915,18 +923,31 @@
             const s = String(src).trim();
             return s.includes('/') || /^https?:/i.test(s) || /^data:/i.test(s);
         }
-        function renderLogo(logo) {
-            if (!logo) return '';
-            if (logo.src) {
-                if (isLogoPath(logo.src)) {
-                    return `<img src="${escapeHtml(logo.src)}" alt="${escapeHtml(logo.alt || '')}">`;
-                }
-                return `<span class="cv3-field-logo-text">${escapeHtml(logo.src)}</span>`;
+        function renderLogo(logo, logoDark) {
+            if (!logo && !logoDark) return '';
+            let html = '';
+            
+            // Render light mode logo
+            if (logo) {
+                if (logo.src) {
+                    if (isLogoPath(logo.src)) {
+                        html += `<img class="cv3-field-logo-img cv3-field-logo-light" src="${escapeHtml(logo.src)}" alt="${escapeHtml(logo.alt || '')}">`;                    } else {
+                        html += `<span class="cv3-field-logo-text cv3-field-logo-light">${escapeHtml(logo.src)}</span>`;                    }
+                } else if (logo.placeholder) {
+                    html += `<span class="cv3-field-logo-placeholder cv3-field-logo-light">${escapeHtml(String(logo.placeholder).toUpperCase())}</span>`;                }
             }
-            if (logo.placeholder) {
-                return `<span class="cv3-field-logo-placeholder">${escapeHtml(String(logo.placeholder).toUpperCase())}</span>`;
+            
+            // Render dark mode logo
+            if (logoDark) {
+                if (logoDark.src) {
+                    if (isLogoPath(logoDark.src)) {
+                        html += `<img class="cv3-field-logo-img cv3-field-logo-dark" src="${escapeHtml(logoDark.src)}" alt="${escapeHtml(logoDark.alt || '')}">`;                    } else {
+                        html += `<span class="cv3-field-logo-text cv3-field-logo-dark">${escapeHtml(logoDark.src)}</span>`;                    }
+                } else if (logoDark.placeholder) {
+                    html += `<span class="cv3-field-logo-placeholder cv3-field-logo-dark">${escapeHtml(String(logoDark.placeholder).toUpperCase())}</span>`;                }
             }
-            return '';
+            
+            return html;
         }
 
         function projectDetailSlug(s) {
@@ -1027,7 +1048,7 @@
                 ? `<p class="cv3-field-desc" data-edit-path="${path}.description" data-edit-type="multiline-array">${rawDesc.map(escapeHtml).join('<br>')}</p>`
                 : `<p class="cv3-field-desc" data-edit-path="${path}.description" data-edit-type="multiline">${escapeHtml(rawDesc)}</p>`;
             const rawDate      = item.date || '';
-            const logoHtml     = renderLogo(item.logo);
+            const logoHtml     = renderLogo(item.logo, item.logoDark);
             const projectsHtml = item.projects !== undefined ? renderProjects(item.projects || [], item.logo, path, item.org || item.title || '') : '';
             const titleInner = combineTitleOrg && org
                 ? `<span data-edit-path="${path}.org">${org}</span> <span class="cv3-field-title-role">- <span data-edit-path="${path}.title">${title}</span></span>`
@@ -1044,7 +1065,7 @@
 
             return `<div class="cv3-field" data-edit-item="${path}">
                 ${dateHtml}
-                <div class="cv3-field-logo">${logoHtml || ''}<span class="cv3-edit-logo-path cv3-edit-only" data-edit-path="${path}.logo.src" data-edit-type="image-src">${escapeHtml((item.logo && item.logo.src) || '')}</span></div>
+                <div class="cv3-field-logo">${logoHtml || ''}<span class="cv3-edit-logo-path cv3-edit-only" data-edit-path="${path}.logo.src" data-edit-type="image-src">${escapeHtml((item.logo && item.logo.src) || '')}</span><span class="cv3-edit-logo-path cv3-edit-only" data-edit-path="${path}.logoDark.src" data-edit-type="image-src">${escapeHtml((item.logoDark && item.logoDark.src) || '')}</span></div>
                 <h3 class="cv3-field-title">${titleInner}</h3>
                 ${orgLine}
                 ${descHtml}

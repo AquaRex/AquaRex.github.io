@@ -326,6 +326,7 @@
                 { key: 'org',         label: 'Company / Org', type: 'text',     value: entry.org   || '', full: true },
                 { key: 'description', label: 'Description',   type: 'textarea', value: descToString(entry.description), full: true, rows: 4 },
                 { key: 'logoSrc',     label: 'Logo',          type: 'image',    value: (entry.logo && entry.logo.src) || '', full: true, targetDir: 'assets/logos', filename: `${companySlug(entry.org || entry.title) || 'logo'}_logo.{ext}` },
+                { key: 'logoDarkSrc', label: 'Dark logo',     type: 'image',    value: (entry.logoDark && entry.logoDark.src) || '', full: true, targetDir: 'assets/logos', filename: `${companySlug(entry.org || entry.title) || 'logo'}_logo_dark.{ext}` },
             ],
             onSave: async (vals) => {
                 entry.date  = vals.date  || '';
@@ -334,6 +335,8 @@
                 entry.description = stringToDesc(entry.description, vals.description || '');
                 if (vals.logoSrc) entry.logo = Object.assign({}, entry.logo, { src: vals.logoSrc });
                 else delete entry.logo;
+                if (vals.logoDarkSrc) entry.logoDark = Object.assign({}, entry.logoDark, { src: vals.logoDarkSrc });
+                else delete entry.logoDark;
                 await saveCv();
             },
             onReload: refreshCv,
