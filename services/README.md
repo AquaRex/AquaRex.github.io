@@ -59,16 +59,45 @@ oceanBackground.updateMousePosition(mouseX, mouseY);
 oceanBackground.update();
 ```
 
-## Page-Specific Components
-
-### EditableCard (`editableCard.js`)
-Interactive 3D frame effects for DOM elements.
-
-### ProjectListManager (`projectListManager.js`)
-Manages a list of projects with interactive cards (used in projects page).
-
 ### Submarine, Kelp (`submarine.js`, `kelp.js`)
 Additional 3D elements for the ocean scene.
+
+### EditableCard (`editableCard.js`)
+Interactive 3D frame effects for DOM elements (used by the home page).
+
+## The "cv3" system (CV, Projects, Project detail)
+
+The CV (`/cv/`), projects gallery (`/projects/`), and each per-project detail
+page share one design language called **cv3**. There is a single source of truth
+for it:
+
+### `styles/cv3.css` — design system (single source of truth)
+Design tokens (colors, spacing, the `--frame` **border** token, the `--btn-*`
+**button** tokens), the reusable `.cv3-frame` and `.cv3-btn` components, plus the
+shared layout shell (reset/base, outer wrapper, nav, body grid, sections + strip,
+sidebar cards). **Edit a border or button here once and it changes everywhere.**
+
+Page-specific styles live next to their page and only hold what is unique:
+- `cv/cv.css` — hero, timeline fields, contact/skills, the compact CV project row.
+- `projects/projects.css` — the tall gallery card, search/filters, detail popup.
+- `services/projectDetail.css` — the `.pd-*` detail layout (it `@import`s `cv3.css`).
+
+### Render engines (one module per page)
+- `cv/cvView.js` — renders `CV_DATA` into the CV shell (`window.renderCv3`).
+- `projects/projectsView.js` — builds the gallery, filters, and search.
+- `services/projectDetail.js` — renders a single project's detail page.
+
+### Data (single source of truth)
+- `projects/projects.js` (`PROJECTS_DATA`) — every project. Its bootstrap merges
+  the matching entries back into `CV_DATA` at runtime, so `cv/cv.js` holds only
+  CV structure (profile, experience, education, companies) and no project copies.
+
+### Editing (localhost only — same component for Create and Edit)
+- `dataEditor.js` — the generic modal/field/save engine (one place for buttons,
+  field widgets, uploads). `projectEditor.js` and `cvEditor.js` build their
+  Create/Edit modals on top of it; the project field list is defined once in
+  `projectEditor.js` (`projectFieldDefs`) and reused by both New and Edit.
+- Saves go to the local `dev-server.py` (`/__save`, `/__save-cv`, uploads).
 
 ## Example: Creating a New Page
 

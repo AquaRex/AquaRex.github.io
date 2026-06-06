@@ -209,6 +209,22 @@
             outline: none;
             cursor: pointer;
         }
+        .de-monthyear { display: flex; gap: 8px; align-items: center; }
+        .de-monthyear .de-my-month { flex: 0 0 auto; }
+        .de-monthyear .de-my-year {
+            width: 92px;
+            background: var(--de-bg);
+            color: var(--de-text);
+            border: 2px solid var(--de-border);
+            border-radius: 0;
+            padding: 8px 10px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            outline: none;
+        }
+        .de-monthyear .de-my-year:focus { background: color-mix(in srgb, var(--de-bg) 85%, var(--de-accent)); }
+        .de-hint { display: block; margin-top: 4px; color: var(--de-muted); font-size: 0.72rem; }
         .de-field .de-select-custom {
             margin-top: 6px;
             background: var(--de-bg);
@@ -2055,11 +2071,50 @@
                 </div>
             </div>`;
         }
+        if (f.type === 'monthyear') {
+            // Reusable month + year picker. Stores "YYYY-MM" (or "YYYY" if no
+            // month, or "" if empty) in a hidden input read like any other field.
+            const val = v == null ? '' : String(v);
+            const mm  = val.match(/^(\d{4})(?:-(\d{1,2}))?$/);
+            const yr  = mm ? mm[1] : '';
+            const mo  = mm && mm[2] ? String(+mm[2]).padStart(2, '0') : '';
+            const MONTHS = [['', '— Month'], ['01', 'Jan'], ['02', 'Feb'], ['03', 'Mar'],
+                ['04', 'Apr'], ['05', 'May'], ['06', 'Jun'], ['07', 'Jul'], ['08', 'Aug'],
+                ['09', 'Sep'], ['10', 'Oct'], ['11', 'Nov'], ['12', 'Dec']];
+            return `<div class="${cls}">
+                <label>${escapeHtml(f.label)}</label>
+                <div class="de-monthyear">
+                    <select class="de-my-month" aria-label="${escapeAttr(f.label)} month">
+                        ${MONTHS.map(([mv, mn]) => `<option value="${mv}"${mv === mo ? ' selected' : ''}>${escapeHtml(mn)}</option>`).join('')}
+                    </select>
+                    <input type="text" class="de-my-year" inputmode="numeric" maxlength="4" placeholder="${escapeAttr(f.placeholder || 'Year')}" value="${escapeAttr(yr)}">
+                    <input type="hidden" data-key="${escapeAttr(f.key)}" value="${escapeAttr(val)}">
+                </div>
+                ${f.hint ? `<small class="de-hint">${escapeHtml(f.hint)}</small>` : ''}
+            </div>`;
+        }
         // default: text
         return `<div class="${cls}">
             <label>${escapeHtml(f.label)}</label>
             <input type="text" data-key="${escapeAttr(f.key)}" value="${escapeAttr(v ?? '')}" placeholder="${escapeAttr(f.placeholder || '')}">
         </div>`;
+    }
+
+    function setupMonthYearWidget(root) {
+        const month  = root.querySelector('.de-my-month');
+        const year   = root.querySelector('.de-my-year');
+        const hidden = root.querySelector('input[type="hidden"][data-key]');
+        if (!month || !year || !hidden) return;
+        const sync = () => {
+            const y = String(year.value || '').replace(/[^0-9]/g, '').slice(0, 4);
+            if (year.value !== y) year.value = y;
+            const m = String(month.value || '').trim();
+            hidden.value = y ? (m ? `${y}-${m}` : y) : '';
+        };
+        month.addEventListener('change', sync);
+        year.addEventListener('input', sync);
+        year.addEventListener('change', sync);
+        sync();
     }
 
     function readField(el) {
@@ -2115,6 +2170,7 @@
         overlay.querySelectorAll('.de-rows').forEach(setupRowsWidget);
         overlay.querySelectorAll('.de-image').forEach(setupImageWidget);
         overlay.querySelectorAll('.de-gallery').forEach(setupGalleryWidget);
+        overlay.querySelectorAll('.de-monthyear').forEach(setupMonthYearWidget);
 
         const close = () => {
             modalOpen = false;

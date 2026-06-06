@@ -211,8 +211,9 @@
         const backUrl = detailBackUrl();
         const backLabel = backUrl === '/cv/' ? 'Back to CV' : 'All Projects';
 
-        // Sibling projects (within same group)
+        // Sibling projects (within same company) — exclude group markers.
         const siblings = (group.projects || []).filter(p =>
+            !p.isGroup &&
             (p.name || '').toLowerCase() !== (project.name || '').toLowerCase()
         );
         const siblingsHtml = siblings.length

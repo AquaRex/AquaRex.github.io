@@ -1,6 +1,6 @@
 /* ==========================================================================
    CV Shared Layout — shadow-layer + dark-mode persistence
-   Shared between cv and any extension pages (e.g. cvprojects).
+   Shared by the CV (/cv/) and the projects gallery (/projects/).
 
    Required DOM:
      - <div id="cv3NavShadowLayer" aria-hidden="true"></div>
@@ -9,7 +9,7 @@
      - <button id="cv3DarkToggle">  (in nav)
      - <button id="cv3GlassToggle"> (in nav, with .is-active by default)
 
-   localStorage keys (shared across cv3 ↔ cvprojects):
+   localStorage keys (shared across all cv3 surfaces):
      - cv3-dark-mode      "1" | "0"
      - cv3-shadow-visible "1" | "0"
    ========================================================================== */

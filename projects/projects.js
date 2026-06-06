@@ -1,7 +1,7 @@
 /* =================================================================
    PROJECTS DATA — single source of truth for every project shown on
-   the site (CV experience listings, /projects/ gallery, /cvprojects/,
-   and per-project detail pages at /projects/<company>/<name>/).
+   the site (CV experience listings, /projects/ gallery, and
+   per-project detail pages at /projects/<company>/<name>/).
 
    Each entry declares which company/category it belongs to via
    `company`. Companies are defined in cv.js (experience[].org and
@@ -36,20 +36,6 @@ window.PROJECTS_DATA = [
     },
     {
         "company": "Nagelld",
-        "name": "Boat Simulator",
-        "summary": "Solo-developed boat simulator with realistic physics, multi-user crew, and modular boats in varied weather scenarios.",
-        "popupDescription": "I was the solo developer behind this Boat Simulator. The boat simulator features a highly realistic and detailed physics engine simulating accurate boat physics, and realistic crane physics for lowering the boat by davit. Multiple users can walk around freely on the boat while driving and need to work and communicate together to problem-solve and exercise in various waves, wind and weather conditions. The simulator is modular allowing you to swap out boats and setup custom scenarios quickly.",
-        "image": "/assets/images/projects/nagelld_boatsimulator/hero/nagelld_boatsimulator.jpeg",
-        "tags": [
-            "Unreal Engine",
-            "Blueprint",
-            "VR / XR",
-            "Networking"
-        ],
-        "heroVideo": ""
-    },
-    {
-        "company": "Nagelld",
         "name": "Boat Simulator Quest",
         "summary": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware.",
         "popupDescription": "Completely reworked the entire Boat Simulator and ported it from Unreal Engine to Unity for running on mobile VR hardware. Maintaining a good visual quality while optimized for running on weak hardware. The simulator includes all the features of the previous one, but adds better networking and hand-tracking features while supporting physical boat controls tied to the simulator.\n\nThe simulator features realistic boat physics and complex gerstner-wave calculations for realistic ocean waves affected by winds that pushes on every physics object in the scene. It features various scenario setups and open sandbox training that allow the instructor to alter the scenario in the middle of an excersize to simulate unexpected objectives. VR Trainees has realistic interactivity with objects, davit and boat systems, objects can be picked up, levers pulled and buttons pressed with both hand-tracking and VR controller support. Hatches can be opened and flashlights used to see in the dark. Trainees will have to adapt and communicate to overcome challenges that the Instructor throws at them. \n\nThe Instructor hosts a server where up to 5 VR trainees can join, the Instructor has full control of the scenario and overview of the simulation and can change weather, setup markers in the ocean, add search-patterns for the trainees to follow and override boat and davit systems. As showcased in the video above. \n",
@@ -62,6 +48,20 @@ window.PROJECTS_DATA = [
             "Mobile"
         ],
         "heroVideo": "https://pub-329e3bd197cd4a0dbe81fadc30cc032a.r2.dev/nagelld_boatsimulatorquest.mp4"
+    },
+    {
+        "company": "Nagelld",
+        "name": "Boat Simulator",
+        "summary": "Solo-developed boat simulator with realistic physics, multi-user crew, and modular boats in varied weather scenarios.",
+        "popupDescription": "I was the solo developer behind this Boat Simulator. The boat simulator features a highly realistic and detailed physics engine simulating accurate boat physics, and realistic crane physics for lowering the boat by davit. Multiple users can walk around freely on the boat while driving and need to work and communicate together to problem-solve and exercise in various waves, wind and weather conditions. The simulator is modular allowing you to swap out boats and setup custom scenarios quickly.",
+        "image": "/assets/images/projects/nagelld_boatsimulator/hero/nagelld_boatsimulator.jpeg",
+        "tags": [
+            "Unreal Engine",
+            "Blueprint",
+            "VR / XR",
+            "Networking"
+        ],
+        "heroVideo": ""
     },
     {
         "company": "Nagelld",
@@ -100,37 +100,6 @@ window.PROJECTS_DATA = [
             "Blender",
             "Substance Painter"
         ]
-    },
-    {
-        "name": "Software Launcher",
-        "company": "Nagelld",
-        "status": "Published",
-        "image": "/assets/images/projects/nagelld_softwarelauncher/hero/nagelld_softwarelauncher.png",
-        "tags": [
-            "Azure",
-            ".NET",
-            "SQL",
-            "C#"
-        ],
-        "summary": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. ",
-        "popupDescription": "A launcher with account verification to Azure for downloading and updating software and simulators. With an admin panel to invite users and administrate access. Users can be invited from the admin panel and will automatically receive an email with their access key / serial number and a download url for the appropriate launcher. The launcher is self-updating for maintanance and after logging in the user gets access to their application and can from there download, launch or update it. The launcher has a configurable offline mode that will allow the user to launch the application without internet access for a period of time, if the user was previously logged in, primarily for expo usage without reliable internet access. ",
-        "showOnCv": false,
-        "heroVideo": ""
-    },
-    {
-        "name": "Interactive Fishfarm",
-        "company": "Nagelld",
-        "status": "Published",
-        "image": "/assets/images/projects/nagelld_interactivefishfarm/hero/nagelld_interactivefishfarm.jpeg",
-        "heroVideo": "",
-        "tags": [
-            "Blueprint",
-            "Unreal Engine",
-            "Shaders"
-        ],
-        "summary": "An Interactive Application showcasing AkvaGroup's Nautilus submersible fish-farm system with realistic underwater shader with clean and user-friendly interface for expo showcase on touchscreens.",
-        "popupDescription": "An Interactive Application showcasing AkvaGroup's Nautilus submersible fish-farm system with realistic underwater shader or unlit view featuring clear graphics for more technical inspections. \nThe User-Interface and User-Experience is optimized for touchscreens and ease of use for people at expos to interact with on a large tv touchscreen. \n\nA radial menu provides shortcut access to Points placed around the model which moves the camera into customizable viewing angles with information popups for what you are looking at.\n\nThis software was the precursor for the Interactive Application software developed later in Unity. This was less flexible and was developed for visuals first, rather than optimized for mobile. ",
-        "showOnCv": false
     },
 
     /* ===== Visual Engineering ===== */
@@ -259,6 +228,18 @@ window.PROJECTS_DATA = [
         "summary": "A website made for the owners association where I live. The page was originally meant to just track what we had in our shared shed, but expanded to track usage, reservations and more. A webApp was also made for phones and computers to install it natively, with offline support. ",
         "popupDescription": "A website made for the owners association where I live. The page was originally meant to just track what we had in our shared shed, but expanded to track who was using what and when, and allow for reservations. A webApp was also made for phones and computers to install it natively, with offline support. \n\nLater, and really for a bit of experimentation I added a Calendar to track when someone had reserved something, but got an idea to allow anyone to create an event so others could see. For example if there was a \"dugnad\" it would be included in that calendar. \n\nWe also had a facebook messenger group, but sometimes I found it difficult to place who lived in which unit, and then add them on facebook or find their phone number if i wanted to talk to them directly, so instead I got the idea for a chat window where you use your house number to communicate with another house number. So It's relatively anonymous and you only need to know their house number to give them a heads-up. I also added the ability for everyone to talk in a global all-chat for general purpose information. \n\nThe idea for the design came from an idea that this should be homely, and cozy instead of professional looking, so i took inspiration from Nintendo's Animal Crossing. With some nice and toony animations and an easy to navigate user experience. ",
         "showOnCv": false
+    },
+
+    /* ===== Bouvet ===== */
+    {
+        "name": "EchoVR",
+        "company": "Bouvet",
+        "status": "Development",
+        "image": "/assets/logos/Bouvet_Logo.png",
+        "heroVideo": "",
+        "tags": [],
+        "summary": "Project  Description",
+        "popupDescription": ""
     }
 ];
 

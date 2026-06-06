@@ -46,11 +46,24 @@ UPLOAD_ALLOWED_PREFIXES = (
 MAX_UPLOAD_REQUEST_BYTES = 400_000_000  # JSON body cap (base64 + metadata)
 MAX_UPLOADED_FILE_BYTES = 300_000_000  # decoded file cap on disk
 
+
+def _target_allowed(target_dir: str) -> bool:
+    """True if target_dir is inside an allowed prefix.
+
+    Accepts a directory equal to a prefix itself (e.g. "assets/logos",
+    "assets/profile") as well as any sub-directory of it. Comparing with a
+    trailing slash appended makes the exact-prefix case match too — without
+    this, uploads that write directly into assets/logos or assets/profile
+    (logos, profile photos) were rejected.
+    """
+    probe = target_dir if target_dir.endswith("/") else target_dir + "/"
+    return any(probe.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES)
+
 FILE_HEADER = """\
 /* =================================================================
    PROJECTS DATA \u2014 single source of truth for every project shown on
-   the site (CV experience listings, /projects/ gallery, /cvprojects/,
-   and per-project detail pages at /projects/<company>/<name>/).
+   the site (CV experience listings, /projects/ gallery, and
+   per-project detail pages at /projects/<company>/<name>/).
 
    Each entry declares which company/category it belongs to via
    `company`. Companies are defined in cv.js (experience[].org and
@@ -126,7 +139,20 @@ def serialize_projects(projects: list[dict]) -> str:
 
 
 def serialize_cv(cv: dict) -> str:
-    """Render CV_DATA as a plain JS assignment with 4-space JSON indent."""
+    """Render CV_DATA as a plain JS assignment with 4-space JSON indent.
+
+    Project arrays are owned by projects/projects.js (PROJECTS_DATA) and merged
+    into CV_DATA at runtime by its bootstrap. Strip the merged `projects` arrays
+    back out before writing so cv.js stays the single source for CV structure and
+    never re-accumulates a duplicate copy of the project data.
+    """
+    cv = json.loads(json.dumps(cv))  # deep copy — don't mutate the caller
+    for entry in cv.get("experience", []):
+        if isinstance(entry, dict):
+            entry.pop("projects", None)
+    for group in cv.get("projects", []):
+        if isinstance(group, dict):
+            group.pop("projects", None)
     return "window.CV_DATA = " + json.dumps(cv, indent=4, ensure_ascii=False) + ";\n"
 
 
@@ -288,6 +314,8 @@ class DevHandler(SimpleHTTPRequestHandler):
 
         created: list[str] = []
         for p in projects:
+            if p.get("isGroup"):
+                continue  # groups are organizational, not real projects — no detail page
             company = p.get("company") or ""
             name    = p.get("name") or ""
             c_slug  = slugify(company)
@@ -333,7 +361,7 @@ class DevHandler(SimpleHTTPRequestHandler):
                 raise ValueError("targetDir, filename and dataBase64 required")
             if ".." in target_dir.split("/"):
                 raise ValueError("targetDir may not contain ..")
-            if not any(target_dir.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+            if not _target_allowed(target_dir):
                 raise ValueError(
                     "targetDir must start with one of: "
                     + ", ".join(UPLOAD_ALLOWED_PREFIXES)
@@ -408,7 +436,7 @@ class DevHandler(SimpleHTTPRequestHandler):
                 raise ValueError("bad content-length")
             if ".." in target_dir.split("/"):
                 raise ValueError("targetDir may not contain ..")
-            if not any(target_dir.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+            if not _target_allowed(target_dir):
                 raise ValueError("targetDir must start with one of: " + ", ".join(UPLOAD_ALLOWED_PREFIXES))
 
             name = re.sub(r"[^A-Za-z0-9._-]+", "-", filename).strip("-._")
@@ -453,7 +481,7 @@ class DevHandler(SimpleHTTPRequestHandler):
             raise ValueError("targetDir required")
         if ".." in target_dir.split("/"):
             raise ValueError("targetDir may not contain ..")
-        if not any(target_dir.startswith(p) for p in UPLOAD_ALLOWED_PREFIXES):
+        if not _target_allowed(target_dir):
             raise ValueError(
                 "targetDir must start with one of: "
                 + ", ".join(UPLOAD_ALLOWED_PREFIXES)

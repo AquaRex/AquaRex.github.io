@@ -92,8 +92,42 @@
         return [...set].sort((a, b) => a.localeCompare(b));
     }
 
+    /* ---------- collect every group name across PROJECTS_DATA ---------- */
+    function knownGroupNames() {
+        const set = new Set();
+        (window.PROJECTS_DATA || []).forEach(p => {
+            if (p.isGroup && p.name) set.add(String(p.name).trim());
+        });
+        return [...set].sort((a, b) => a.localeCompare(b));
+    }
+
     function entryKey(entry) {
         return `${String(entry.company || '').toLowerCase()}::${String(entry.name || '').toLowerCase()}`;
+    }
+
+    /* ---------- single source for the project modal's field list ----------
+       Both "New Project" and "Edit Project" render the same fields; only the
+       media inputs differ (Edit uses upload widgets + a gallery, New uses
+       plain path/URL text inputs). Pass the media-specific fields in via
+       `mediaFields` so there is exactly one place to add or change a field. */
+    function projectFieldDefs(entry, { companies, mediaFields }) {
+        const link = entry.link || {};
+        const groupOpts = [{ value: '', label: '— None —' }, ...knownGroupNames().map(n => ({ value: n, label: n }))];
+        return [
+            { key: 'name',             label: 'Name',                       type: 'text',     value: entry.name },
+            { key: 'company',          label: 'Company',                    type: 'select',   value: entry.company, options: companies },
+            { key: 'group',            label: 'Group',                      type: 'select',   value: entry.group || '', options: groupOpts, allowCustom: true, customPlaceholder: 'Or type a new group name' },
+            { key: 'date',             label: 'Date',                       type: 'text',     value: entry.date,    placeholder: 'YYYY-MM-DD or freeform' },
+            { key: 'status',           label: 'Status',                     type: 'text',     value: entry.status,  placeholder: 'Published / Development / ...' },
+            ...mediaFields,
+            { key: 'tags',             label: 'Tags',                       type: 'tags',     value: entry.tags || [], full: true, suggestions: knownTags() },
+            { key: 'summary',          label: 'Summary (card description)', type: 'textarea', value: entry.summary, full: true, rows: 3 },
+            { key: 'popupDescription', label: 'Popup / Detail Description', type: 'textarea', value: entry.popupDescription, full: true, rows: 6 },
+            { key: 'link.url',         label: 'Link URL',                   type: 'text',     value: link.url },
+            { key: 'link.label',       label: 'Link Label',                 type: 'text',     value: link.label },
+            { key: 'link.showOnCard',  label: 'Show link on card',          type: 'bool',     value: !!link.showOnCard },
+            { key: 'showOnCv',         label: 'Show on CV',                 type: 'bool',     value: entry.showOnCv !== false },
+        ];
     }
 
     function moveProject(entry, direction) {
@@ -163,7 +197,6 @@
 
     /* ---------- open project editor for an entry ---------- */
     function editProject(entry) {
-        const link = entry.link || {};
         const companies = knownCompanies();
         // Make sure the entry's current company appears in the dropdown.
         if (entry.company && !companies.includes(entry.company)) {
@@ -177,22 +210,14 @@
         DE.openModal({
             title:    'Edit Project',
             subtitle: `${entry.company || ''} · ${entry.name || ''}`,
-            fields: [
-                { key: 'name',                label: 'Name',                       type: 'text',     value: entry.name },
-                { key: 'company',             label: 'Company',                    type: 'select',   value: entry.company, options: companies },
-                { key: 'date',                label: 'Date',                       type: 'text',     value: entry.date,        placeholder: 'YYYY-MM-DD or freeform' },
-                { key: 'status',              label: 'Status',                     type: 'text',     value: entry.status,      placeholder: 'Published / Development / ...' },
-                { key: 'image',               label: 'Hero Image',                 type: 'image',    value: entry.image,       full: true, targetDir: heroDir, filename: `${slug || 'hero'}.{ext}` },
-                { key: 'heroVideo',           label: 'Hero Video',                 type: 'video',    value: entry.heroVideo,   full: true, targetDir: videoDir, filename: `${slug || 'hero'}.{ext}` },
-                { key: '__media',             label: 'Media gallery',              type: 'image-gallery', full: true, targetDir: mediaDir, videoTargetDir: mediaVideoDir, excludePaths: [entry.image, entry.heroVideo].filter(Boolean) },
-                { key: 'tags',                label: 'Tags',                       type: 'tags',     value: entry.tags || [],  full: true, suggestions: knownTags() },
-                { key: 'summary',             label: 'Summary (card description)', type: 'textarea', value: entry.summary,     full: true, rows: 3 },
-                { key: 'popupDescription',    label: 'Popup / Detail Description', type: 'textarea', value: entry.popupDescription, full: true, rows: 6 },
-                { key: 'link.url',            label: 'Link URL',                   type: 'text',     value: link.url },
-                { key: 'link.label',          label: 'Link Label',                 type: 'text',     value: link.label },
-                { key: 'link.showOnCard',     label: 'Show link on card',          type: 'bool',     value: !!link.showOnCard },
-                { key: 'showOnCv',            label: 'Show on CV',                 type: 'bool',     value: entry.showOnCv !== false },
-            ],
+            fields: projectFieldDefs(entry, {
+                companies,
+                mediaFields: [
+                    { key: 'image',     label: 'Hero Image',    type: 'image',         value: entry.image,     full: true, targetDir: heroDir,  filename: `${slug || 'hero'}.{ext}` },
+                    { key: 'heroVideo', label: 'Hero Video',    type: 'video',         value: entry.heroVideo, full: true, targetDir: videoDir, filename: `${slug || 'hero'}.{ext}` },
+                    { key: '__media',   label: 'Media gallery', type: 'image-gallery', full: true, targetDir: mediaDir, videoTargetDir: mediaVideoDir, excludePaths: [entry.image, entry.heroVideo].filter(Boolean) },
+                ],
+            }),
             onSave: async (values) => {
                 // Strip transient gallery key — it's not part of the data.
                 delete values.__media;
@@ -200,7 +225,7 @@
                 values.heroVideo = await migrateHeroAsset(values.heroVideo, mediaVideoDir, videoDir, `${slug || 'hero'}.{ext}`);
                 Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
                 // Trim empty optional fields
-                ['date', 'status'].forEach(k => { if (entry[k] === '') delete entry[k]; });
+                ['date', 'status', 'group'].forEach(k => { if (entry[k] === '' || entry[k] == null) delete entry[k]; });
                 if (entry.link && !entry.link.url && !entry.link.label && entry.link.showOnCard === false) {
                     delete entry.link;
                 }
@@ -209,8 +234,11 @@
             },
         });
     }
-    // Expose so cvEditor can delegate.
-    window.ProjectEditor = { editProject, findEntry };
+    // Expose so cvEditor can delegate (same modals, no duplicate UI).
+    window.ProjectEditor = {
+        editProject, findEntry, createNewProject,
+        createNewGroup, editGroup, knownGroupNames,
+    };
 
     /* ---------- known companies (defined in cv.js) ----------
        Companies are managed exclusively from the CV. We collect the
@@ -239,12 +267,16 @@
         return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b));
     }
 
-    /* ---------- create a brand-new project entry ---------- */
-    function createNewProject() {
+    /* ---------- create a brand-new project entry ----------
+       `preset` may carry { company, group } so callers (e.g. the CV editor's
+       per-company "New Project" button) open the SAME modal with the company
+       (and optionally the group) pre-filled. */
+    function createNewProject(preset = {}) {
         const companies = knownCompanies();
         const draft = {
             name: '',
-            company: companies[0] || '',
+            company: preset.company || companies[0] || '',
+            group: preset.group || '',
             date: '',
             status: 'Development',
             image: '',
@@ -258,21 +290,13 @@
         DE.openModal({
             title:    'New Project',
             subtitle: 'Add a new entry to PROJECTS_DATA',
-            fields: [
-                { key: 'name',                label: 'Name',                       type: 'text',     value: draft.name },
-                { key: 'company',             label: 'Company',                    type: 'select',   value: draft.company, options: companies },
-                { key: 'date',                label: 'Date',                       type: 'text',     value: draft.date,   placeholder: 'YYYY-MM-DD or freeform' },
-                { key: 'status',              label: 'Status',                     type: 'text',     value: draft.status, placeholder: 'Published / Development / ...' },
-                { key: 'image',               label: 'Image (path or URL)',        type: 'text',     value: draft.image,  full: true },
-                { key: 'heroVideo',           label: 'Hero Video (path or URL)',   type: 'text',     value: draft.heroVideo, full: true },
-                { key: 'tags',                label: 'Tags',                       type: 'tags',     value: draft.tags,   full: true, suggestions: knownTags() },
-                { key: 'summary',             label: 'Summary (card description)', type: 'textarea', value: draft.summary, full: true, rows: 3 },
-                { key: 'popupDescription',    label: 'Popup / Detail Description', type: 'textarea', value: draft.popupDescription, full: true, rows: 6 },
-                { key: 'link.url',            label: 'Link URL',                   type: 'text',     value: draft.link.url },
-                { key: 'link.label',          label: 'Link Label',                 type: 'text',     value: draft.link.label },
-                { key: 'link.showOnCard',     label: 'Show link on card',          type: 'bool',     value: draft.link.showOnCard },
-                { key: 'showOnCv',            label: 'Show on CV',                 type: 'bool',     value: draft.showOnCv },
-            ],
+            fields: projectFieldDefs(draft, {
+                companies,
+                mediaFields: [
+                    { key: 'image',     label: 'Image (path or URL)',      type: 'text', value: draft.image,     full: true },
+                    { key: 'heroVideo', label: 'Hero Video (path or URL)', type: 'text', value: draft.heroVideo, full: true },
+                ],
+            }),
             onSave: async (values) => {
                 const entry = {};
                 Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
@@ -282,7 +306,7 @@
                 if (!entry.company || !String(entry.company).trim()) {
                     throw new Error('Company is required');
                 }
-                ['date', 'status'].forEach(k => { if (entry[k] === '') delete entry[k]; });
+                ['date', 'status', 'group'].forEach(k => { if (entry[k] === '' || entry[k] == null) delete entry[k]; });
                 if (entry.link && !entry.link.url && !entry.link.label && entry.link.showOnCard === false) {
                     delete entry.link;
                 }
@@ -298,6 +322,89 @@
                 // Reload so all renderers (gallery, filters, CV) pick up the new entry.
                 location.reload();
             },
+        });
+    }
+
+    /* ---------- group entries (isGroup:true in PROJECTS_DATA) ---------- */
+    function groupFieldDefs(entry, companies) {
+        const slug = folderSlug(entry.company, entry.name);
+        const imageDir = slug ? `assets/images/projects/${slug}/hero` : 'assets/images/projects/hero';
+        return [
+            { key: 'name',    label: 'Group Name',          type: 'text',     value: entry.name || '' },
+            { key: 'company', label: 'Company',             type: 'select',   value: entry.company, options: companies },
+            { key: 'image',   label: 'Image (optional)',    type: 'image',    value: entry.image || '', full: true, targetDir: imageDir, filename: `${slug || 'group'}.{ext}` },
+            { key: 'summary', label: 'Summary (optional)',  type: 'textarea', value: entry.summary || '', full: true, rows: 2 },
+        ];
+    }
+
+    function createNewGroup(preset = {}) {
+        const companies = knownCompanies();
+        const draft = { isGroup: true, name: '', company: preset.company || companies[0] || '', image: '', summary: '' };
+        DE.openModal({
+            title: 'New Group',
+            subtitle: 'A group bundles related projects under a company',
+            fields: groupFieldDefs(draft, companies),
+            onSave: async (values) => {
+                const entry = { isGroup: true };
+                Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
+                if (!entry.name || !String(entry.name).trim()) throw new Error('Group name is required');
+                if (!entry.company || !String(entry.company).trim()) throw new Error('Company is required');
+                if (!entry.image) delete entry.image;
+                if (!entry.summary) delete entry.summary;
+                if (findEntry(entry.company, entry.name)) {
+                    throw new Error(`"${entry.name}" already exists under "${entry.company}".`);
+                }
+                window.PROJECTS_DATA = window.PROJECTS_DATA || [];
+                window.PROJECTS_DATA.push(entry);
+                await DE.saveJson('/__save', { projects: window.PROJECTS_DATA });
+                location.reload();
+            },
+        });
+    }
+
+    function editGroup(entry) {
+        const companies = knownCompanies();
+        if (entry.company && !companies.includes(entry.company)) companies.unshift(entry.company);
+        const oldName = entry.name;
+        const oldCompany = entry.company;
+        const sameGroup = (p) =>
+            !p.isGroup &&
+            (p.company || '').toLowerCase() === (oldCompany || '').toLowerCase() &&
+            (p.group || '').toLowerCase() === (oldName || '').toLowerCase();
+        DE.openModal({
+            title: 'Edit Group',
+            subtitle: `${entry.company || ''} · ${entry.name || ''}`,
+            fields: groupFieldDefs(entry, companies),
+            onSave: async (values) => {
+                const newName = String(values.name || '').trim();
+                if (!newName) throw new Error('Group name is required');
+                // Re-point members BEFORE mutating the entry (uses old name/company).
+                const newCompany = String(values.company || entry.company || '').trim();
+                if (newName !== oldName || newCompany !== oldCompany) {
+                    (window.PROJECTS_DATA || []).forEach(p => {
+                        if (sameGroup(p)) { p.group = newName; p.company = newCompany; }
+                    });
+                }
+                Object.entries(values).forEach(([k, v]) => DE.setPath(entry, k, v));
+                entry.isGroup = true;
+                if (!entry.image) delete entry.image;
+                if (!entry.summary) delete entry.summary;
+                await DE.saveJson('/__save', { projects: window.PROJECTS_DATA });
+                location.reload();
+            },
+            extraButtons: [{
+                label: 'Delete', danger: true,
+                onClick: async () => {
+                    if (!confirm(`Delete group "${entry.name}"? Its projects become ungrouped (they are not deleted).`)) {
+                        return { keepOpen: true };
+                    }
+                    (window.PROJECTS_DATA || []).forEach(p => { if (sameGroup(p)) delete p.group; });
+                    const i = window.PROJECTS_DATA.indexOf(entry);
+                    if (i >= 0) window.PROJECTS_DATA.splice(i, 1);
+                    await DE.saveJson('/__save', { projects: window.PROJECTS_DATA });
+                    location.reload();
+                },
+            }],
         });
     }
 
