@@ -15,7 +15,7 @@ window.CV_DATA = {
         },
         {
             "label": "Phone",
-            "value": "+47 46632234"
+            "value": "+47  46632234"
         },
         {
             "label": "Email",
@@ -33,8 +33,7 @@ window.CV_DATA = {
         {
             "label": "Social",
             "value": "LinkedIn",
-            "href": "https://www.linkedin.com/in/thomashetland/",
-            "target": "_blank"
+            "href": "https://www.linkedin.com/in/thomashetland/"
         }
     ],
     "skills": [

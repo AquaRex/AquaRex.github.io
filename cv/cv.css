@@ -176,10 +176,25 @@ body.cv-edit-mode .cv3-projects-list .cv3-edit-only { display: none !important; 
 /* ===== TIMELINE FIELDS ===== */
 .cv3-field {
     padding: var(--sp-6);
-    border-bottom: var(--frame);
     position: relative;
+    margin-bottom: var(--sp-7);
 }
-.cv3-field:last-child { border-bottom: none; }
+.cv3-field:last-child { margin-bottom: 0; }
+
+/* ===== FIELDS SECTION — per-company brackets =====
+   Drop the section box's continuous right + bottom borders; instead the header
+   and each company draw their own top/right/bottom (open on the left toward the
+   strip). The right line then splits at each gap, giving one "]" per company,
+   while the dark strip stays as the continuous left edge. */
+.cv3-fields-section { border-right: none; border-bottom: none; }
+.cv3-fields-section .cv3-section-header { border-right: var(--frame); }
+.cv3-fields-section .cv3-field {
+    border-top: var(--frame);
+    border-right: var(--frame);
+    border-bottom: var(--frame);
+}
+/* First company connects straight to the header (no gap, no doubled line). */
+.cv3-fields-section .cv3-field:first-child { border-top: none; }
 .cv3-field-date {
     position: absolute;
     top: var(--sp-4);

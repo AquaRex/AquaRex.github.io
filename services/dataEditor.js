@@ -37,7 +37,9 @@
     const IS_LOCAL = HOST === 'localhost' || HOST === '127.0.0.1' || HOST === '::1';
 
     /* ---------- shared styles (idempotent injection) ---------- */
-    const CSS = `
+    // NOTE: named EDITOR_CSS (not CSS) so it doesn't shadow the global CSS
+    // interface — readDom() below relies on the real CSS.escape().
+    const EDITOR_CSS = `
         :root {
             --de-accent: var(--accent-color, #fbc25b);
             --de-bg:     var(--bg, #e0dcd9);
@@ -716,7 +718,7 @@
         if (stylesInjected) return;
         stylesInjected = true;
         const el = document.createElement('style');
-        el.textContent = CSS;
+        el.textContent = EDITOR_CSS;
         document.head.appendChild(el);
     }
 
@@ -2223,12 +2225,13 @@
             statusEl.classList.remove('is-error', 'is-ok');
             statusEl.textContent = 'Saving…';
 
-            const values = {};
-            overlay.querySelectorAll('[data-key]').forEach(el => {
-                values[el.getAttribute('data-key')] = readField(el);
-            });
-
             try {
+                // Collect field values inside the try so a reader throwing
+                // surfaces as "Save failed" rather than a stuck "Saving…".
+                const values = {};
+                overlay.querySelectorAll('[data-key]').forEach(el => {
+                    values[el.getAttribute('data-key')] = readField(el);
+                });
                 // Flush any gallery edits (captions / order) first. Always
                 // run — the dirty flag is best-effort and easy to miss.
                 const galleryRoots = overlay.querySelectorAll('.de-gallery');

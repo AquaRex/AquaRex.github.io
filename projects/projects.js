@@ -108,30 +108,30 @@ window.PROJECTS_DATA = [
         "name": "VR Crane Simulator",
         "summary": "Overhead and tower crane VR simulator with courses to test operator skill. Published to Meta AppStore, runs natively on mobile VR hardware.",
         "popupDescription": "Crane Simulator for overhead crane and tower-crane providing various challenges and courses to test operators skill. Published to Meta AppStore. Running directly on mobile VR hardware.",
-        "image": "/assets/images/projects/visualengineering_vrcranesimulator/SCR-20260503-tfxa.jpeg",
+        "image": "/assets/images/projects/visualengineering_vrcranesimulator/hero/visualengineering_vrcranesimulator.jpeg",
         "tags": [
             "VR / XR",
             "Mobile",
             "Unreal Engine",
-            "Blueprint",
-            "Engine Tools"
-        ]
+            "Blueprint"
+        ],
+        "heroVideo": ""
     },
     {
         "name": "Tower-Crane Simulator",
         "company": "Visual Engineering",
         "date": "2021",
         "status": "Published",
-        "image": "/assets/images/projects/visualengineering_towercranesimulator/SCR-20260503-tdau.jpeg",
+        "image": "/assets/images/projects/visualengineering_towercranesimulator/hero/visualengineering_towercranesimulator.jpeg",
         "tags": [
             "Unreal Engine",
             "Blueprint",
             "VR / XR",
-            "Networking",
-            "Engine Tools"
+            "Networking"
         ],
         "summary": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions.",
-        "popupDescription": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions."
+        "popupDescription": "A complex, multi-user Tower-Crane Simulator with several scenarios and loads to lift in various weather conditions.",
+        "heroVideo": ""
     },
 
     /* ===== Side-Projects ===== */

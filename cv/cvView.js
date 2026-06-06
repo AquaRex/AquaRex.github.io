@@ -328,7 +328,10 @@ function renderSectionHtml(section, num, data, sectionIndex) {
         </section>`;
     }
 
-    return `<section class="cv3-section cv3-dynamic-section" data-edit-item="sections.${sectionIndex}">
+    // `fields` sections render each company as its own bracket on the right
+    // (see .cv3-fields-section in cv.css); other section types keep one box.
+    const fieldsCls = section.type === 'fields' ? ' cv3-fields-section' : '';
+    return `<section class="cv3-section cv3-dynamic-section${fieldsCls}" data-edit-item="sections.${sectionIndex}">
         <div class="cv3-strip">${iconSvg}<span class="cv3-strip-num">${numStr}</span></div>
         <div class="cv3-section-header" data-edit-path="sections.${sectionIndex}.title">${title}</div>
         ${contentHtml}
